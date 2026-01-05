@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/teacher/assignments}">Mes devoirs</a></li>
+        <li class="breadcrumb-item active">Soumissions</li>
+    </ol>
+</nav>
+
+<!-- En-tête du devoir -->
+<div class="card mb-4 border-primary">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <span class="badge bg-secondary mb-2" th:text="${assignment.course?.code}">CODE</span>
+                <h3 class="mb-2" th:text="${assignment.title}">Titre du devoir</h3>
+                <p class="text-muted mb-0" th:text="${assignment.description}">Description</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="mb-2">
+                    <strong>Date limite:</strong><br>
+                    <span th:text="${#temporals.format(assignment.dueDate, 'dd/MM/yyyy HH:mm')}">
+                        01/01/2024 23:59
+                    </span>
+                </div>
+                <div>
+                    <strong>Note max:</strong>
+                    <span class="text-primary fs-5" th:text="${assignment.maxGrade}">20</span> pts
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats des soumissions -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-info">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Total soumissions</h6>
+                <h2 class="text-info mb-0">
+                    <span th:text="${totalSubmissions != null ? totalSubmissions : 0}">0</span>
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body text-center">
+                <h6 class="text-muted">À corriger</h6>
+                <h2 class="text-warning mb-0">
+                    <span th:text="${ungradedCount != null ? ungradedCount : 0}">0</span>
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Corrigées</h6>
+                <h2 class="text-success mb-0">
+                    <span th:text="${gradedCount != null ? gradedCount : 0}">0</span>
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-danger">
+            <div class="card-body text-center">
+                <h6 class="text-muted">En retard</h6>
+                <h2 class="text-danger mb-0">
+                    <span th:text="${lateCount != null ? lateCount : 0}">0</span>
+                </h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-primary">
+                <i class="bi bi-download me-2"></i>Télécharger toutes les soumissions
+            </button>
+            <button class="btn btn-success">
+                <i class="bi bi-file-earmark-spreadsheet me-2"></i>Exporter les notes (CSV)
+            </button>
+            <a th:href="@{|/teacher/assignments/${assignment.id}/grade-all|}" class="btn btn-info">
+                <i class="bi bi-pencil-square me-2"></i>Correction en masse
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Liste des soumissions -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Soumissions des étudiants</h5>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-sm btn-outline-primary active">Toutes</button>
+            <button type="button" class="btn btn-sm btn-outline-warning">À corriger</button>
+            <button type="button" class="btn btn-sm btn-outline-success">Corrigées</button>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                <tr>
+                    <th>Étudiant</th>
+                    <th>Date de soumission</th>
+                    <th>Fichier</th>
+                    <th>Note</th>
+                    <th>Statut</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${submissions == null || #lists.isEmpty(submissions)}">
+                    <td colspan="6" class="text-center py-5">
+                        <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+                        <h5 class="text-muted">Aucune soumission</h5>
+                        <p class="text-muted">Les étudiants n'ont pas encore rendu ce devoir</p>
+                    </td>
+                </tr>
+
+                <tr th:each="s : ${submissions}">
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+                                 style="width: 40px; height: 40px;">
+                                <strong th:text="${#strings.substring(s.student.firstName, 0, 1) + #strings.substring(s.student.lastName, 0, 1)}">AB</strong>
+                            </div>
+                            <div>
+                                <strong th:text="${s.student.firstName + ' ' + s.student.lastName}">Nom Prénom</strong>
+                                <br>
+                                <small class="text-muted" th:text="${s.student.email}">email@example.com</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span th:text="${#temporals.format(s.submittedAt, 'dd/MM/yyyy HH:mm')}">
+                            01/01/2024 10:00
+                        </span>
+                        <br>
+                        <span th:if="${s.submittedAt != null && assignment.dueDate != null && s.submittedAt.isAfter(assignment.dueDate)}"
+                              class="badge bg-danger">
+                            En retard
+                        </span>
+                        <span th:if="${s.submittedAt != null && assignment.dueDate != null && !s.submittedAt.isAfter(assignment.dueDate)}"
+                              class="badge bg-success">
+                            Dans les temps
+                        </span>
+                    </td>
+                    <td>
+                        <a th:href="@{|/resources/download?url=${s.fileUrl}|}"
+                           class="btn btn-sm btn-outline-primary"
+                           target="_blank">
+                            <i class="bi bi-download me-1"></i>Télécharger
+                        </a>
+                    </td>
+                    <td>
+                        <span th:if="${s.grade != null}" class="fs-5 fw-bold text-success">
+                            <span th:text="${s.grade}">15</span>/<span th:text="${assignment.maxGrade}">20</span>
+                        </span>
+                        <span th:if="${s.grade == null}" class="text-muted">
+                            Pas encore noté
+                        </span>
+                    </td>
+                    <td>
+                        <span th:if="${s.grade != null}" class="badge bg-success">
+                            <i class="bi bi-check-circle me-1"></i>Corrigé
+                        </span>
+                        <span th:if="${s.grade == null}" class="badge bg-warning">
+                            <i class="bi bi-hourglass-split me-1"></i>À corriger
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <a th:href="@{|/teacher/assignments/submissions/${s.id}/grade|}"
+                           class="btn btn-sm btn-primary">
+                            <i class="bi bi-pencil me-1"></i>
+                            <span th:text="${s.grade != null ? 'Modifier' : 'Noter'}">Noter</span>
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

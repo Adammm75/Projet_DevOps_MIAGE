@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-0">
+            <i class="bi bi-clipboard-check me-2"></i>Gestion des devoirs
+        </h2>
+        <p class="text-muted mb-0">
+            <span th:if="${course != null}">
+                Devoirs du cours : <strong th:text="${course.code + ' - ' + course.title}">Cours</strong>
+            </span>
+            <span th:if="${course == null}">
+                Créez, gérez et corrigez les devoirs de vos cours
+            </span>
+        </p>
+    </div>
+    <div class="col-auto">
+        <!-- ✅ CORRIGÉ : Avec courseId si disponible -->
+        <a th:if="${course != null}"
+           th:href="@{/teacher/assignments/new(courseId=${course.id})}"
+           class="btn btn-success">
+            <i class="bi bi-plus-circle me-2"></i>Nouveau devoir
+        </a>
+
+        <!-- ✅ NOUVEAU : Dropdown si pas de cours spécifique -->
+        <div th:if="${course == null}" class="dropdown">
+            <button class="btn btn-success dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown">
+                <i class="bi bi-plus-circle me-2"></i>Nouveau devoir
+            </button>
+            <ul class="dropdown-menu">
+                <li th:if="${courses == null || #lists.isEmpty(courses)}">
+                    <span class="dropdown-item-text text-muted">Aucun cours disponible</span>
+                </li>
+                <li th:each="c : ${courses}">
+                    <a class="dropdown-item"
+                       th:href="@{/teacher/assignments/new(courseId=${c.id})}"
+                       th:text="${c.code + ' - ' + c.title}">Cours</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Messages flash -->
+<div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+    <i class="bi bi-check-circle-fill me-2"></i><span th:text="${success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<!-- Filtres (seulement si pas de cours spécifique) -->
+<div th:if="${course == null}" class="card mb-4">
+    <div class="card-body">
+        <form class="row g-3" method="get">
+            <div class="col-md-6">
+                <label class="form-label">Cours</label>
+                <select class="form-select" name="courseId" onchange="this.form.submit()">
+                    <option selected value="">Tous les cours</option>
+                    <option th:each="c : ${courses}"
+                            th:value="${c.id}"
+                            th:text="${c.code + ' - ' + c.title}">
+                        Cours
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Statut</label>
+                <select class="form-select" name="status">
+                    <option value="" selected>Tous</option>
+                    <option value="active">Actifs</option>
+                    <option value="past">Passés</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-funnel me-2"></i>Filtrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Stats rapides -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-primary">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Total devoirs</h6>
+                <h2 class="text-primary mb-0">
+                    <span th:text="${assignments != null ? #lists.size(assignments) : 0}">0</span>
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body text-center">
+                <h6 class="text-muted">À corriger</h6>
+                <h2 class="text-warning mb-0" th:text="${pendingGradingCount != null ? pendingGradingCount : 0}">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-info">
+            <div class="card-body text-center">
+                <h6 class="text-muted">En cours</h6>
+                <h2 class="text-info mb-0" th:text="${activeCount != null ? activeCount : 0}">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Terminés</h6>
+                <h2 class="text-success mb-0" th:text="${completedCount != null ? completedCount : 0}">0</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Liste des devoirs -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>Mes devoirs</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                <tr>
+                    <th th:if="${course == null}">Cours</th>
+                    <th>Titre</th>
+                    <th>Date limite</th>
+                    <th>Note max</th>
+                    <th class="text-center">Soumissions</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${assignments == null || #lists.isEmpty(assignments)}">
+                    <td th:colspan="${course == null ? 6 : 5}" class="text-center py-5">
+                        <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+                        <h5 class="text-muted">Aucun devoir créé</h5>
+                        <p class="text-muted mb-3">Créez votre premier devoir pour commencer</p>
+                        <a th:if="${course != null}"
+                           th:href="@{/teacher/assignments/new(courseId=${course.id})}"
+                           class="btn btn-success">
+                            <i class="bi bi-plus-circle me-2"></i>Créer un devoir
+                        </a>
+                    </td>
+                </tr>
+
+                <tr th:each="a : ${assignments}">
+                    <td th:if="${course == null}">
+                        <span class="badge bg-secondary"
+                              th:text="${a.course?.code}">CODE</span>
+                    </td>
+                    <td>
+                        <strong th:text="${a.title}">Titre du devoir</strong>
+                        <p class="mb-0 small text-muted">
+                            <span th:if="${a.description != null && !#strings.isEmpty(a.description)}"
+                                  th:text="${#strings.abbreviate(a.description, 50)}">
+                                Description
+                            </span>
+                            <span th:if="${a.description == null || #strings.isEmpty(a.description)}"
+                                  class="fst-italic">
+                                Aucune description
+                            </span>
+                        </p>
+                    </td>
+                    <td>
+                        <!-- ✅ CORRIGÉ : Format Instant -->
+                        <span th:text="${#temporals.format(a.dueDate, 'dd/MM/yyyy HH:mm')}">
+                            01/01/2024 23:59
+                        </span>
+                        <br>
+                        <!-- ✅ CORRIGÉ : Comparaison avec Instant -->
+                        <span th:if="${a.dueDate != null && a.dueDate.isBefore(T(java.time.Instant).now())}"
+                              class="badge bg-secondary">
+                            <i class="bi bi-check me-1"></i>Terminé
+                        </span>
+                        <span th:if="${a.dueDate == null || a.dueDate.isAfter(T(java.time.Instant).now())}"
+                              class="badge bg-success">
+                            <i class="bi bi-clock me-1"></i>En cours
+                        </span>
+                    </td>
+                    <td>
+                        <strong th:text="${a.maxGrade}">20</strong> pts
+                    </td>
+                    <td class="text-center">
+                        <span class="badge fs-6 bg-info">
+                            0 soumissions
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm">
+                            <a th:href="@{/teacher/assignments/{id}/submissions(id=${a.id})}"
+                               class="btn btn-outline-success"
+                               title="Voir les soumissions">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a th:href="@{/teacher/assignments/{id}/edit(id=${a.id})}"
+                               class="btn btn-outline-primary"
+                               title="Modifier">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <!-- ✅ CORRIGÉ : Formulaire de suppression avec confirmation -->
+                            <form th:action="@{/teacher/assignments/{id}/delete(id=${a.id})}"
+                                  method="post"
+                                  class="d-inline delete-form"
+                                  th:data-title="${a.title}">
+                                <button type="submit"
+                                        class="btn btn-outline-danger btn-sm"
+                                        title="Supprimer">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ Script de confirmation de suppression -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.delete-form').forEach(form => {
+            form.addEventListener('submit', e => {
+                const title = form.getAttribute('data-title');
+                const msg = 'Supprimer le devoir "' + title + '" ?\n\n⚠️ Cette action est irréversible.\nToutes les soumissions seront également supprimées.';
+                if (!confirm(msg)) {
+                    e.preventDefault();
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
