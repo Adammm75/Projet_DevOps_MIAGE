@@ -1,8 +1,10 @@
-package org.example.devopslearning.entities;
+package com.elearning.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -11,6 +13,7 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
+import java.util.List;
 
 @Getter
 @Setter
@@ -45,5 +48,8 @@ public class User {
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<UserRole> userRoles;
 
 }

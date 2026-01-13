@@ -1,4 +1,4 @@
-package org.example.devopslearning.entities;
+package com.elearning.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

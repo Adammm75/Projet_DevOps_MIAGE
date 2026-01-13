@@ -1,4 +1,4 @@
-package org.example.devopslearning.entities;
+package com.elearning.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -14,8 +14,8 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity
-@Table(name = "notifications")
-public class Notification {
+@Table(name = "course_resources")
+public class CourseResource {
     @Id
     @Column(name = "id", nullable = false)
     private Long id;
@@ -23,12 +23,12 @@ public class Notification {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "course_id", nullable = false)
+    private Cours course;
 
-    @Size(max = 50)
+    @Size(max = 20)
     @NotNull
-    @Column(name = "type", nullable = false, length = 50)
+    @Column(name = "type", nullable = false, length = 20)
     private String type;
 
     @Size(max = 255)
@@ -36,29 +36,18 @@ public class Notification {
     @Column(name = "title", nullable = false)
     private String title;
 
-    @NotNull
     @Lob
-    @Column(name = "content", nullable = false)
-    private String content;
+    @Column(name = "description")
+    private String description;
 
+    @Size(max = 500)
     @NotNull
-    @ColumnDefault("0")
-    @Column(name = "is_read", nullable = false)
-    private Boolean isRead = false;
+    @Column(name = "url", nullable = false, length = 500)
+    private String url;
 
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.SET_NULL)
-    @JoinColumn(name = "related_course_id")
-    private Cours relatedCourse;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.SET_NULL)
-    @JoinColumn(name = "related_alert_id")
-    private InactivityAlert relatedAlert;
 
 }

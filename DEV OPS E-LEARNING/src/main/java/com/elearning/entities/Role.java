@@ -1,4 +1,4 @@
-package org.example.devopslearning.entities;
+package com.elearning.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

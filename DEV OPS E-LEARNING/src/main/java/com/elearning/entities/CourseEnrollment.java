@@ -1,4 +1,4 @@
-package org.example.devopslearning.entities;
+package com.elearning.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -9,14 +9,13 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "assignments")
-public class Assignment {
+@Table(name = "course_enrollments")
+public class CourseEnrollment {
     @Id
     @Column(name = "id", nullable = false)
     private Long id;
@@ -27,32 +26,21 @@ public class Assignment {
     @JoinColumn(name = "course_id", nullable = false)
     private Cours course;
 
-    @Size(max = 255)
-    @NotNull
-    @Column(name = "title", nullable = false)
-    private String title;
-
-    @Lob
-    @Column(name = "description")
-    private String description;
-
-    @NotNull
-    @Column(name = "due_date", nullable = false)
-    private Instant dueDate;
-
-    @NotNull
-    @ColumnDefault("20.00")
-    @Column(name = "max_grade", nullable = false, precision = 5, scale = 2)
-    private BigDecimal maxGrade;
-
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "created_by", nullable = false)
-    private User createdBy;
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "student_id", nullable = false)
+    private User student;
 
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
+    @Column(name = "enrolled_at", nullable = false)
+    private Instant enrolledAt;
+
+    @Size(max = 20)
+    @NotNull
+    @ColumnDefault("'ACTIVE'")
+    @Column(name = "status", nullable = false, length = 20)
+    private String status;
 
 }

@@ -1,4 +1,4 @@
-package org.example.devopslearning.entities;
+package com.elearning.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -9,21 +9,21 @@ import org.hibernate.annotations.OnDeleteAction;
 @Getter
 @Setter
 @Entity
-@Table(name = "user_roles")
-public class UserRole {
+@Table(name = "course_teachers")
+public class CourseTeacher {
     @EmbeddedId
-    private UserRoleId id;
+    private CourseTeacherId id;
 
-    @MapsId("userId")
+    @MapsId("courseId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "course_id", nullable = false)
+    private Cours course;
 
-    @MapsId("roleId")
+    @MapsId("teacherId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "role_id", nullable = false)
-    private Role role;
+    @JoinColumn(name = "teacher_id", nullable = false)
+    private User teacher;
 
 }

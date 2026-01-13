@@ -1,4 +1,4 @@
-package org.example.devopslearning.entities;
+package com.elearning.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -13,28 +13,28 @@ import java.util.Objects;
 @Getter
 @Setter
 @Embeddable
-public class CourseTeacherId implements Serializable {
-    private static final long serialVersionUID = 4503806425217899593L;
+public class UserRoleId implements Serializable {
+    private static final long serialVersionUID = 2661939928784661827L;
     @NotNull
-    @Column(name = "course_id", nullable = false)
-    private Long courseId;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
     @NotNull
-    @Column(name = "teacher_id", nullable = false)
-    private Long teacherId;
+    @Column(name = "role_id", nullable = false)
+    private Long roleId;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        CourseTeacherId entity = (CourseTeacherId) o;
-        return Objects.equals(this.teacherId, entity.teacherId) &&
-                Objects.equals(this.courseId, entity.courseId);
+        UserRoleId entity = (UserRoleId) o;
+        return Objects.equals(this.roleId, entity.roleId) &&
+                Objects.equals(this.userId, entity.userId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(teacherId, courseId);
+        return Objects.hash(roleId, userId);
     }
 
 }
