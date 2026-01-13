@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/teacher/assignments}">Mes devoirs</a></li>
+        <li class="breadcrumb-item">
+            <a th:href="@{|/teacher/assignments/${submission.assignment.id}/submissions|}">Soumissions</a>
+        </li>
+        <li class="breadcrumb-item active">Noter</li>
+    </ol>
+</nav>
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-0">
+            <i class="bi bi-pencil-square me-2"></i>Correction de devoir
+        </h2>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Colonne gauche: Info + Formulaire -->
+    <div class="col-lg-8">
+
+        <!-- Informations de l'étudiant -->
+        <div class="card mb-4 border-info">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h5 class="mb-2">
+                            <i class="bi bi-person-circle me-2"></i>
+                            <span th:text="${submission.student.firstName + ' ' + submission.student.lastName}">
+                                Nom Prénom
+                            </span>
+                        </h5>
+                        <p class="text-muted mb-0">
+                            <i class="bi bi-envelope me-2"></i>
+                            <span th:text="${submission.student.email}">email@example.com</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <div class="mb-2">
+                            <strong>Soumis le:</strong><br>
+                            <span th:text="${#temporals.format(submission.submittedAt, 'dd/MM/yyyy à HH:mm')}">
+                                01/01/2024 à 10:00
+                            </span>
+                        </div>
+                        <span th:if="${submission.submittedAt.isAfter(submission.assignment.dueDate)}"
+                              class="badge bg-danger fs-6">
+                            <i class="bi bi-exclamation-triangle me-1"></i>Rendu en retard
+                        </span>
+                        <span th:unless="${submission.submittedAt.isAfter(submission.assignment.dueDate)}"
+                              class="badge bg-success fs-6">
+                            <i class="bi bi-check-circle me-1"></i>Dans les temps
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fichier soumis -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-file-earmark me-2"></i>Fichier soumis</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-file-earmark-pdf fs-1 text-danger me-3"></i>
+                        <div>
+                            <h6 class="mb-0">Document de soumission</h6>
+                            <small class="text-muted">Cliquez pour ouvrir dans un nouvel onglet</small>
+                        </div>
+                    </div>
+                    <a th:href="@{|/resources/download?url=${submission.fileUrl}|}"
+                       class="btn btn-primary"
+                       target="_blank">
+                        <i class="bi bi-box-arrow-up-right me-2"></i>Ouvrir le fichier
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulaire de notation -->
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-star me-2"></i>Évaluation et feedback
+                </h5>
+            </div>
+            <div class="card-body">
+                <form th:action="@{|/teacher/assignments/submissions/${submission.id}/grade|}"
+                      method="post">
+
+                    <!-- Note -->
+                    <div class="mb-4">
+                        <label for="grade" class="form-label">
+                            <strong>Note obtenue *</strong>
+                        </label>
+                        <div class="input-group input-group-lg">
+                            <input type="number"
+                                   class="form-control"
+                                   id="grade"
+                                   name="grade"
+                                   th:value="${submission.grade}"
+                                   min="0"
+                                   th:max="${submission.assignment.maxGrade}"
+                                   step="0.5"
+                                   required>
+                            <span class="input-group-text">
+                                / <span th:text="${submission.assignment.maxGrade}">20</span> points
+                            </span>
+                        </div>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Note sur <span th:text="${submission.assignment.maxGrade}">20</span> points
+                        </div>
+                    </div>
+
+                    <!-- Feedback -->
+                    <div class="mb-4">
+                        <label for="feedback" class="form-label">
+                            <strong>Commentaires et feedback</strong>
+                        </label>
+                        <textarea class="form-control"
+                                  id="feedback"
+                                  name="feedback"
+                                  rows="8"
+                                  th:text="${submission.feedback}"
+                                  placeholder="Donnez un feedback constructif à l'étudiant...
+
+Points positifs:
+- ...
+
+Points à améliorer:
+- ...
+
+Conseils:
+- ..."></textarea>
+                        <div class="form-text">
+                            Un feedback détaillé aide l'étudiant à progresser
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Boutons -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle me-2"></i>Enregistrer la note
+                        </button>
+                        <button type="submit" name="notifyStudent" value="true"
+                                class="btn btn-primary btn-lg">
+                            <i class="bi bi-envelope me-2"></i>Enregistrer et notifier l'étudiant
+                        </button>
+                        <a th:href="@{|/teacher/assignments/${submission.assignment.id}/submissions|}"
+                           class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-circle me-2"></i>Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Colonne droite: Infos et grille -->
+    <div class="col-lg-4">
+
+        <!-- Informations du devoir -->
+        <div class="card mb-4 border-secondary">
+            <div class="card-header bg-secondary text-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>Informations du devoir
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6 th:text="${submission.assignment.title}">Titre du devoir</h6>
+                <p class="small text-muted mb-3" th:text="${submission.assignment.description}">
+                    Description du devoir
+                </p>
+
+                <hr>
+
+                <div class="mb-2">
+                    <strong>Cours:</strong>
+                    <span class="badge bg-secondary" th:text="${submission.assignment.course?.code}">CODE</span>
+                </div>
+                <div class="mb-2">
+                    <strong>Date limite:</strong><br>
+                    <small th:text="${#temporals.format(submission.assignment.dueDate, 'dd/MM/yyyy HH:mm')}">
+                        01/01/2024 23:59
+                    </small>
+                </div>
+                <div>
+                    <strong>Barème:</strong>
+                    <span th:text="${submission.assignment.maxGrade}">20</span> points
+                </div>
+            </div>
+        </div>
+
+        <!-- Grille d'évaluation suggérée -->
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-clipboard-check me-2"></i>Grille d'évaluation suggérée
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0 small">
+                    <li class="mb-3">
+                        <strong>Respect des consignes</strong><br>
+                        <span class="text-muted">Le travail répond-il aux exigences ?</span>
+                    </li>
+                    <li class="mb-3">
+                        <strong>Qualité du contenu</strong><br>
+                        <span class="text-muted">Le contenu est-il correct et complet ?</span>
+                    </li>
+                    <li class="mb-3">
+                        <strong>Présentation</strong><br>
+                        <span class="text-muted">Le document est-il bien structuré ?</span>
+                    </li>
+                    <li class="mb-3">
+                        <strong>Originalité</strong><br>
+                        <span class="text-muted">L'étudiant a-t-il fait preuve de créativité ?</span>
+                    </li>
+                    <li>
+                        <strong>Orthographe et syntaxe</strong><br>
+                        <span class="text-muted">L'expression est-elle correcte ?</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Statistiques de la classe -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-graph-up me-2"></i>Statistiques de la classe
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <strong>Moyenne:</strong> --/20
+                </div>
+                <div class="mb-2">
+                    <strong>Note la plus haute:</strong> --
+                </div>
+                <div>
+                    <strong>Note la plus basse:</strong> --
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

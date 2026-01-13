@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+
+<head>
+    <title>Notes du Cours</title>
+</head>
+
+<body>
+<div layout:fragment="content">
+
+    <!-- BREADCRUMB -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb bg-light px-3 py-2 rounded-3">
+            <li class="breadcrumb-item">
+                <a th:href="@{/teacher/grades}" class="text-decoration-none">
+                    <i class="bi bi-clipboard-data me-1"></i>
+                    Gestion des Notes
+                </a>
+            </li>
+            <li class="breadcrumb-item active fw-semibold" th:text="${cours.title}">Cours</li>
+        </ol>
+    </nav>
+
+    <!-- HEADER -->
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <h1 class="h2 mb-2 fw-bold" th:text="${cours.title}">Nom du cours</h1>
+                <p class="text-muted mb-0">
+                    <i class="bi bi-tag me-1"></i>
+                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2" th:text="${cours.code}">CODE</span>
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button"
+                        class="btn btn-success px-4 py-2 fw-semibold"
+                        data-bs-toggle="modal"
+                        data-bs-target="#calculateModal">
+                    <i class="bi bi-calculator me-2"></i>
+                    Recalculer les notes
+                </button>
+                <a th:href="@{/teacher/grades/course/{id}/export/excel(id=${cours.id})}"
+                   class="btn btn-outline-primary px-4 py-2 fw-semibold">
+                    <i class="bi bi-file-earmark-excel me-2"></i>
+                    Export Excel
+                </a>
+            </div>
+        </div>
+        <hr class="mt-4 mb-0">
+    </div>
+
+    <!-- STATISTIQUES GLOBALES -->
+    <div class="row g-4 mb-5">
+        <!-- Moyenne générale -->
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="card bg-gradient border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-white">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-graph-up fs-4 me-2"></i>
+                                <h6 class="mb-0 fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Moyenne générale</h6>
+                            </div>
+                            <h2 class="mb-0 fw-bold"
+                                th:text="${courseStats.moyenneGenerale != null ? #numbers.formatDecimal(courseStats.moyenneGenerale, 1, 2) + '/20' : 'N/A'}">
+                                12.5/20
+                            </h2>
+                        </div>
+                        <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                            <i class="bi bi-graph-up fs-1 text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Taux de réussite -->
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="card bg-gradient border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-white">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-trophy fs-4 me-2"></i>
+                                <h6 class="mb-0 fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Taux de réussite</h6>
+                            </div>
+                            <h2 class="mb-0 fw-bold"
+                                th:text="${successRate != null ? #numbers.formatDecimal(successRate, 1, 1) + '%' : 'N/A'}">
+                                75%
+                            </h2>
+                        </div>
+                        <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                            <i class="bi bi-trophy fs-1 text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total étudiants -->
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="card bg-gradient border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-white">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-people fs-4 me-2"></i>
+                                <h6 class="mb-0 fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Étudiants</h6>
+                            </div>
+                            <h2 class="mb-0 fw-bold" th:text="${courseStats.totalStudents}">25</h2>
+                        </div>
+                        <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                            <i class="bi bi-people fs-1 text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Devoirs -->
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="card bg-gradient border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-white">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-file-earmark-text fs-4 me-2"></i>
+                                <h6 class="mb-0 fw-semibold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Devoirs</h6>
+                            </div>
+                            <h2 class="mb-0 fw-bold" th:text="${courseStats.totalAssignments}">5</h2>
+                        </div>
+                        <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                            <i class="bi bi-file-earmark-text fs-1 text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLEAU DES NOTES -->
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-header bg-white border-bottom py-3">
+            <h5 class="mb-0 fw-bold">
+                <i class="bi bi-table me-2 text-primary"></i>
+                Notes des étudiants
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th class="px-4 py-3 fw-semibold">Étudiant</th>
+                        <th class="text-center px-4 py-3 fw-semibold">Note finale</th>
+                        <th class="text-center px-4 py-3 fw-semibold">Mention</th>
+                        <th class="text-center px-4 py-3 fw-semibold">Statut</th>
+                        <th class="text-center px-4 py-3 fw-semibold">Devoirs soumis</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="grade : ${studentGrades}" class="border-bottom">
+                        <!-- Nom de l'étudiant -->
+                        <td class="px-4 py-3">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-gradient rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm"
+                                     style="width: 45px; height: 45px; font-size: 15px; font-weight: 600; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                                        <span th:text="${#strings.substring(grade.student.firstName, 0, 1) + #strings.substring(grade.student.lastName, 0, 1)}">
+                                            JD
+                                        </span>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold mb-1"
+                                         th:text="${grade.student.firstName + ' ' + grade.student.lastName}">
+                                        John Doe
+                                    </div>
+                                    <small class="text-muted" th:text="${grade.student.email}">
+                                        john@example.com
+                                    </small>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Note finale -->
+                        <td class="text-center px-4 py-3">
+                                <span class="badge fs-6 px-3 py-2 fw-semibold"
+                                      th:classappend="${grade.noteFinale != null and grade.noteFinale >= 10} ? 'bg-success' : 'bg-danger'"
+                                      th:text="${grade.noteFinale != null ? #numbers.formatDecimal(grade.noteFinale, 1, 2) + '/20' : 'N/A'}">
+                                    12.5/20
+                                </span>
+                        </td>
+
+                        <!-- Mention -->
+                        <td class="text-center px-4 py-3">
+                                <span th:if="${grade.mention != null}"
+                                      class="badge bg-success bg-opacity-10 text-success px-3 py-2 fw-semibold"
+                                      th:text="${grade.mention}">
+                                    TB
+                                </span>
+                            <span th:unless="${grade.mention != null}" class="text-muted">-</span>
+                        </td>
+
+                        <!-- Statut -->
+                        <td class="text-center px-4 py-3">
+                                <span class="badge px-3 py-2 fw-semibold"
+                                      th:classappend="${grade.statut == 'VALIDE'} ? 'bg-success bg-opacity-10 text-success' : 'bg-warning bg-opacity-10 text-warning'"
+                                      th:text="${grade.statut}">
+                                    VALIDE
+                                </span>
+                        </td>
+
+                        <!-- Devoirs soumis -->
+                        <td class="text-center px-4 py-3">
+                            <span class="badge bg-info bg-opacity-10 text-info px-3 py-2 fw-semibold"
+                                  th:text="${grade.submittedAssignments} + '/' + ${grade.totalAssignments}">
+                                3/5
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODAL : Confirmation recalcul -->
+<div class="modal fade" id="calculateModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-calculator me-2 text-success"></i>
+                    Recalculer les notes
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="mb-3">Voulez-vous recalculer toutes les notes de ce cours ?</p>
+                <div class="alert alert-info border-0 bg-info bg-opacity-10 mb-0">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Cette action recalculera automatiquement toutes les notes en fonction des devoirs corrigés.
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light px-4 py-2 fw-semibold" data-bs-dismiss="modal">Annuler</button>
+                <form th:action="@{/teacher/grades/course/{id}/calculate(id=${cours.id})}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-success px-4 py-2 fw-semibold">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Confirmer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

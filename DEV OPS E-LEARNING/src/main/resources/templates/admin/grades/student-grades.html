@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-0">
+            <i class="bi bi-graph-up me-2"></i>Mes Notes
+        </h2>
+        <p class="text-muted mb-0">Relevé de notes et moyennes</p>
+    </div>
+</div>
+
+<!-- Moyenne générale -->
+<div class="card mb-4 border-primary">
+    <div class="card-body text-center py-4">
+        <h5 class="text-muted mb-3">Moyenne Générale</h5>
+        <div th:if="${averageGrade != null}">
+            <div class="display-3 fw-bold text-primary mb-2">
+                <span th:text="${#numbers.formatDecimal(averageGrade, 1, 2)}">0.00</span>
+                <span class="fs-3 text-muted">/ 20</span>
+            </div>
+            <div class="progress mx-auto" style="height: 20px; max-width: 400px;">
+                <div class="progress-bar bg-primary"
+                     role="progressbar"
+                     th:style="'width: ' + ${(averageGrade / 20) * 100} + '%'"
+                     th:text="${#numbers.formatDecimal((averageGrade / 20) * 100, 1, 0)} + '%'">
+                    0%
+                </div>
+            </div>
+        </div>
+        <div th:if="${averageGrade == null}">
+            <p class="text-muted mb-0">Aucune note disponible</p>
+        </div>
+    </div>
+</div>
+
+<!-- Stats rapides -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-book fs-3 text-primary"></i>
+                <h6 class="mt-2 mb-0">Cours notés</h6>
+                <h4 class="text-primary mb-0" th:text="${totalCourses != null ? totalCourses : 0}">0</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-trophy fs-3 text-success"></i>
+                <h6 class="mt-2 mb-0">Réussites (≥10)</h6>
+                <h4 class="text-success mb-0" th:text="${passedCourses != null ? passedCourses : 0}">0</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-star fs-3 text-warning"></i>
+                <h6 class="mt-2 mb-0">Meilleure note</h6>
+                <h4 class="text-warning mb-0" th:if="${bestGrade != null}">
+                    <span th:text="${#numbers.formatDecimal(bestGrade, 1, 2)}">0.00</span>/20
+                </h4>
+                <h4 class="text-warning mb-0" th:if="${bestGrade == null}">--</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-graph-down fs-3 text-danger"></i>
+                <h6 class="mt-2 mb-0">Note la plus basse</h6>
+                <h4 class="text-danger mb-0" th:if="${worstGrade != null}">
+                    <span th:text="${#numbers.formatDecimal(worstGrade, 1, 2)}">0.00</span>/20
+                </h4>
+                <h4 class="text-danger mb-0" th:if="${worstGrade == null}">--</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form class="row g-3">
+            <div class="col-md-4">
+                <select class="form-select" name="semester">
+                    <option selected>Tous les semestres</option>
+                    <option value="S1">Semestre 1</option>
+                    <option value="S2">Semestre 2</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" name="status">
+                    <option selected>Tous les statuts</option>
+                    <option value="VALIDEE">Validées</option>
+                    <option value="PROVISOIRE">Provisoires</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-funnel me-2"></i>Filtrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tableau des notes par cours -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Notes par cours</h5>
+        <button class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-download me-2"></i>Exporter (PDF)
+        </button>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                <tr>
+                    <th>Cours</th>
+                    <th>Note finale</th>
+                    <th>Note max</th>
+                    <th>Mention</th>
+                    <th>Statut</th>
+                    <th>Date de calcul</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${grades == null || #lists.isEmpty(grades)}">
+                    <td colspan="6" class="text-center py-5">
+                        <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+                        <h5 class="text-muted">Aucune note disponible</h5>
+                        <p class="text-muted">Les notes apparaîtront ici une fois que vos devoirs seront corrigés</p>
+                    </td>
+                </tr>
+
+                <tr th:each="g : ${grades}">
+                    <td>
+                        <span class="badge bg-secondary me-2" th:text="${g.cours?.code}">CODE</span>
+                        <strong th:text="${g.cours?.title}">Titre du cours</strong>
+                    </td>
+                    <td>
+                        <h5 class="mb-0"
+                            th:classappend="${g.noteFinale >= 10} ? 'text-success' : 'text-danger'">
+                            <span th:text="${#numbers.formatDecimal(g.noteFinale, 1, 2)}">0.00</span>
+                        </h5>
+                    </td>
+                    <td>
+                        <span th:text="${#numbers.formatDecimal(g.noteMax, 1, 2)}">20.00</span>
+                    </td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="${g.noteFinale >= 16} ? 'bg-success' :
+                                             ${g.noteFinale >= 14} ? 'bg-info' :
+                                             ${g.noteFinale >= 12} ? 'bg-primary' :
+                                             ${g.noteFinale >= 10} ? 'bg-warning' : 'bg-danger'"
+                              th:text="${g.noteFinale >= 16} ? 'Très bien' :
+                                       ${g.noteFinale >= 14} ? 'Bien' :
+                                       ${g.noteFinale >= 12} ? 'Assez bien' :
+                                       ${g.noteFinale >= 10} ? 'Passable' : 'Insuffisant'">
+                            --
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="${g.statut == 'VALIDEE'} ? 'bg-success' : 'bg-warning'"
+                              th:text="${g.statut}">
+                            STATUT
+                        </span>
+                    </td>
+                    <td>
+                        <small th:if="${g.dateCalcul != null}"
+                               th:text="${#temporals.format(g.dateCalcul, 'dd/MM/yyyy')}">
+                            01/01/2024
+                        </small>
+                        <small th:if="${g.dateCalcul == null}" class="text-muted">
+                            Non calculée
+                        </small>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Graphique de progression (placeholder) -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Évolution de la moyenne</h5>
+    </div>
+    <div class="card-body text-center py-5">
+        <i class="bi bi-graph-up fs-1 text-muted d-block mb-3"></i>
+        <p class="text-muted">Graphique de progression disponible prochainement</p>
+    </div>
+</div>
+
+</body>
+</html>

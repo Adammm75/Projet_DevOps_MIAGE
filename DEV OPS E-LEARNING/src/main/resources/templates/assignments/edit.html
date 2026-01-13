@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/teacher/courses}">Mes cours</a></li>
+        <li class="breadcrumb-item">
+            <a th:href="@{/teacher/courses/{id}(id=${course.id})}" th:text="${course.code}">CODE</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a th:href="@{/teacher/assignments/course/{id}(id=${course.id})}">Devoirs</a>
+        </li>
+        <li class="breadcrumb-item active">Modifier le devoir</li>
+    </ol>
+</nav>
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-0">
+            <i class="bi bi-pencil-square me-2"></i>Modifier le devoir
+        </h2>
+        <p class="text-muted mb-0">Modifiez les paramètres du devoir</p>
+    </div>
+</div>
+
+<!-- Messages -->
+<div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<!-- Formulaire -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form th:action="@{/teacher/assignments/{id}/update(id=${assignment.id})}" method="post">
+
+                    <!-- Affichage du cours -->
+                    <div class="mb-4 alert alert-info">
+                        <h6 class="mb-0">
+                            <i class="bi bi-book me-2"></i>
+                            <strong>Cours :</strong>
+                            <span class="badge bg-primary me-2" th:text="${course.code}">CODE</span>
+                            <span th:text="${course.title}">Titre du cours</span>
+                        </h6>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Titre -->
+                    <div class="mb-4">
+                        <label for="title" class="form-label">
+                            <strong>Titre du devoir <span class="text-danger">*</span></strong>
+                        </label>
+                        <input type="text"
+                               class="form-control form-control-lg"
+                               id="title"
+                               name="title"
+                               th:value="${assignment.title}"
+                               placeholder="Ex: TP1 - Développement Web"
+                               required
+                               maxlength="255">
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <label for="description" class="form-label">
+                            <strong>Description / Consignes</strong>
+                        </label>
+                        <textarea class="form-control"
+                                  id="description"
+                                  name="description"
+                                  rows="6"
+                                  th:text="${assignment.description}"></textarea>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Date limite et Note max -->
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label for="dueDate" class="form-label">
+                                <strong>Date et heure limite <span class="text-danger">*</span></strong>
+                            </label>
+                            <input type="datetime-local"
+                                   class="form-control form-control-lg"
+                                   id="dueDate"
+                                   name="dueDate"
+                                   required>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label for="maxGrade" class="form-label">
+                                <strong>Note maximale (points) <span class="text-danger">*</span></strong>
+                            </label>
+                            <input type="number"
+                                   class="form-control form-control-lg"
+                                   id="maxGrade"
+                                   name="maxGrade"
+                                   th:value="${assignment.maxGrade}"
+                                   min="1"
+                                   max="100"
+                                   step="0.5"
+                                   required>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Boutons -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle me-2"></i>Enregistrer les modifications
+                        </button>
+                        <a th:href="@{/teacher/assignments/course/{id}(id=${course.id})}"
+                           class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-circle me-2"></i>Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- ✅ Informations CORRIGÉES (sans updatedAt) -->
+        <div class="card border-primary mb-3">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>Informations
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="small mb-2">
+                    <strong>Date de création :</strong><br>
+                    <span th:text="${#temporals.format(assignment.createdAt, 'dd/MM/yyyy HH:mm')}">--</span>
+                </p>
+                <p class="small mb-0" th:if="${assignment.createdBy != null}">
+                    <strong>Créé par :</strong><br>
+                    <span th:text="${assignment.createdBy.firstName + ' ' + assignment.createdBy.lastName}">--</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Conseils -->
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-lightbulb me-2"></i>Conseils
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6 class="mb-3">Modifications</h6>
+                <ul class="small mb-0">
+                    <li>Vérifiez que la nouvelle date limite est cohérente</li>
+                    <li>Informez les étudiants des changements importants</li>
+                    <li>Ne modifiez pas le barème si des notes ont déjà été attribuées</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Avertissement -->
+        <div class="card mt-3 border-warning">
+            <div class="card-body">
+                <h6 class="text-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Attention
+                </h6>
+                <p class="small mb-0">
+                    Les modifications sont immédiatement visibles par les étudiants.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script conversion Instant → datetime-local -->
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        const dueDateInput = document.getElementById('dueDate');
+
+        if (dueDateInput) {
+            /*[# th:if="${assignment.dueDate != null}"]*/
+            const dueDateInstant = /*[[${assignment.dueDate}]]*/ null;
+
+            if (dueDateInstant) {
+                const dueDate = new Date(dueDateInstant);
+                dueDate.setMinutes(dueDate.getMinutes() - dueDate.getTimezoneOffset());
+                dueDateInput.value = dueDate.toISOString().slice(0, 16);
+            }
+            /*[/]*/
+
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            dueDateInput.min = now.toISOString().slice(0, 16);
+        }
+    });
+</script>
+
+</body>
+</html>

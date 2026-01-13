@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-0">
+            <i class="bi bi-envelope me-2"></i>Messagerie
+        </h2>
+    </div>
+    <div class="col-auto">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#composeModal">
+            <i class="bi bi-plus-circle me-2"></i>Nouveau message
+        </button>
+    </div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#received">
+            <i class="bi bi-inbox me-2"></i>Reçus
+            <span class="badge bg-primary" th:text="${inbox != null ? #lists.size(inbox) : 0}">0</span>
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#sent">
+            <i class="bi bi-send me-2"></i>Envoyés
+            <span class="badge bg-secondary" th:text="${sent != null ? #lists.size(sent) : 0}">0</span>
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <!-- Messages reçus -->
+    <div class="tab-pane fade show active" id="received">
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div th:if="${inbox == null || #lists.isEmpty(inbox)}"
+                         class="list-group-item text-center py-5">
+                        <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
+                        <p class="text-muted mb-0">Aucun message reçu</p>
+                    </div>
+
+                    <div th:each="msg : ${inbox}"
+                         class="list-group-item"
+                         th:classappend="${!msg.isRead} ? 'fw-bold bg-light' : ''">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi me-2"
+                                       th:classappend="${!msg.isRead} ? 'bi-envelope-fill text-primary' : 'bi-envelope-open'"></i>
+                                    <span th:text="${msg.sender.firstName + ' ' + msg.sender.lastName}">Expéditeur</span>
+                                    <span th:if="${msg.course != null}" class="ms-2">
+                                        <span class="badge bg-info" th:text="${msg.course.code}">COURS</span>
+                                    </span>
+                                </div>
+                                <h6 class="mb-1" th:text="${msg.subject != null && !msg.subject.isEmpty()} ? ${msg.subject} : 'Sans sujet'">Sujet</h6>
+                                <p class="mb-0 text-muted small"
+                                   th:text="${#strings.abbreviate(msg.content, 100)}">
+                                    Aperçu du message...
+                                </p>
+                            </div>
+                            <div class="text-end ms-3">
+                                <small class="text-muted d-block mb-2"
+                                       th:text="${#temporals.format(msg.sentAt, 'dd/MM/yyyy HH:mm')}">
+                                    01/01/2024
+                                </small>
+                                <button th:if="${!msg.isRead}"
+                                        type="button"
+                                        class="btn btn-sm btn-outline-primary"
+                                        data-bs-toggle="modal"
+                                        th:data-bs-target="'#messageModal' + ${msg.id}">
+                                    <i class="bi bi-eye me-1"></i>Lire
+                                </button>
+                                <button th:if="${msg.isRead}"
+                                        type="button"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        data-bs-toggle="modal"
+                                        th:data-bs-target="'#messageModal' + ${msg.id}">
+                                    <i class="bi bi-eye me-1"></i>Voir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages envoyés -->
+    <div class="tab-pane fade" id="sent">
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div th:if="${sent == null || #lists.isEmpty(sent)}"
+                         class="list-group-item text-center py-5">
+                        <i class="bi bi-send fs-1 text-muted d-block mb-2"></i>
+                        <p class="text-muted mb-0">Aucun message envoyé</p>
+                    </div>
+
+                    <div th:each="msg : ${sent}" class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi bi-arrow-right-circle me-2 text-success"></i>
+                                    <span>À : <strong th:text="${msg.recipient.firstName + ' ' + msg.recipient.lastName}">Destinataire</strong></span>
+                                    <span th:if="${msg.course != null}" class="ms-2">
+                                        <span class="badge bg-info" th:text="${msg.course.code}">COURS</span>
+                                    </span>
+                                </div>
+                                <h6 class="mb-1" th:text="${msg.subject != null && !msg.subject.isEmpty()} ? ${msg.subject} : 'Sans sujet'">Sujet</h6>
+                                <p class="mb-0 text-muted small"
+                                   th:text="${#strings.abbreviate(msg.content, 100)}">
+                                    Aperçu du message...
+                                </p>
+                            </div>
+                            <div class="text-end ms-3">
+                                <small class="text-muted d-block mb-2"
+                                       th:text="${#temporals.format(msg.sentAt, 'dd/MM/yyyy HH:mm')}">
+                                    01/01/2024
+                                </small>
+                                <span th:if="${msg.isRead}" class="badge bg-success">
+                                    <i class="bi bi-check2-all"></i> Lu
+                                </span>
+                                <span th:if="${!msg.isRead}" class="badge bg-secondary">
+                                    Non lu
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Composer un message -->
+<div class="modal fade" id="composeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form th:action="@{/messages}" method="post" th:object="${messageForm}">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-envelope-plus me-2"></i>Nouveau message
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Email destinataire -->
+                    <div class="mb-3">
+                        <label for="recipientEmail" class="form-label">
+                            <strong>Destinataire *</strong>
+                        </label>
+                        <select class="form-select form-select-lg"
+                                id="recipientEmail"
+                                th:field="*{recipientEmail}"
+                                required>
+                            <option value="">-- Sélectionnez un destinataire --</option>
+
+                            <!-- 👨‍🏫 Enseignants -->
+                            <optgroup label="👨‍🏫 Enseignants">
+                                <option th:each="teacher : ${teachers}"
+                                        th:value="${teacher.email}"
+                                        th:text="${teacher.firstName + ' ' + teacher.lastName + ' (' + teacher.email + ')'}">
+                                </option>
+                            </optgroup>
+
+                            <!-- 👨‍🎓 Étudiants -->
+                            <optgroup label="👨‍🎓 Étudiants">
+                                <option th:each="student : ${students}"
+                                        th:value="${student.email}"
+                                        th:text="${student.firstName + ' ' + student.lastName + ' (' + student.email + ')'}">
+                                </option>
+                            </optgroup>
+                        </select>
+                        <small class="form-text text-muted">
+                            Sélectionnez un enseignant ou un étudiant
+                        </small>
+                    </div>
+
+                    <!-- Cours (optionnel) -->
+                    <div class="mb-3">
+                        <label for="courseId" class="form-label">
+                            <strong>Lié au cours (optionnel)</strong>
+                        </label>
+                        <input type="number"
+                               class="form-control"
+                               id="courseId"
+                               th:field="*{courseId}"
+                               placeholder="ID du cours">
+                    </div>
+
+                    <!-- Sujet -->
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">
+                            <strong>Sujet</strong>
+                        </label>
+                        <input type="text"
+                               class="form-control"
+                               id="subject"
+                               th:field="*{subject}"
+                               placeholder="Sujet du message">
+                    </div>
+
+                    <!-- Message -->
+                    <div class="mb-3">
+                        <label for="content" class="form-label">
+                            <strong>Message *</strong>
+                        </label>
+                        <textarea class="form-control"
+                                  id="content"
+                                  th:field="*{content}"
+                                  rows="8"
+                                  placeholder="Écrivez votre message ici..."
+                                  required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Annuler
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send me-2"></i>Envoyer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modals pour voir les messages -->
+<div th:each="msg : ${inbox}" class="modal fade" th:id="'messageModal' + ${msg.id}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" th:text="${msg.subject != null && !msg.subject.isEmpty()} ? ${msg.subject} : 'Sans sujet'">Sujet</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- En-tête -->
+                <div class="border-bottom pb-3 mb-3">
+                    <p class="mb-1">
+                        <strong>De :</strong>
+                        <span th:text="${msg.sender.firstName + ' ' + msg.sender.lastName}">Expéditeur</span>
+                        <br>
+                        <small class="text-muted" th:text="${msg.sender.email}">email</small>
+                    </p>
+                    <p class="mb-1">
+                        <strong>Date :</strong>
+                        <span th:text="${#temporals.format(msg.sentAt, 'dd/MM/yyyy à HH:mm')}">Date</span>
+                    </p>
+                    <p th:if="${msg.course != null}" class="mb-0">
+                        <strong>Cours :</strong>
+                        <span class="badge bg-info" th:text="${msg.course.code}">CODE</span>
+                    </p>
+                </div>
+
+                <!-- Contenu -->
+                <div style="white-space: pre-wrap;" th:text="${msg.content}">
+                    Contenu du message
+                </div>
+            </div>
+            <div class="modal-footer">
+                <form th:if="${!msg.isRead}"
+                      th:action="@{|/messages/${msg.id}/read|}"
+                      method="post"
+                      style="display:inline;">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check2 me-2"></i>Marquer comme lu
+                    </button>
+                </form>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Fermer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/student/qcm}">Mes quiz</a></li>
+        <li class="breadcrumb-item active">Résultats</li>
+    </ol>
+</nav>
+
+<!-- Résultat global -->
+<div class="card mb-4" th:classappend="${score >= scoreMax * 0.5} ? 'border-success' : 'border-danger'">
+    <div class="card-body text-center py-5">
+        <div th:if="${score >= scoreMax * 0.5}">
+            <i class="bi bi-check-circle text-success" style="font-size: 5rem;"></i>
+            <h2 class="text-success mt-3">Félicitations !</h2>
+            <p class="lead">Vous avez réussi ce quiz</p>
+        </div>
+        <div th:unless="${score >= scoreMax * 0.5}">
+            <i class="bi bi-x-circle text-danger" style="font-size: 5rem;"></i>
+            <h2 class="text-danger mt-3">Dommage...</h2>
+            <p class="lead">Vous n'avez pas atteint la moyenne</p>
+        </div>
+
+        <!-- Score -->
+        <div class="display-3 fw-bold my-4">
+            <span th:text="${#numbers.formatDecimal(score, 1, 2)}">15.5</span>
+            <span class="text-muted">/ </span>
+            <span th:text="${#numbers.formatDecimal(scoreMax, 1, 2)}">20</span>
+        </div>
+
+        <!-- Pourcentage -->
+        <div class="mb-4">
+            <span class="fs-2" th:text="${#numbers.formatDecimal((score / scoreMax) * 100, 1, 2)}">75</span>%
+            de réussite
+        </div>
+
+        <!-- Barre de progression -->
+        <div class="progress mx-auto" style="height: 30px; max-width: 500px;">
+            <div class="progress-bar"
+                 th:classappend="${score >= scoreMax * 0.5} ? 'bg-success' : 'bg-danger'"
+                 role="progressbar"
+                 th:style="'width: ' + ${(score / scoreMax) * 100} + '%'"
+                 th:attr="aria-valuenow=${score}, aria-valuemin=0, aria-valuemax=${scoreMax}">
+                <strong th:text="${#numbers.formatDecimal((score / scoreMax) * 100, 1, 0)}">75</strong>%
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Informations de la tentative -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-question-circle fs-3 text-primary"></i>
+                <h6 class="mt-2 mb-0">Questions</h6>
+                <h4 class="text-primary mb-0" th:text="${totalQuestions}">10</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-check-circle fs-3 text-success"></i>
+                <h6 class="mt-2 mb-0">Correctes</h6>
+                <h4 class="text-success mb-0" th:text="${correctAnswers}">7</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-x-circle fs-3 text-danger"></i>
+                <h6 class="mt-2 mb-0">Incorrectes</h6>
+                <h4 class="text-danger mb-0" th:text="${incorrectAnswers}">3</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-clock fs-3 text-info"></i>
+                <h6 class="mt-2 mb-0">Temps écoulé</h6>
+                <h4 class="text-info mb-0" th:text="${timeElapsed}">15 min</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Détails des réponses -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-list-check me-2"></i>Détail de vos réponses
+        </h5>
+    </div>
+    <div class="card-body">
+        <div th:each="question, iterStat : ${questions}" class="mb-4">
+            <div class="card" th:classappend="${question.isCorrect} ? 'border-success' : 'border-danger'">
+                <div class="card-header"
+                     th:classappend="${question.isCorrect} ? 'bg-success bg-opacity-10' : 'bg-danger bg-opacity-10'">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">
+                            <span class="badge bg-secondary me-2">
+                                Question <span th:text="${iterStat.index + 1}">1</span>
+                            </span>
+                            <span th:if="${question.isCorrect}" class="badge bg-success">
+                                <i class="bi bi-check-circle me-1"></i>Correct
+                            </span>
+                            <span th:unless="${question.isCorrect}" class="badge bg-danger">
+                                <i class="bi bi-x-circle me-1"></i>Incorrect
+                            </span>
+                        </h6>
+                        <span class="badge bg-primary">
+                            <span th:text="${question.pointsObtenus}">1</span> /
+                            <span th:text="${question.points}">1</span> pts
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="fw-bold mb-3" th:text="${question.texteQuestion}">
+                        Texte de la question ?
+                    </p>
+
+                    <!-- Options -->
+                    <div class="list-group">
+                        <div th:each="option : ${question.options}"
+                             class="list-group-item"
+                             th:classappend="${option.estCorrecte} ? 'list-group-item-success' :
+                                           ${option.id == question.selectedOptionId} ? 'list-group-item-danger' : ''">
+                            <div class="d-flex align-items-center">
+                                <!-- Indicateur -->
+                                <div class="me-3">
+                                    <i th:if="${option.estCorrecte}"
+                                       class="bi bi-check-circle-fill text-success fs-4"></i>
+                                    <i th:if="${!option.estCorrecte && option.id == question.selectedOptionId}"
+                                       class="bi bi-x-circle-fill text-danger fs-4"></i>
+                                    <i th:if="${!option.estCorrecte && option.id != question.selectedOptionId}"
+                                       class="bi bi-circle text-muted fs-4"></i>
+                                </div>
+
+                                <!-- Texte -->
+                                <div class="flex-grow-1">
+                                    <span th:text="${option.texteOption}">Texte de l'option</span>
+
+                                    <!-- Labels -->
+                                    <div class="mt-1">
+                                        <span th:if="${option.estCorrecte}"
+                                              class="badge bg-success me-2">
+                                            Bonne réponse
+                                        </span>
+                                        <span th:if="${option.id == question.selectedOptionId && !option.estCorrecte}"
+                                              class="badge bg-danger">
+                                            Votre réponse
+                                        </span>
+                                        <span th:if="${option.id == question.selectedOptionId && option.estCorrecte}"
+                                              class="badge bg-success">
+                                            Votre réponse
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions -->
+<div class="card">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="mb-2">Que faire maintenant ?</h5>
+                <p class="text-muted mb-0">
+                    Vous pouvez retenter ce quiz si des tentatives sont encore disponibles,
+                    ou retourner à la liste des quiz.
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="d-flex gap-2 justify-content-end">
+                    <a th:href="@{|/student/qcm/${qcmId}/start|}"
+                       class="btn btn-warning"
+                       th:if="${remainingAttempts > 0}">
+                        <i class="bi bi-arrow-clockwise me-2"></i>Retenter
+                    </a>
+                    <a th:href="@{/student/qcm}" class="btn btn-primary">
+                        <i class="bi bi-list me-2"></i>Mes quiz
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
