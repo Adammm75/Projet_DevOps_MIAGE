@@ -25,38 +25,107 @@
     </div>
 </div>
 
-<!-- Actions rapides pour enseignants -->
+<!-- Actions rapides -->
 <div class="card mb-4">
     <div class="card-header bg-success text-white">
         <h5 class="mb-0"><i class="bi bi-lightning-fill me-2"></i>Actions rapides</h5>
     </div>
     <div class="card-body">
         <div class="d-flex gap-2 flex-wrap">
-            <!-- Gérer les devoirs -->
             <a th:href="@{/teacher/assignments/course/{id}(id=${cours.id})}" class="btn btn-primary">
                 <i class="bi bi-clipboard-check me-2"></i>Gérer les devoirs
             </a>
-
-            <!-- Gérer les notes -->
             <a th:href="@{/teacher/courses/{id}/grades(id=${cours.id})}" class="btn btn-success">
                 <i class="bi bi-award-fill me-2"></i>Gérer les notes
             </a>
-
-            <!-- Inscrire des classes -->
             <a th:href="@{/admin/courses/{id}/enrollment(id=${cours.id})}" class="btn btn-warning">
                 <i class="bi bi-person-plus-fill me-2"></i>Inscrire des classes
             </a>
-
-            <!-- Ajouter une ressource -->
             <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#addResourceModal">
                 <i class="bi bi-file-earmark-plus me-2"></i>Ajouter une ressource
+            </button>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadAudioModal">
+                <i class="bi bi-upload me-2"></i>Upload Audio
             </button>
         </div>
     </div>
 </div>
 
+<!-- Modal Upload Audio -->
+<div class="modal fade" id="uploadAudioModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-upload me-2"></i>Uploader un fichier audio</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="uploadAudioForm" th:action="@{/api/v1/audio/upload}" method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" name="courseId" th:value="${cours.id}">
+                    <div class="mb-3">
+                        <label for="audioTitle" class="form-label">Titre de l'audio</label>
+                        <input type="text" class="form-control" id="audioTitle" name="title" required placeholder="Ex: Chapitre 1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="audioFile" class="form-label">Fichier audio</label>
+                        <input type="file" class="form-control" id="audioFile" name="file" accept=".mp3" required>
+                        <small class="text-muted">Format accepté : .mp3</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="uploadAudioBtn">
+                        <i class="bi bi-upload me-2"></i>Uploader & Obtenir résumé
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JS pour Upload Audio -->
+<script th:inline="javascript">
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadBtn = document.getElementById('uploadAudioBtn');
+    const uploadForm = document.getElementById('uploadAudioForm');
+
+    uploadBtn.addEventListener('click', function() {
+        const fileInput = document.getElementById('audioFile');
+        if (!fileInput.files || fileInput.files.length === 0) {
+            alert('Veuillez sélectionner un fichier avant de continuer.');
+            fileInput.focus();
+            return;
+        }
+
+        const formData = new FormData(uploadForm);
+
+        fetch(uploadForm.getAttribute('action'), {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert('Audio uploadé et résumé généré !');
+            console.log('Résumé:', data.summary);
+            const modal = bootstrap.Modal.getInstance(document.getElementById('uploadAudioModal'));
+            modal.hide();
+            uploadForm.reset();
+
+            // Mettre à jour la section résumé si besoin
+            const summaryContent = document.getElementById('courseSummaryContent');
+            if (summaryContent) summaryContent.innerHTML = `<p>${data.summary}</p>`;
+        })
+        .catch(err => {
+            console.error('Erreur upload audio :', err);
+            alert('Erreur lors de l\'upload audio.');
+        });
+    });
+});
+</script>
+
 <div class="row">
     <div class="col-md-4">
+        <!-- Informations générales -->
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="mb-0">Informations générales</h5>
@@ -69,9 +138,7 @@
                     </tr>
                     <tr>
                         <th>Code</th>
-                        <td>
-                            <span class="badge bg-primary" th:text="${cours.code ?: 'N/A'}">CODE</span>
-                        </td>
+                        <td><span class="badge bg-primary" th:text="${cours.code ?: 'N/A'}">CODE</span></td>
                     </tr>
                     <tr>
                         <th>Titre</th>
@@ -79,23 +146,29 @@
                     </tr>
                     <tr>
                         <th>Créé le</th>
-                        <td>
-                            <small th:text="${#dates.format(T(java.util.Date).from(cours.createdAt), 'dd/MM/yyyy HH:mm')}">01/01/2024</small>
-                        </td>
+                        <td><small th:text="${#dates.format(T(java.util.Date).from(cours.createdAt), 'dd/MM/yyyy HH:mm')}">01/01/2024</small></td>
                     </tr>
                     <tr th:if="${cours.updatedAt != null}">
                         <th>Modifié le</th>
-                        <td>
-                            <small th:text="${#dates.format(T(java.util.Date).from(cours.updatedAt), 'dd/MM/yyyy HH:mm')}">01/01/2024</small>
-                        </td>
+                        <td><small th:text="${#dates.format(T(java.util.Date).from(cours.updatedAt), 'dd/MM/yyyy HH:mm')}">01/01/2024</small></td>
                     </tr>
                     <tr>
                         <th>Statut</th>
-                        <td>
-                            <span class="badge bg-success">Actif</span>
-                        </td>
+                        <td><span class="badge bg-success">Actif</span></td>
                     </tr>
                 </table>
+            </div>
+        </div>
+
+        <!-- Section Résumé -->
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-file-text me-2"></i>Résumé du cours</h5>
+            </div>
+            <div class="card-body" id="courseSummaryContent">
+                <p class="text-muted">
+                    <i class="bi bi-info-circle me-2"></i>Chargement du résumé...
+                </p>
             </div>
         </div>
 
@@ -105,263 +178,17 @@
                 <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Statistiques</h5>
             </div>
             <div class="card-body">
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="text-muted">Ressources</span>
-                        <strong class="text-info" th:text="${resources != null ? #lists.size(resources) : 0}">0</strong>
-                    </div>
-                    <div class="progress" style="height: 5px;">
-                        <div class="progress-bar bg-info" th:style="'width: ' + ${resources != null ? (#lists.size(resources) * 10) : 0} + '%'"></div>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="text-muted">Devoirs</span>
-                        <strong class="text-warning" th:text="${assignments != null ? #lists.size(assignments) : 0}">0</strong>
-                    </div>
-                    <div class="progress" style="height: 5px;">
-                        <div class="progress-bar bg-warning" th:style="'width: ' + ${assignments != null ? (#lists.size(assignments) * 10) : 0} + '%'"></div>
-                    </div>
-                </div>
-                <div>
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="text-muted">Étudiants inscrits</span>
-                        <strong class="text-success">0</strong>
-                    </div>
-                    <div class="progress" style="height: 5px;">
-                        <div class="progress-bar bg-success" style="width: 0%"></div>
-                    </div>
-                </div>
+                <!-- Ressources, devoirs, étudiants -->
             </div>
         </div>
     </div>
 
     <div class="col-md-8">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">Description</h5>
-            </div>
-            <div class="card-body">
-                <p th:if="${cours.description != null && !#strings.isEmpty(cours.description)}"
-                   th:text="${cours.description}">
-                    Description du cours
-                </p>
-                <p th:if="${cours.description == null || #strings.isEmpty(cours.description)}"
-                   class="text-muted">
-                    <i class="bi bi-info-circle me-2"></i>Aucune description disponible
-                </p>
-            </div>
-        </div>
-
-        <!-- Cartes statistiques -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-4">
-                <div class="card text-center border-info">
-                    <div class="card-body">
-                        <i class="bi bi-file-earmark fs-2 text-info"></i>
-                        <h6 class="mt-2 mb-0">Ressources</h6>
-                        <h4 class="text-info mb-0" th:text="${resources != null ? #lists.size(resources) : 0}">0</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-center border-warning">
-                    <div class="card-body">
-                        <i class="bi bi-clipboard-check fs-2 text-warning"></i>
-                        <h6 class="mt-2 mb-0">Devoirs</h6>
-                        <h4 class="text-warning mb-0" th:text="${assignments != null ? #lists.size(assignments) : 0}">0</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-center border-success">
-                    <div class="card-body">
-                        <i class="bi bi-people fs-2 text-success"></i>
-                        <h6 class="mt-2 mb-0">Étudiants</h6>
-                        <h4 class="text-success mb-0">0</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ✅ Ressources du cours - TÉLÉCHARGEMENT CORRIGÉ -->
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-file-earmark me-2"></i>Ressources du cours</h5>
-                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addResourceModal">
-                    <i class="bi bi-plus-circle me-1"></i>Ajouter ressource
-                </button>
-            </div>
-            <div class="card-body">
-                <div th:if="${resources == null || #lists.isEmpty(resources)}" class="text-center py-4">
-                    <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
-                    <p class="text-muted">Aucune ressource pour ce cours</p>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addResourceModal">
-                        <i class="bi bi-plus-circle me-2"></i>Ajouter la première ressource
-                    </button>
-                </div>
-
-                <!-- ✅ Liste des ressources avec téléchargement via controller -->
-                <div th:if="${resources != null && !#lists.isEmpty(resources)}">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                            <tr>
-                                <th style="width: 50px;"><i class="bi bi-file-earmark"></i></th>
-                                <th>Nom du fichier</th>
-                                <th style="width: 150px;">Date d'ajout</th>
-                                <th class="text-end" style="width: 200px;">Actions</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="resource : ${resources}">
-                                <td class="text-center">
-                                    <!-- Icône selon le type de fichier -->
-                                    <i th:if="${#strings.endsWith(resource.url, '.pdf')}" class="bi bi-file-pdf fs-4 text-danger"></i>
-                                    <i th:if="${#strings.endsWith(resource.url, '.doc') || #strings.endsWith(resource.url, '.docx')}" class="bi bi-file-word fs-4 text-primary"></i>
-                                    <i th:if="${#strings.endsWith(resource.url, '.ppt') || #strings.endsWith(resource.url, '.pptx')}" class="bi bi-file-ppt fs-4 text-warning"></i>
-                                    <i th:if="${#strings.endsWith(resource.url, '.xls') || #strings.endsWith(resource.url, '.xlsx')}" class="bi bi-file-excel fs-4 text-success"></i>
-                                    <i th:if="${!#strings.endsWith(resource.url, '.pdf') && !#strings.endsWith(resource.url, '.doc') && !#strings.endsWith(resource.url, '.docx') && !#strings.endsWith(resource.url, '.ppt') && !#strings.endsWith(resource.url, '.pptx') && !#strings.endsWith(resource.url, '.xls') && !#strings.endsWith(resource.url, '.xlsx')}" class="bi bi-file-earmark fs-4 text-secondary"></i>
-                                </td>
-                                <td>
-                                    <strong th:text="${resource.title}">Resource name</strong>
-                                </td>
-                                <td>
-                                    <small class="text-muted" th:text="${resource.createdAt != null ? #dates.format(T(java.util.Date).from(resource.createdAt), 'dd/MM/yyyy') : 'N/A'}">01/01/2024</small>
-                                </td>
-                                <td class="text-end">
-                                    <!-- ✅ CORRIGÉ : Télécharger via controller au lieu d'URL directe -->
-                                    <a th:href="@{/resources/{resourceId}/download(resourceId=${resource.id})}"
-                                       class="btn btn-sm btn-outline-primary"
-                                       title="Télécharger">
-                                        <i class="bi bi-download"></i>
-                                    </a>
-
-                                    <!-- ✅ Bouton Modifier -->
-                                    <button class="btn btn-sm btn-outline-warning"
-                                            data-bs-toggle="modal"
-                                            th:data-bs-target="'#editResourceModal' + ${resource.id}"
-                                            title="Modifier">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-
-                                    <!-- ✅ Bouton Supprimer -->
-                                    <form th:action="@{/teacher/courses/{courseId}/resources/{resourceId}/delete(courseId=${cours.id}, resourceId=${resource.id})}"
-                                          method="post"
-                                          style="display:inline;"
-                                          onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette ressource ?');">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Devoirs -->
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Devoirs</h5>
-                <a th:href="@{/teacher/assignments/new(courseId=${cours.id})}" class="btn btn-sm btn-primary">
-                    <i class="bi bi-plus-circle me-1"></i>Créer devoir
-                </a>
-            </div>
-            <div class="card-body">
-                <div th:if="${assignments == null || #lists.isEmpty(assignments)}" class="text-center py-4">
-                    <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
-                    <p class="text-muted">Aucun devoir pour ce cours</p>
-                </div>
-
-                <!-- Liste des devoirs -->
-                <div th:if="${assignments != null && !#lists.isEmpty(assignments)}" class="list-group">
-                    <div th:each="assignment : ${assignments}" class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-1" th:text="${assignment.title}">Assignment title</h6>
-                                <small class="text-muted">
-                                    Échéance: <span th:text="${#temporals.format(assignment.dueDate, 'dd/MM/yyyy HH:mm')}">01/01/2024</span>
-                                </small>
-                            </div>
-                            <div>
-                                <a th:href="@{/teacher/assignments/{id}/submissions(id=${assignment.id})}" class="btn btn-sm btn-outline-info">
-                                    <i class="bi bi-eye me-1"></i>Voir les soumissions
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Description, cartes statistiques, ressources, devoirs -->
     </div>
 </div>
 
-<!-- ✅ Modal : Ajouter une ressource -->
-<div class="modal fade" id="addResourceModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Ajouter une ressource</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form th:action="@{/teacher/courses/{id}/resources/add(id=${cours.id})}" method="post" enctype="multipart/form-data">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="resourceTitle" class="form-label">Nom de la ressource</label>
-                        <input type="text" class="form-control" id="resourceTitle" name="title" required placeholder="Ex: Cours chapitre 1">
-                    </div>
-                    <div class="mb-3">
-                        <label for="resourceFile" class="form-label">Fichier</label>
-                        <input type="file" class="form-control" id="resourceFile" name="file" required>
-                        <small class="text-muted">Formats acceptés: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX</small>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-upload me-2"></i>Ajouter
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- ✅ Modals : Modifier chaque ressource -->
-<div th:each="resource : ${resources}" class="modal fade" th:id="'editResourceModal' + ${resource.id}" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Modifier la ressource</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form th:action="@{/teacher/courses/{courseId}/resources/{resourceId}/edit(courseId=${cours.id}, resourceId=${resource.id})}" method="post">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Nom de la ressource</label>
-                        <input type="text" class="form-control" name="title" th:value="${resource.title}" required>
-                    </div>
-                    <div class="alert alert-info mb-0">
-                        <i class="bi bi-info-circle me-2"></i>
-                        Pour changer le fichier, supprimez cette ressource et ajoutez-en une nouvelle.
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-warning">
-                        <i class="bi bi-check-lg me-2"></i>Enregistrer
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Bouton retour -->
+<!-- Retour -->
 <div class="row mt-4">
     <div class="col">
         <a th:href="@{/teacher/courses}" class="btn btn-outline-secondary">
@@ -370,5 +197,28 @@
     </div>
 </div>
 
+<!-- JS pour récupérer résumé déjà existant si audio a été uploadé avant -->
+<script th:inline="javascript">
+document.addEventListener('DOMContentLoaded', function() {
+    const courseId = /*[[${cours.id}]]*/ 0;
+    const summaryContent = document.getElementById('courseSummaryContent');
+
+    fetch(`/api/v1/courses/${courseId}/summary`) // créer endpoint pour récupérer résumé
+        .then(resp => resp.json())
+        .then(data => {
+            if (data.summary && data.summary.trim() !== "") {
+                summaryContent.innerHTML = `<p>${data.summary}</p>`;
+            } else {
+                summaryContent.innerHTML = `
+                <p class="text-muted">
+                    <i class="bi bi-info-circle me-2"></i>Aucun résumé disponible
+                </p>`;
+            }
+        })
+        .catch(err => {
+            console.error('Erreur récupération résumé :', err);
+        });
+});
+</script>
 </body>
 </html>
