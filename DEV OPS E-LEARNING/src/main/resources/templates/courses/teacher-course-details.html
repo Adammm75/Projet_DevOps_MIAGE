@@ -198,12 +198,16 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <!-- JS pour récupérer résumé déjà existant si audio a été uploadé avant -->
-<script th:inline="javascript">
+<script>
 document.addEventListener('DOMContentLoaded', function() {
-    const courseId = /*[[${cours.id}]]*/ 0;
     const summaryContent = document.getElementById('courseSummaryContent');
 
-    fetch(`/api/v1/courses/${courseId}/summary`) // créer endpoint pour récupérer résumé
+    // Récupérer le courseId depuis l'URL
+    const urlParts = window.location.pathname.split('/');
+    // Exemple URL: /teacher/courses/8912585819139254770
+    const courseId = urlParts[urlParts.length - 1];
+
+    fetch(`/api/v1/courses/${courseId}/summary`)
         .then(resp => resp.json())
         .then(data => {
             if (data.summary && data.summary.trim() !== "") {
