@@ -46,9 +46,9 @@ public class CoursController {
     // ✅ CRÉER UN NOUVEAU COURS
     @PostMapping
     public String create(@ModelAttribute("courseForm") CourseCreateRequest form,
-                         @RequestParam(value = "file", required = false) MultipartFile file,
-                         Principal principal,
-                         RedirectAttributes ra) throws IOException {
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            Principal principal,
+            RedirectAttributes ra) throws IOException {
         User teacher = userService.getUserFromPrincipal(principal);
 
         // 1️⃣ Création du cours
@@ -61,8 +61,7 @@ public class CoursController {
             coursService.addResourceToCourse(
                     cours.getId(),
                     file.getOriginalFilename(),
-                    fileUrl
-            );
+                    fileUrl);
         }
 
         ra.addFlashAttribute("success", "Cours créé avec succès");
@@ -85,10 +84,10 @@ public class CoursController {
     // ✅ METTRE À JOUR UN COURS
     @PostMapping("/{id}")
     public String update(@PathVariable Long id,
-                         @ModelAttribute("courseForm") @Valid CourseCreateRequest form,
-                         BindingResult bindingResult,
-                         @RequestParam(value = "file", required = false) MultipartFile file,
-                         RedirectAttributes ra) throws IOException {
+            @ModelAttribute("courseForm") @Valid CourseCreateRequest form,
+            BindingResult bindingResult,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            RedirectAttributes ra) throws IOException {
         if (bindingResult.hasErrors()) {
             return "courses/course-form";
         }
@@ -102,8 +101,7 @@ public class CoursController {
             coursService.addResourceToCourse(
                     id,
                     file.getOriginalFilename(),
-                    fileUrl
-            );
+                    fileUrl);
         }
 
         ra.addFlashAttribute("success", "Cours modifié avec succès");
@@ -122,9 +120,9 @@ public class CoursController {
     // ✅ AJOUTER UNE RESSOURCE AU COURS
     @PostMapping("/{id}/resources/add")
     public String addResource(@PathVariable Long id,
-                              @RequestParam("title") String title,
-                              @RequestParam("file") MultipartFile file,
-                              RedirectAttributes ra) {
+            @RequestParam("title") String title,
+            @RequestParam("file") MultipartFile file,
+            RedirectAttributes ra) {
         try {
             // 1️⃣ Upload fichier → S3
             String fileUrl = s3StorageService.uploadFile(file);
@@ -144,9 +142,9 @@ public class CoursController {
     // ✅ MODIFIER UNE RESSOURCE (nom uniquement)
     @PostMapping("/{courseId}/resources/{resourceId}/edit")
     public String editResource(@PathVariable Long courseId,
-                               @PathVariable Long resourceId,
-                               @RequestParam("title") String title,
-                               RedirectAttributes ra) {
+            @PathVariable Long resourceId,
+            @RequestParam("title") String title,
+            RedirectAttributes ra) {
         try {
             coursService.updateResourceTitle(resourceId, title);
             ra.addFlashAttribute("success", "Ressource modifiée avec succès");
@@ -160,8 +158,8 @@ public class CoursController {
     // ✅ SUPPRIMER UNE RESSOURCE
     @PostMapping("/{courseId}/resources/{resourceId}/delete")
     public String deleteResource(@PathVariable Long courseId,
-                                 @PathVariable Long resourceId,
-                                 RedirectAttributes ra) {
+            @PathVariable Long resourceId,
+            RedirectAttributes ra) {
         try {
             coursService.deleteResource(resourceId);
             ra.addFlashAttribute("success", "Ressource supprimée avec succès");
@@ -184,4 +182,5 @@ public class CoursController {
         }
         return "redirect:/teacher/courses";
     }
+
 }
