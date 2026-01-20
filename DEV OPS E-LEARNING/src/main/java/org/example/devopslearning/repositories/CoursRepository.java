@@ -93,7 +93,7 @@ public interface CoursRepository extends JpaRepository<Cours, Long> {
      * (ayant au moins une ressource ou un assignment)
      */
     @Query("SELECT COUNT(DISTINCT c) FROM Cours c " +
-            "LEFT JOIN RessourceCours r ON r.course = c " +
+            "LEFT JOIN CourseRessource r ON r.course = c " +
             "LEFT JOIN Assignment a ON a.course = c " +
             "WHERE r.id IS NOT NULL OR a.id IS NOT NULL")
     long countActiveCourses();
@@ -129,7 +129,7 @@ public interface CoursRepository extends JpaRepository<Cours, Long> {
      * ✅ NOUVEAU : Récupère les cours avec le nombre de ressources
      */
     @Query("SELECT c, COUNT(r) FROM Cours c " +
-            "LEFT JOIN RessourceCours r ON r.course = c " +
+            "LEFT JOIN CourseRessource r ON r.course = c " +
             "WHERE c.createdBy = :teacher " +
             "GROUP BY c " +
             "ORDER BY c.createdAt DESC")
@@ -150,7 +150,7 @@ public interface CoursRepository extends JpaRepository<Cours, Long> {
      */
     @Query("SELECT c FROM Cours c " +
             "WHERE c.createdBy = :teacher " +
-            "AND NOT EXISTS (SELECT r FROM RessourceCours r WHERE r.course = c) " +
+            "AND NOT EXISTS (SELECT r FROM CourseRessource r WHERE r.course = c) " +
             "AND NOT EXISTS (SELECT a FROM Assignment a WHERE a.course = c)")
     List<Cours> findEmptyCoursesByTeacher(@Param("teacher") User teacher);
 
@@ -183,8 +183,8 @@ public interface CoursRepository extends JpaRepository<Cours, Long> {
      * ✅ NOUVEAU : Récupère les cours par statut (actif/inactif)
      */
     @Query("SELECT c FROM Cours c WHERE " +
-            "(:isActive = true AND EXISTS (SELECT r FROM RessourceCours r WHERE r.course = c)) " +
-            "OR (:isActive = false AND NOT EXISTS (SELECT r FROM RessourceCours r WHERE r.course = c))")
+            "(:isActive = true AND EXISTS (SELECT r FROM CourseRessource r WHERE r.course = c)) " +
+            "OR (:isActive = false AND NOT EXISTS (SELECT r FROM CourseRessource r WHERE r.course = c))")
     List<Cours> findByActiveStatus(@Param("isActive") boolean isActive);
 
     // ========================================
@@ -223,9 +223,11 @@ public interface CoursRepository extends JpaRepository<Cours, Long> {
     // ------------------------------
     // Si tu passes par InactivityAlert pour relier étudiants et cours :
     @Query("""
-        SELECT ia.course FROM InactivityAlert ia
-        WHERE ia.student.id = :studentId
-    """)
-    List<Cours> findCoursesForStudent(@Param("studentId") Long studentId);
+    SELECT ce.course FROM CourseEnrollment ce
+    WHERE ce.student.id = :studentId
+      AND ce.status = 'ACTIVE'""")
+        List<Cours> findCoursesForStudent(@Param("studentId") Long studentId);
+
+    
 
 }

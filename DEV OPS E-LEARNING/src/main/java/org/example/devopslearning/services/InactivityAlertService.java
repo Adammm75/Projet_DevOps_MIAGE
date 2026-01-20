@@ -1,125 +1,160 @@
 package org.example.devopslearning.services;
 
-//import org.example.devopslearning.entities.*;
-import org.example.devopslearning.repositories.CoursRepository;
-import org.example.devopslearning.repositories.UserRepository;
-import org.example.devopslearning.services.NotificationService;
+import lombok.RequiredArgsConstructor;
 import org.example.devopslearning.entities.Cours;
-import org.example.devopslearning.entities.User;
 import org.example.devopslearning.entities.InactivityAlert;
+import org.example.devopslearning.entities.User;
+import org.example.devopslearning.repositories.CoursRepository;
 import org.example.devopslearning.repositories.InactivityAlertRepository;
 import org.example.devopslearning.repositories.StudentActivityRepository;
+import org.example.devopslearning.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
-
 
 @Service
+@RequiredArgsConstructor
 @Transactional
 public class InactivityAlertService {
 
-
     private final UserRepository userRepository;
-    private final CoursRepository courseRepository;
+    private final CoursRepository coursRepository;
     private final StudentActivityRepository activityRepository;
     private final InactivityAlertRepository alertRepository;
     private final NotificationService notificationService;
+    private final EmailService emailService;
 
-
-    // default threshold (days)
     private final int DEFAULT_DAYS = 7;
 
-
-    public InactivityAlertService(UserRepository userRepository,
-    CoursRepository courseRepository,
-    StudentActivityRepository activityRepository,
-    InactivityAlertRepository alertRepository,
-    NotificationService notificationService) 
-    {
-    this.userRepository = userRepository;
-    this.courseRepository = courseRepository;
-    this.activityRepository = activityRepository;
-    this.alertRepository = alertRepository;
-    this.notificationService = notificationService;
-    }
-
     /**
-    * Core method used by scheduler: checks all students and creates alerts when needed.
-    */
-
+     * Méthode principale appelée par le scheduler
+     */
     public void runInactivityCheck(int daysThreshold) {
+
+        // 1️⃣ Récupérer tous les étudiants
         List<User> students = userRepository.findByRoleName("ROLE_STUDENT");
-
-
         LocalDateTime now = LocalDateTime.now();
 
-
         for (User student : students) {
+
             Long studentId = student.getId();
 
-
-            // get enrolled courses for this student
-            List<Cours> courses = courseRepository.findCoursesForStudent(studentId);
-
+            // 2️⃣ Récupérer les cours auxquels l’étudiant est inscrit
+            List<Cours> courses = coursRepository.findCoursesForStudent(studentId);
 
             for (Cours course : courses) {
+
                 Long courseId = course.getId();
-                // get last activity for this student in this course
-                List<org.example.devopslearning.activity.StudentActivity> acts = activityRepository.findByStudentAndCourseOrderByActivityTimeDesc(studentId, courseId);
 
-
+                // 3️⃣ Récupérer la dernière activité dans ce cours
+                var acts = activityRepository.findByStudentAndCourseOrderByActivityTimeDesc(studentId, courseId);
                 Instant lastActivity = acts.isEmpty() ? null : acts.get(0).getActivityTime();
 
+                long daysInactive = (lastActivity == null)
+                        ? daysThreshold + 1
+                        : Duration.between(lastActivity, now).toDays();
 
-                long daysInactive = (lastActivity == null) ? Long.MAX_VALUE : Duration.between(lastActivity, now).toDays();
+                // 4️⃣ Vérifier s'il existe déjà une alerte ouverte
+                List<InactivityAlert> existing = alertRepository
+                        .findByStudent_IdAndCourse_IdAndStatus(studentId, courseId, "OPEN");
 
-
-                // check if there's already an open alert
-                List<InactivityAlert> existing = alertRepository.findByStudent_IdAndCourse_IdAndStatus(studentId, courseId, "OPEN");
+                // 5️⃣ Cas : étudiant inactif
                 if (lastActivity == null || daysInactive >= daysThreshold) {
+
                     if (existing.isEmpty()) {
-                        // create alert
-                        InactivityAlert alert = alertRepository.save(InactivityAlert.builder()
-                                    .student(student)
-                                    .course(course)
-                                    .daysInactive((lastActivity == null) ? (int) daysThreshold : (int) daysInactive)
-                                    .lastActivityAt(lastActivity)
-                                    .status("OPEN")
-                                    .build());
-                        
-                        // create internal notification for teacher(s)
-                        List<User> teachers = courseRepository.findTeachersForCourse(courseId);
-                        String title = "Alerte d'inactivité: " + student.getFirstName() + " " + student.getLastName();
-                        String content = "L'étudiant(e) " + student.getFirstName() + " n'a pas été actif(ve) depuis " + ((lastActivity==null)?"plusieurs jours":daysInactive + " jours") + " sur le cours " + course.getTitle();
 
+                        // ➤ Créer l’alerte
+                        InactivityAlert alert = alertRepository.save(
+                                InactivityAlert.builder()
+                                        .student(student)
+                                        .course(course)
+                                        .daysInactive((int) daysInactive)
+                                        .lastActivityAt(lastActivity)
+                                        .status("OPEN")
+                                        .build()
+                        );
 
-                        // notify teachers
-                        teachers.forEach(t -> notificationService.createNotification(t.getId(), "INACTIVITY_ALERT", title, content, courseId, alert.getId()));
+                        // ➤ Récupérer les professeurs du cours
+                        List<User> teachers = coursRepository.findTeachersForCourse(courseId);
 
+                        String title = "Alerte d'inactivité : " + student.getFirstName() + " " + student.getLastName();
+                        String content = "L'étudiant " + student.getFirstName() + " "
+                                + student.getLastName() + " est inactif depuis "
+                                + daysInactive + " jours dans le cours " + course.getTitle();
 
-                        // notify student
-                        notificationService.createNotification(studentId, "INACTIVITY_ALERT", "Tu es inactif(ve)", content, courseId, alert.getId());
+                        // ➤ Notifications internes
+                        teachers.forEach(t ->
+                                notificationService.createNotification(
+                                        t.getId(), "INACTIVITY_ALERT", title, content, courseId, alert.getId()
+                                )
+                        );
+
+                        notificationService.createNotification(
+                                studentId, "INACTIVITY_ALERT",
+                                "Tu es inactif(ve)", content, courseId, alert.getId()
+                        );
+
+                        // ➤ Envoi d’e‑mails
+                        teachers.forEach(t ->
+                                emailService.sendEmail(
+                                        t.getEmail(),
+                                        "Alerte d'inactivité - " + student.getFirstName(),
+                                        content
+                                )
+                        );
+
+                        emailService.sendEmail(
+                                student.getEmail(),
+                                "Tu es inactif dans le cours " + course.getTitle(),
+                                "Tu n'as pas été actif depuis " + daysInactive + " jours. Reviens vite !"
+                        );
                     }
+
                 } else {
-                    // student is active: close any open alerts
+                    // 6️⃣ Cas : étudiant redevenu actif → fermer les alertes
                     if (!existing.isEmpty()) {
-                        for (InactivityAlert a : existing) {
-                            a.setStatus("CLOSED");
-                            a.setClosedAt(Instant.now());
-                            a.setDaysInactive((int)daysInactive);
-                            alertRepository.save(a);
 
+                        for (InactivityAlert alert : existing) {
 
-                            // notify teacher & student about closure
-                            notificationService.createNotification(a.getStudent().getId(), "INACTIVITY_RESOLVED", "Alerte résolue", "Ton activité a repris.", courseId, a.getId());
-                            List<User> teachers = courseRepository.findTeachersForCourse(courseId);
-                            teachers.forEach(t -> notificationService.createNotification(t.getId(), "INACTIVITY_RESOLVED", "Alerte résolue pour " + a.getStudent().getFirstName(), "L'étudiant a repris son activité.", courseId, a.getId()));
+                            alert.setStatus("CLOSED");
+                            alert.setClosedAt(Instant.now());
+                            alert.setDaysInactive((int) daysInactive);
+                            alertRepository.save(alert);
+
+                            // ➤ Notifications internes
+                            notificationService.createNotification(
+                                    studentId, "INACTIVITY_RESOLVED",
+                                    "Alerte résolue",
+                                    "Ton activité a repris.", courseId, alert.getId()
+                            );
+
+                            List<User> teachers = coursRepository.findTeachersForCourse(courseId);
+                            teachers.forEach(t ->
+                                    notificationService.createNotification(
+                                            t.getId(), "INACTIVITY_RESOLVED",
+                                            "Alerte résolue pour " + student.getFirstName(),
+                                            "L'étudiant a repris son activité.", courseId, alert.getId()
+                                    )
+                            );
+
+                            // ➤ Envoi d’e‑mails
+                            emailService.sendEmail(
+                                    student.getEmail(),
+                                    "Alerte résolue",
+                                    "Bravo ! Ton activité a repris dans le cours " + course.getTitle()
+                            );
+
+                            teachers.forEach(t ->
+                                    emailService.sendEmail(
+                                            t.getEmail(),
+                                            "Alerte résolue pour " + student.getFirstName(),
+                                            "L'étudiant a repris son activité dans le cours " + course.getTitle()
+                                    )
+                            );
                         }
                     }
                 }
@@ -132,25 +167,26 @@ public class InactivityAlertService {
     }
 
     public List<InactivityAlert> findOpenAlertsForTeacher(Long teacherId) {
-        // fetch courses taught by teacher
-        List<Cours> taught = courseRepository.findCoursesByTeacherId(teacherId);
-        List<Long> courseIds = taught.stream().map(Cours::getId).collect(Collectors.toList());
-        return alertRepository.findAll().stream().filter(a -> courseIds.contains(a.getCourse().getId()) && "OPEN".equals(a.getStatus())).collect(Collectors.toList());
+        List<Cours> taught = coursRepository.findCoursesByTeacherId(teacherId);
+        return alertRepository.findByStatus("OPEN").stream()
+                .filter(a -> taught.stream().anyMatch(c -> c.getId().equals(a.getCourse().getId())))
+                .toList();
     }
 
     public List<InactivityAlert> findAlertsForStudent(Long studentId) {
-        return alertRepository.findAll().stream().filter(a -> a.getStudent().getId().equals(studentId)).collect(Collectors.toList());
+        return alertRepository.findAll().stream()
+                .filter(a -> a.getStudent().getId().equals(studentId))
+                .toList();
     }
 
     public void markAlertAsHandled(Long alertId, Long handlerUserId) {
-        InactivityAlert a = alertRepository.findById(alertId).orElseThrow(() -> new RuntimeException("Alert not found"));
-        a.setStatus("CLOSED");
-        a.setClosedAt(Instant.now());
-        // set handledBy minimal (load user reference)
-        User handler = userRepository.findById(handlerUserId).orElse(null);
-        a.setHandledBy(handler);
-        alertRepository.save(a);
+        InactivityAlert alert = alertRepository.findById(alertId)
+                .orElseThrow(() -> new RuntimeException("Alert not found"));
+
+        alert.setStatus("CLOSED");
+        alert.setClosedAt(Instant.now());
+        alert.setHandledBy(userRepository.findById(handlerUserId).orElse(null));
+
+        alertRepository.save(alert);
     }
 }
-
-
