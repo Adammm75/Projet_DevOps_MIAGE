@@ -33,9 +33,16 @@ public class SecurityConfig {
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/teacher/**").hasRole("TEACHER")
                 .requestMatchers("/student/**").hasRole("STUDENT")
+                // Endpoint de l'inactivité
+                .requestMatchers("/api/inactivity/**").permitAll()
+                .requestMatchers("/api/activity/**").permitAll()
+
                 // Tout le reste nécessite une authentification
                 .anyRequest().authenticated()
+
+                
             )
+            
 
             // Configuration du login web classique
             .formLogin(login -> login

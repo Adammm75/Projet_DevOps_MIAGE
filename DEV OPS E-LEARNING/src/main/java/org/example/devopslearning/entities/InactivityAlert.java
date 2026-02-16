@@ -25,6 +25,7 @@ import java.time.Instant;
 
 public class InactivityAlert {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
