@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin/users}">Utilisateurs</a></li>
+        <li class="breadcrumb-item active" th:text="${user != null && user.id != null ? 'Modifier' : 'Créer'}">Créer</li>
+    </ol>
+</nav>
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-0">
+            <i class="bi bi-person-plus me-2"></i>
+            <span th:text="${user != null && user.id != null ? 'Modifier un utilisateur' : 'Créer un utilisateur'}">Créer un utilisateur</span>
+        </h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form th:action="${user != null && user.id != null ? '/admin/users/' + user.id : '/admin/users'}"
+                      method="post">
+
+                    <!-- Informations personnelles -->
+                    <h5 class="mb-3">
+                        <i class="bi bi-person me-2"></i>Informations personnelles
+                    </h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="firstName" class="form-label">
+                                <strong>Prénom *</strong>
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="firstName"
+                                   name="firstName"
+                                   th:value="${user != null ? user.firstName : ''}"
+                                   required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="lastName" class="form-label">
+                                <strong>Nom *</strong>
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="lastName"
+                                   name="lastName"
+                                   th:value="${user != null ? user.lastName : ''}"
+                                   required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="email" class="form-label">
+                            <strong>Email *</strong>
+                        </label>
+                        <input type="email"
+                               class="form-control"
+                               id="email"
+                               name="email"
+                               th:value="${user != null ? user.email : ''}"
+                               required>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            L'email sera utilisé comme identifiant de connexion
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Mot de passe (si création) -->
+                    <div th:if="${user == null || user.id == null}">
+                        <h5 class="mb-3">
+                            <i class="bi bi-shield-lock me-2"></i>Sécurité
+                        </h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="password" class="form-label">
+                                    <strong>Mot de passe *</strong>
+                                </label>
+                                <input type="password"
+                                       class="form-control"
+                                       id="password"
+                                       name="password"
+                                       minlength="6"
+                                       required>
+                                <div class="form-text">Minimum 6 caractères</div>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label for="confirmPassword" class="form-label">
+                                    <strong>Confirmer le mot de passe *</strong>
+                                </label>
+                                <input type="password"
+                                       class="form-control"
+                                       id="confirmPassword"
+                                       name="confirmPassword"
+                                       minlength="6"
+                                       required>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                    </div>
+
+                    <!-- Rôles -->
+                    <h5 class="mb-3">
+                        <i class="bi bi-shield-check me-2"></i>Rôles et permissions
+                    </h5>
+
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <strong>Attribuer le(s) rôle(s) *</strong>
+                        </label>
+
+                        <div class="form-check mb-2">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   name="roles"
+                                   value="ROLE_ADMIN"
+                                   id="roleAdmin"
+                                   th:checked="${user != null && user.hasRole('ROLE_ADMIN')}">
+                            <label class="form-check-label" for="roleAdmin">
+                                <span class="badge bg-danger me-2">ADMIN</span>
+                                <strong>Administrateur</strong> - Accès complet à la plateforme
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-2">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   name="roles"
+                                   value="ROLE_TEACHER"
+                                   id="roleTeacher"
+                                   th:checked="${user != null && user.hasRole('ROLE_TEACHER')}">
+                            <label class="form-check-label" for="roleTeacher">
+                                <span class="badge bg-success me-2">TEACHER</span>
+                                <strong>Enseignant</strong> - Créer des cours, devoirs et QCM
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-2">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   name="roles"
+                                   value="ROLE_STUDENT"
+                                   id="roleStudent"
+                                   th:checked="${user == null || user.hasRole('ROLE_STUDENT')}">
+                            <label class="form-check-label" for="roleStudent">
+                                <span class="badge bg-info me-2">STUDENT</span>
+                                <strong>Étudiant</strong> - Accès aux cours et devoirs
+                            </label>
+                        </div>
+
+                        <div class="form-text mt-2">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Un utilisateur peut avoir plusieurs rôles
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Statut -->
+                    <h5 class="mb-3">
+                        <i class="bi bi-toggle-on me-2"></i>Statut du compte
+                    </h5>
+
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               id="isActive"
+                               name="isActive"
+                               th:checked="${user == null || user.active}">
+                        <label class="form-check-label" for="isActive">
+                            <strong>Compte actif</strong> - L'utilisateur peut se connecter
+                        </label>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Boutons -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle me-2"></i>
+                            <span th:text="${user != null && user.id != null ? 'Mettre à jour' : 'Créer l\'utilisateur'}">Créer</span>
+                        </button>
+                        <a th:href="@{/admin/users}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-circle me-2"></i>Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar info -->
+    <div class="col-lg-4">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>Informations
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6 class="mb-3">Rôles disponibles</h6>
+
+                <div class="mb-3">
+                    <span class="badge bg-danger fs-6">ADMIN</span>
+                    <p class="small mt-2 mb-0">
+                        Accès complet : gestion utilisateurs, structure pédagogique,
+                        configuration globale.
+                    </p>
+                </div>
+
+                <div class="mb-3">
+                    <span class="badge bg-success fs-6">TEACHER</span>
+                    <p class="small mt-2 mb-0">
+                        Création de cours, ressources, devoirs, QCM.
+                        Correction et notation des étudiants.
+                    </p>
+                </div>
+
+                <div class="mb-3">
+                    <span class="badge bg-info fs-6">STUDENT</span>
+                    <p class="small mt-2 mb-0">
+                        Accès aux cours, soumission de devoirs,
+                        passage de QCM, consultation des notes.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3 border-warning">
+            <div class="card-body">
+                <h6 class="text-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Attention
+                </h6>
+                <ul class="small mb-0">
+                    <li>L'email doit être unique dans le système</li>
+                    <li>Le mot de passe sera haché de manière sécurisée</li>
+                    <li>Les rôles peuvent être modifiés ultérieurement</li>
+                    <li>Un compte désactivé ne peut pas se connecter</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script de validation -->
+<script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+
+        if (password && confirmPassword && password.value !== confirmPassword.value) {
+            e.preventDefault();
+            alert('Les mots de passe ne correspondent pas !');
+            confirmPassword.focus();
+        }
+
+        const checkboxes = document.querySelectorAll('input[name="roles"]:checked');
+        if (checkboxes.length === 0) {
+            e.preventDefault();
+            alert('Veuillez sélectionner au moins un rôle !');
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/teacher/qcm}">Mes QCM</a></li>
+        <li class="breadcrumb-item active">Modifier</li>
+    </ol>
+</nav>
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-0">
+            <i class="bi bi-pencil-square me-2"></i>Modifier le QCM
+        </h2>
+        <p class="text-muted mb-0">Modifiez les paramètres et questions du QCM</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Informations du QCM</h5>
+            </div>
+            <div class="card-body">
+                <form th:action="@{|/teacher/qcm/${qcm.id}|}" th:object="${qcm}" method="post">
+                    <input type="hidden" name="_method" value="put">
+
+                    <div class="mb-4">
+                        <label for="courseId" class="form-label"><strong>Cours *</strong></label>
+                        <select class="form-select form-select-lg" id="courseId" name="courseId" required>
+                            <option value="">-- Sélectionnez --</option>
+                            <option th:each="c : ${courses}"
+                                    th:value="${c.id}"
+                                    th:text="${c.code + ' - ' + c.title}"
+                                    th:selected="${c.id == qcm.cours?.id}">Cours</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="titre" class="form-label"><strong>Titre *</strong></label>
+                        <input type="text" class="form-control form-control-lg" id="titre" th:field="*{titre}" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="description" class="form-label"><strong>Description</strong></label>
+                        <textarea class="form-control" id="description" th:field="*{description}" rows="4"></textarea>
+                    </div>
+
+                    <hr>
+
+                    <h5 class="mb-3"><i class="bi bi-gear me-2"></i>Paramètres</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label for="limiteTempsMinutes" class="form-label"><strong>Limite de temps (min)</strong></label>
+                            <input type="number" class="form-control" id="limiteTempsMinutes" th:field="*{limiteTempsMinutes}" min="1">
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label for="tentativesMax" class="form-label"><strong>Tentatives max</strong></label>
+                            <input type="number" class="form-control" id="tentativesMax" th:field="*{tentativesMax}" min="1">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="publie" th:field="*{publie}">
+                            <label class="form-check-label" for="publie"><strong>Publié</strong></label>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h5 class="mb-3"><i class="bi bi-list-ol me-2"></i>Questions</h5>
+
+                    <div th:each="question, iterStat : ${questions}" class="card mb-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <span class="badge bg-primary">Question <span th:text="${iterStat.index + 1}">1</span></span>
+                                <span class="badge bg-secondary" th:text="${question.points + ' pts'}">1 pts</span>
+                            </h6>
+                            <button type="button" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-3" th:text="${question.texteQuestion}">Texte de la question</p>
+                            <div class="list-group">
+                                <div th:each="option : ${question.options}"
+                                     class="list-group-item"
+                                     th:classappend="${option.estCorrecte} ? 'list-group-item-success' : ''">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi fs-5 me-3"
+                                           th:classappend="${option.estCorrecte} ? 'bi-check-circle-fill text-success' : 'bi-circle'"></i>
+                                        <span th:text="${option.texteOption}">Option</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-success mb-4">
+                        <i class="bi bi-plus-circle me-2"></i>Ajouter une question
+                    </button>
+
+                    <hr>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle me-2"></i>Enregistrer les modifications
+                        </button>
+                        <a th:href="@{/teacher/qcm}" class="btn btn-outline-secondary btn-lg">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-info sticky-top" style="top: 80px;">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Statistiques</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Questions:</strong> <span th:text="${questions != null ? #lists.size(questions) : 0}">0</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Tentatives totales:</strong> 0
+                </div>
+                <div class="mb-3">
+                    <strong>Score moyen:</strong> --
+                </div>
+                <div>
+                    <strong>Créé le:</strong>
+                    <small th:text="${#temporals.format(qcm.dateCreation, 'dd/MM/yyyy')}">01/01/2024</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3 border-warning">
+            <div class="card-body">
+                <h6 class="text-warning"><i class="bi bi-exclamation-triangle me-2"></i>Attention</h6>
+                <p class="small mb-0">
+                    Si des étudiants ont déjà passé ce QCM, la modification des questions ou réponses
+                    peut affecter les résultats enregistrés.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

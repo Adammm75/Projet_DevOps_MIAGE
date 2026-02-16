@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/student/courses}">Mes cours</a></li>
+        <li class="breadcrumb-item active" th:text="${course.code}">CODE</li>
+    </ol>
+</nav>
+
+<!-- En-tête du cours -->
+<div class="card mb-4 border-primary">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center mb-2">
+                    <span class="badge bg-primary fs-5 me-3" th:text="${course.code}">CODE</span>
+                    <h3 class="mb-0" th:text="${course.title}">Titre du cours</h3>
+                </div>
+                <p class="text-muted mb-0" th:text="${course.description}">Description du cours</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="mb-2">
+                    <i class="bi bi-person-circle me-2"></i>
+                    <strong th:if="${course.createdBy != null}"
+                            th:text="${course.createdBy.firstName + ' ' + course.createdBy.lastName}">
+                        Enseignant
+                    </strong>
+                </div>
+                <a th:href="@{/messages/compose(recipientId=${course.createdBy?.id})}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-envelope me-2"></i>Contacter l'enseignant
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs de navigation -->
+<ul class="nav nav-tabs mb-4" id="courseTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="resources-tab" data-bs-toggle="tab"
+                data-bs-target="#resources" type="button" role="tab">
+            <i class="bi bi-folder me-2"></i>Ressources
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="assignments-tab" data-bs-toggle="tab"
+                data-bs-target="#assignments" type="button" role="tab">
+            <i class="bi bi-file-earmark-text me-2"></i>Devoirs
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="qcm-tab" data-bs-toggle="tab"
+                data-bs-target="#qcm" type="button" role="tab">
+            <i class="bi bi-question-circle me-2"></i>QCM
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="grades-tab" data-bs-toggle="tab"
+                data-bs-target="#grades" type="button" role="tab">
+            <i class="bi bi-graph-up me-2"></i>Notes
+        </button>
+    </li>
+</ul>
+
+<!-- Contenu des tabs -->
+<div class="tab-content" id="courseTabContent">
+
+    <!-- RESSOURCES -->
+    <div class="tab-pane fade show active" id="resources" role="tabpanel">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-folder-fill me-2"></i>Ressources pédagogiques</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div th:if="${resources == null || #lists.isEmpty(resources)}"
+                         class="list-group-item text-center py-5">
+                        <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
+                        <p class="text-muted mb-0">Aucune ressource disponible</p>
+                    </div>
+
+                    <a th:each="r : ${resources}"
+                       th:href="@{|/resources/${r.id}/open|}"
+                       class="list-group-item list-group-item-action"
+                       target="_blank">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <i class="bi fs-3 me-3"
+                                   th:classappend="${r.type == 'PDF'} ? 'bi-file-pdf text-danger' :
+                                                   ${r.type == 'WORD'} ? 'bi-file-word text-primary' :
+                                                   ${r.type == 'PPT'} ? 'bi-file-ppt text-warning' :
+                                                   'bi-file-earmark text-secondary'"></i>
+                                <div>
+                                    <h6 class="mb-0" th:text="${r.title}">Titre de la ressource</h6>
+                                    <small class="text-muted" th:text="${r.description}">Description</small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-secondary" th:text="${r.type}">TYPE</span>
+                                <div class="small text-muted mt-1">
+                                    <i class="bi bi-calendar me-1"></i>
+                                    <span th:text="${#temporals.format(r.createdAt, 'dd/MM/yyyy')}">01/01/2024</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DEVOIRS -->
+    <div class="tab-pane fade" id="assignments" role="tabpanel">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Devoirs à rendre</h5>
+                <a th:href="@{|/student/assignments/course/${course.id}|}" class="btn btn-sm btn-primary">
+                    Voir tous les devoirs
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Titre</th>
+                            <th>Date limite</th>
+                            <th>Note max</th>
+                            <th>Statut</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${assignments == null || #lists.isEmpty(assignments)}">
+                            <td colspan="5" class="text-center py-5">
+                                <i class="bi bi-check-circle fs-1 text-success d-block mb-2"></i>
+                                <p class="text-muted mb-0">Aucun devoir à rendre</p>
+                            </td>
+                        </tr>
+
+                        <tr th:each="a : ${assignments}">
+                            <td>
+                                <strong th:text="${a.title}">Titre du devoir</strong>
+                                <p class="mb-0 small text-muted">
+                                    <span th:if="${a.description != null && !#strings.isEmpty(a.description)}"
+                                          th:text="${#strings.abbreviate(a.description, 60)}">
+                                        Description
+                                    </span>
+                                    <span th:if="${a.description == null || #strings.isEmpty(a.description)}"
+                                          class="fst-italic">
+                                        Aucune description
+                                    </span>
+                                </p>
+                            </td>
+                            <td>
+                                <span th:text="${#temporals.format(a.dueDate, 'dd/MM/yyyy HH:mm')}">
+                                    01/01/2024 23:59
+                                </span>
+                                <span class="badge bg-danger ms-2"
+                                      th:if="${a.dueDate != null && #temporals.createNow().isAfter(a.dueDate)}">
+                                    En retard
+                                </span>
+                            </td>
+                            <td>
+                                <span th:text="${a.maxGrade}">20</span> pts
+                            </td>
+                            <td>
+                                <span th:if="${a.submitted}" class="badge bg-success">Rendu</span>
+                                <span th:if="${!a.submitted}" class="badge bg-warning">À rendre</span>
+                            </td>
+                            <td class="text-end">
+                                <a th:if="${!a.submitted}"
+                                   th:href="@{|/student/assignments/${a.id}/submit|}"
+                                   class="btn btn-sm btn-primary">
+                                    <i class="bi bi-upload me-1"></i>Rendre
+                                </a>
+                                <a th:if="${a.submitted}"
+                                   th:href="@{|/student/assignments/${a.id}/view|}"
+                                   class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-eye me-1"></i>Voir
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QCM -->
+    <div class="tab-pane fade" id="qcm" role="tabpanel">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-question-circle me-2"></i>Quiz disponibles</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div th:if="${qcms == null || #lists.isEmpty(qcms)}"
+                         class="list-group-item text-center py-5">
+                        <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
+                        <p class="text-muted mb-0">Aucun QCM disponible</p>
+                    </div>
+
+                    <div th:each="q : ${qcms}" class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1" th:text="${q.titre}">Titre du QCM</h6>
+                                <p class="mb-2 small text-muted" th:text="${q.description}">Description</p>
+                                <div class="d-flex gap-3">
+                                    <small th:if="${q.limiteTempsMinutes != null}">
+                                        <i class="bi bi-clock me-1"></i>
+                                        <span th:text="${q.limiteTempsMinutes}">30</span> min
+                                    </small>
+                                    <small th:if="${q.tentativesMax != null}">
+                                        <i class="bi bi-repeat me-1"></i>
+                                        <span th:text="${q.tentativesMax}">3</span> tentatives max
+                                    </small>
+                                </div>
+                            </div>
+                            <div>
+                                <a th:href="@{|/student/qcm/${q.id}/start|}"
+                                   class="btn btn-success">
+                                    <i class="bi bi-play-fill me-2"></i>Commencer
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTES -->
+    <div class="tab-pane fade" id="grades" role="tabpanel">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Mes notes pour ce cours</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Consultez toutes vos notes dans la section <a th:href="@{/student/grades}">Mes Notes</a>
+                </div>
+
+                <!-- Note finale si disponible -->
+                <div class="text-center py-4">
+                    <h6 class="text-muted mb-2">Note finale</h6>
+                    <div th:if="${courseGrade != null}">
+                        <div class="display-4 fw-bold"
+                             th:classappend="${courseGrade >= 10} ? 'text-success' : 'text-danger'">
+                            <span th:text="${#numbers.formatDecimal(courseGrade, 1, 2)}">0.00</span>/20
+                        </div>
+                        <span class="badge mt-2"
+                              th:classappend="${courseGrade >= 16} ? 'bg-success' :
+                                             ${courseGrade >= 14} ? 'bg-info' :
+                                             ${courseGrade >= 12} ? 'bg-primary' :
+                                             ${courseGrade >= 10} ? 'bg-warning' : 'bg-danger'"
+                              th:text="${courseGrade >= 16} ? 'Très bien' :
+                                       ${courseGrade >= 14} ? 'Bien' :
+                                       ${courseGrade >= 12} ? 'Assez bien' :
+                                       ${courseGrade >= 10} ? 'Passable' : 'Insuffisant'">
+                            Mention
+                        </span>
+                    </div>
+                    <div th:if="${courseGrade == null}">
+                        <div class="display-4 fw-bold text-muted">
+                            --/20
+                        </div>
+                        <p class="text-muted mt-2">En cours de calcul</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
