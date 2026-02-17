@@ -9,6 +9,8 @@ import org.example.devopslearning.services.OpenAISummarizationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -55,7 +57,12 @@ public class AudioUploadController {
             String transcript = gladiaService.extractTranscript(gladiaResponse);
 
             // 🔹 4. Résumé OpenAI
-            String summary = summarizationService.summarize(transcript);
+            String aiResponse = summarizationService.summarize(transcript);
+JsonNode aiJson = new ObjectMapper().readTree(aiResponse);
+
+String summary = aiJson.get("summary").asText();
+String titleFromAi = aiJson.get("title").asText();
+String keywords = aiJson.get("keywords").toString(); // JSON array
 
             // 🔹 5. INSERTION EN BASE
             CourseResource r = new CourseResource();
@@ -64,6 +71,7 @@ public class AudioUploadController {
             r.setTitle(title);
             r.setTranscript(transcript);
             r.setSummary(summary);
+            r.setKeywords(keywords);
 
             resourceRepository.save(r);
 
@@ -77,7 +85,8 @@ public class AudioUploadController {
                     "message", "Audio traité et sauvegardé",
                     "resourceId", r.getId(),
                     "summary", summary,
-                    "transcript", transcript));
+                    "transcript", transcript,
+                    "keywords", keywords));
 
         } catch (Exception e) {
             e.printStackTrace();
