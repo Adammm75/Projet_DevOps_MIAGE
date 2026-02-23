@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-0">
+            <i class="bi bi-person-circle me-2"></i>Mon Profil
+        </h2>
+        <p class="text-muted mb-0">Informations et paramètres de votre compte</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Colonne principale -->
+    <div class="col-lg-8">
+
+        <!-- Informations personnelles -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-person me-2"></i>Informations personnelles
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="firstName" class="form-label"><strong>Prénom</strong></label>
+                        <input type="text"
+                               class="form-control"
+                               id="firstName"
+                               th:value="${user.firstName}"
+                               readonly>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="lastName" class="form-label"><strong>Nom</strong></label>
+                        <input type="text"
+                               class="form-control"
+                               id="lastName"
+                               th:value="${user.lastName}"
+                               readonly>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label"><strong>Email</strong></label>
+                    <input type="email"
+                           class="form-control"
+                           id="email"
+                           th:value="${user.email}"
+                           readonly>
+                    <div class="form-text">
+                        <i class="bi bi-lock me-1"></i>
+                        Votre email ne peut pas être modifié. Contactez un administrateur si nécessaire.
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Membre depuis</strong></label>
+                    <input type="text"
+                           class="form-control"
+                           th:value="${#temporals.format(user.createdAt, 'dd/MM/yyyy')}"
+                           readonly>
+                </div>
+            </div>
+        </div>
+
+        <!-- Changer le mot de passe -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-shield-lock me-2"></i>Sécurité
+                </h5>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/profile/change-password}" method="post">
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label">
+                            <strong>Mot de passe actuel</strong>
+                        </label>
+                        <input type="password"
+                               class="form-control"
+                               id="currentPassword"
+                               name="currentPassword"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">
+                            <strong>Nouveau mot de passe</strong>
+                        </label>
+                        <input type="password"
+                               class="form-control"
+                               id="newPassword"
+                               name="newPassword"
+                               minlength="6"
+                               required>
+                        <div class="form-text">Minimum 6 caractères</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="confirmPassword" class="form-label">
+                            <strong>Confirmer le nouveau mot de passe</strong>
+                        </label>
+                        <input type="password"
+                               class="form-control"
+                               id="confirmPassword"
+                               name="confirmPassword"
+                               minlength="6"
+                               required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-2"></i>Changer le mot de passe
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Préférences (placeholder) -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-gear me-2"></i>Préférences
+                </h5>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Langue</strong></label>
+                        <select class="form-select">
+                            <option selected>Français</option>
+                            <option>English</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Notifications</strong></label>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="emailNotif" checked>
+                            <label class="form-check-label" for="emailNotif">
+                                Recevoir les notifications par email
+                            </label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="gradeNotif" checked>
+                            <label class="form-check-label" for="gradeNotif">
+                                M'informer des nouvelles notes
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-2"></i>Enregistrer les préférences
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+
+        <!-- Carte de profil -->
+        <div class="card mb-4 text-center">
+            <div class="card-body py-4">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                     style="width: 100px; height: 100px; font-size: 2.5rem;">
+                    <strong th:text="${#strings.substring(user.firstName, 0, 1) + #strings.substring(user.lastName, 0, 1)}">AB</strong>
+                </div>
+                <h4 class="mb-1" th:text="${user.firstName + ' ' + user.lastName}">Nom Prénom</h4>
+                <p class="text-muted mb-3" th:text="${user.email}">email@example.com</p>
+
+                <!-- Rôles -->
+                <div class="d-flex gap-2 justify-content-center flex-wrap">
+                    <span th:each="ur : ${user.userRoles}"
+                          class="badge"
+                          th:classappend="${ur.role.name == 'ROLE_ADMIN'} ? 'bg-danger' :
+                                         ${ur.role.name == 'ROLE_TEACHER'} ? 'bg-success' :
+                                         ${ur.role.name == 'ROLE_STUDENT'} ? 'bg-info' : 'bg-secondary'"
+                          th:text="${#strings.replace(ur.role.name, 'ROLE_', '')}">
+                        ROLE
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistiques rapides (pour étudiants) -->
+        <div class="card mb-4" sec:authorize="hasRole('STUDENT')">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-graph-up me-2"></i>Mes statistiques
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Cours suivis</span>
+                    <strong>0</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Devoirs rendus</span>
+                    <strong>0</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">QCM complétés</span>
+                    <strong>0</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Moyenne générale</span>
+                    <strong>--/20</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistiques rapides (pour enseignants) -->
+        <div class="card mb-4" sec:authorize="hasRole('TEACHER')">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-graph-up me-2"></i>Mes statistiques
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Cours créés</span>
+                    <strong>0</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Devoirs assignés</span>
+                    <strong>0</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">QCM publiés</span>
+                    <strong>0</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Étudiants</span>
+                    <strong>0</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions rapides -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-lightning me-2"></i>Actions rapides
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a th:href="@{/dashboard}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-speedometer2 me-2"></i>Mon dashboard
+                    </a>
+                    <a th:href="@{/messages}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-envelope me-2"></i>Ma messagerie
+                    </a>
+                    <a th:href="@{/notifications}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-bell me-2"></i>Mes notifications
+                    </a>
+                    <a sec:authorize="hasRole('STUDENT')"
+                       th:href="@{/student/grades}"
+                       class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-graph-up me-2"></i>Mes notes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script validation mot de passe -->
+<script>
+    document.querySelector('form[action*="change-password"]')?.addEventListener('submit', function(e) {
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (newPassword !== confirmPassword) {
+            e.preventDefault();
+            alert('Les mots de passe ne correspondent pas !');
+            document.getElementById('confirmPassword').focus();
+        }
+    });
+</script>
+
+</body>
+</html>
