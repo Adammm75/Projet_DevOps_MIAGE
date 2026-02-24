@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-0">
+            <i class="bi bi-question-circle me-2"></i>Quiz / QCM Disponibles
+        </h2>
+        <p class="text-muted mb-0">Testez vos connaissances</p>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form class="row g-3">
+            <div class="col-md-6">
+                <select class="form-select" name="course">
+                    <option selected>Tous les cours</option>
+                    <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.code + ' - ' + c.title}">
+                        Cours
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" name="status">
+                    <option selected>Tous les statuts</option>
+                    <option value="available">Disponibles</option>
+                    <option value="completed">Complétés</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-funnel me-2"></i>Filtrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-primary">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Disponibles</h6>
+                <h2 class="text-primary mb-0">
+                    <span th:text="${qcms != null ? #lists.size(qcms) : 0}">0</span>
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Complétés</h6>
+                <h2 class="text-success mb-0">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-info">
+            <div class="card-body text-center">
+                <h6 class="text-muted">Score moyen</h6>
+                <h2 class="text-info mb-0">--</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Liste des QCM -->
+<div class="row">
+    <div th:if="${qcms == null || #lists.isEmpty(qcms)}" class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+                <h5 class="text-muted">Aucun quiz disponible</h5>
+                <p class="text-muted">Aucun quiz n'a encore été publié pour vos cours</p>
+            </div>
+        </div>
+    </div>
+
+    <div th:each="q : ${qcms}" class="col-lg-6 mb-4">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="badge bg-secondary" th:text="${q.cours?.code}">CODE</span>
+                    <span class="badge bg-success">
+                        <i class="bi bi-check-circle me-1"></i>Disponible
+                    </span>
+                </div>
+
+                <h5 class="card-title mb-3" th:text="${q.titre}">Titre du QCM</h5>
+
+                <p class="card-text text-muted mb-4"
+                   th:text="${#strings.abbreviate(q.description ?: 'Aucune description', 120)}">
+                    Description du QCM...
+                </p>
+
+                <!-- Informations -->
+                <div class="d-flex gap-4 mb-3 text-muted small">
+                    <div th:if="${q.limiteTempsMinutes != null}">
+                        <i class="bi bi-clock me-1"></i>
+                        <span th:text="${q.limiteTempsMinutes}">30</span> min
+                    </div>
+                    <div th:if="${q.tentativesMax != null}">
+                        <i class="bi bi-repeat me-1"></i>
+                        <span th:text="${q.tentativesMax}">3</span> tentatives max
+                    </div>
+                    <div>
+                        <i class="bi bi-question-circle me-1"></i>
+                        Questions multiples
+                    </div>
+                </div>
+
+                <!-- Mes tentatives -->
+                <div class="alert alert-info mb-3">
+                    <small>
+                        <i class="bi bi-info-circle me-1"></i>
+                        <strong>Tentatives:</strong> 0 / <span th:text="${q.tentativesMax ?: '∞'}">∞</span>
+                    </small>
+                </div>
+
+                <!-- Boutons -->
+                <div class="d-grid gap-2">
+                    <a th:href="@{|/student/qcm/${q.id}/start|}"
+                       class="btn btn-success btn-lg">
+                        <i class="bi bi-play-fill me-2"></i>Commencer le quiz
+                    </a>
+                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                        <i class="bi bi-graph-up me-1"></i>Voir mes résultats
+                    </button>
+                </div>
+            </div>
+
+            <div class="card-footer bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="bi bi-person-circle me-1"></i>
+                        <span th:if="${q.creePar != null}"
+                              th:text="${q.creePar.firstName + ' ' + q.creePar.lastName}">
+                            Enseignant
+                        </span>
+                    </small>
+                    <small class="text-muted">
+                        <i class="bi bi-calendar me-1"></i>
+                        <span th:text="${#temporals.format(q.dateCreation, 'dd/MM/yyyy')}">01/01/2024</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-shadow {
+        transition: all 0.3s ease;
+    }
+    .hover-shadow:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        transform: translateY(-2px);
+    }
+</style>
+
+</body>
+</html>

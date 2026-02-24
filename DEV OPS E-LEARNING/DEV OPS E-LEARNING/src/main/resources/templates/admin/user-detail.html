@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<div class="row mb-4">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/admin/users}">Utilisateurs</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Détails</li>
+            </ol>
+        </nav>
+        <h2 class="mb-0">
+            <i class="bi bi-person-circle me-2"></i>Détails de l'utilisateur
+        </h2>
+    </div>
+    <div class="col-auto">
+        <a th:href="@{|/admin/users/${user.id}/edit|}" class="btn btn-primary">
+            <i class="bi bi-pencil me-2"></i>Modifier
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Informations personnelles</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th style="width: 200px;">ID</th>
+                        <td><span class="badge bg-secondary" th:text="${user.id}">#1</span></td>
+                    </tr>
+                    <tr>
+                        <th>Nom complet</th>
+                        <td>
+                            <strong th:text="${user.firstName + ' ' + user.lastName}">Nom Prénom</strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Prénom</th>
+                        <td th:text="${user.firstName}">Prénom</td>
+                    </tr>
+                    <tr>
+                        <th>Nom</th>
+                        <td th:text="${user.lastName}">Nom</td>
+                    </tr>
+                    <tr>
+                        <th>Email</th>
+                        <td>
+                            <i class="bi bi-envelope me-2"></i>
+                            <span th:text="${user.email}">email@example.com</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Rôle(s)</th>
+                        <td>
+                            <span th:each="role : ${roles}" class="me-1">
+                                <span th:if="${role == 'ROLE_ADMIN'}" class="badge bg-warning">Admin</span>
+                                <span th:if="${role == 'ROLE_TEACHER'}" class="badge bg-success">Enseignant</span>
+                                <span th:if="${role == 'ROLE_STUDENT'}" class="badge bg-info">Étudiant</span>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Inscrit le</th>
+                        <td th:text="${#temporals.format(user.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2024</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Zone de danger</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    La suppression d'un utilisateur est <strong>irréversible</strong>.
+                    Toutes ses données seront perdues.
+                </p>
+                <form th:action="@{|/admin/users/${user.id}/delete|}"
+                      method="post"
+                      onsubmit="return confirm('Êtes-vous ABSOLUMENT sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.');">
+                    <button type="submit" class="btn btn-danger w-100">
+                        <i class="bi bi-trash me-2"></i>Supprimer l'utilisateur
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

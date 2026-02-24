@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<div class="row mb-4">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/admin/courses}">Cours</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/admin/courses/{id}(id=${cours.id})}" th:text="${cours.title}">Cours</a></li>
+                <li class="breadcrumb-item active">Notes</li>
+            </ol>
+        </nav>
+        <h2 class="mb-0">
+            <i class="bi bi-clipboard-check me-2"></i>Gestion des Notes
+        </h2>
+        <p class="text-muted mb-0">
+            <span class="badge bg-primary me-2" th:text="${cours.code}">CODE</span>
+            <span th:text="${cours.title}">Titre du cours</span>
+        </p>
+    </div>
+    <div class="col-auto">
+        <form th:if="${grades != null && !#lists.isEmpty(grades) && grades[0].statut == 'PROVISOIRE'}"
+              th:action="@{/admin/courses/{id}/grades/lock(id=${cours.id})}"
+              method="post"
+              class="d-inline"
+              onsubmit="return confirm('Verrouiller toutes les notes ? Elles deviendront définitives.');">
+            <button type="submit" class="btn btn-warning me-2">
+                <i class="bi bi-lock me-2"></i>Verrouiller toutes les notes
+            </button>
+        </form>
+
+        <form th:if="${grades != null && !#lists.isEmpty(grades) && grades[0].statut == 'DEFINITIF'}"
+              th:action="@{/admin/courses/{id}/grades/unlock(id=${cours.id})}"
+              method="post"
+              class="d-inline"
+              onsubmit="return confirm('Déverrouiller toutes les notes ?');">
+            <button type="submit" class="btn btn-success me-2">
+                <i class="bi bi-unlock me-2"></i>Déverrouiller les notes
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Statistiques -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center border-primary">
+            <div class="card-body">
+                <i class="bi bi-people fs-2 text-primary"></i>
+                <h6 class="mt-2 mb-0">Étudiants</h6>
+                <h4 class="text-primary mb-0" th:text="${grades != null ? #lists.size(grades) : 0}">0</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-success">
+            <div class="card-body">
+                <i class="bi bi-graph-up fs-2 text-success"></i>
+                <h6 class="mt-2 mb-0">Moyenne Générale</h6>
+                <h4 class="text-success mb-0">
+                    <span th:if="${average != null}" th:text="${#numbers.formatDecimal(average, 1, 2)}">0.00</span>
+                    <span th:if="${average == null}">N/A</span>
+                    /20
+                </h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-info">
+            <div class="card-body">
+                <i class="bi bi-check-circle fs-2 text-info"></i>
+                <h6 class="mt-2 mb-0">Notes Saisies</h6>
+                <h4 class="text-info mb-0">
+                    <span th:text="${notesCount != null ? notesCount : 0}">0</span>
+                    /
+                    <span th:text="${grades != null ? #lists.size(grades) : 0}">0</span>
+                </h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center" th:classappend="${grades != null && !#lists.isEmpty(grades) && grades[0].statut == 'DEFINITIF' ? 'border-danger' : 'border-warning'}">
+            <div class="card-body">
+                <i class="bi fs-2" th:classappend="${grades != null && !#lists.isEmpty(grades) && grades[0].statut == 'DEFINITIF' ? 'bi-lock-fill text-danger' : 'bi-unlock-fill text-warning'}"></i>
+                <h6 class="mt-2 mb-0">Statut</h6>
+                <h4 class="mb-0" th:classappend="${grades != null && !#lists.isEmpty(grades) && grades[0].statut == 'DEFINITIF' ? 'text-danger' : 'text-warning'}">
+                    <span th:if="${grades != null && !#lists.isEmpty(grades)}" th:text="${grades[0].statut}">PROVISOIRE</span>
+                    <span th:if="${grades == null || #lists.isEmpty(grades)}">N/A</span>
+                </h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tableau des notes -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Notes des Étudiants</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                <tr>
+                    <th>Étudiant</th>
+                    <th>Email</th>
+                    <th style="width: 150px;">Note /20</th>
+                    <th style="width: 100px;">Mention</th>
+                    <th style="width: 150px;">Date Calcul</th>
+                    <th class="text-center" style="width: 100px;">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${grades == null || #lists.isEmpty(grades)}">
+                    <td colspan="6" class="text-center py-5">
+                        <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+                        <h5 class="text-muted">Aucun étudiant inscrit</h5>
+                    </td>
+                </tr>
+
+                <tr th:each="g : ${grades}">
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+                                 style="width: 35px; height: 35px;">
+                                <strong th:text="${#strings.substring(g.etudiant.firstName, 0, 1) + #strings.substring(g.etudiant.lastName, 0, 1)}">AB</strong>
+                            </div>
+                            <div>
+                                <strong th:text="${g.etudiant.firstName + ' ' + g.etudiant.lastName}">Nom Prénom</strong>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <small class="text-muted" th:text="${g.etudiant.email}">email@example.com</small>
+                    </td>
+                    <td>
+                        <form th:action="@{/admin/courses/{courseId}/grades/{gradeId}/update(courseId=${cours.id}, gradeId=${g.id})}"
+                              method="post"
+                              class="d-flex align-items-center gap-2">
+                            <input type="number"
+                                   name="noteFinale"
+                                   class="form-control form-control-sm"
+                                   th:value="${g.noteFinale}"
+                                   placeholder="0.00"
+                                   step="0.01"
+                                   min="0"
+                                   max="20"
+                                   th:disabled="${g.statut == 'DEFINITIF'}">
+                            <button type="submit"
+                                    class="btn btn-sm btn-primary"
+                                    th:disabled="${g.statut == 'DEFINITIF'}">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                        </form>
+                    </td>
+                    <td>
+                        <span th:if="${g.mention == 'TB'}" class="badge bg-success" th:text="${g.mention}">TB</span>
+                        <span th:if="${g.mention == 'B'}" class="badge bg-primary" th:text="${g.mention}">B</span>
+                        <span th:if="${g.mention == 'AB'}" class="badge bg-info" th:text="${g.mention}">AB</span>
+                        <span th:if="${g.mention == 'P'}" class="badge bg-warning" th:text="${g.mention}">P</span>
+                        <span th:if="${g.mention == 'AR'}" class="badge bg-danger" th:text="${g.mention}">AR</span>
+                        <span th:if="${g.mention == null}" class="text-muted">-</span>
+                    </td>
+                    <td>
+                        <small th:if="${g.dateCalcul != null}" th:text="${#temporals.format(g.dateCalcul, 'dd/MM/yyyy HH:mm')}">01/01/2025</small>
+                        <small th:if="${g.dateCalcul == null}" class="text-muted">Non calculée</small>
+                    </td>
+                    <td class="text-center">
+                        <span th:if="${g.statut == 'DEFINITIF'}" class="badge bg-danger">
+                            <i class="bi bi-lock-fill"></i> Verrouillée
+                        </span>
+                        <span th:if="${g.statut == 'PROVISOIRE'}" class="badge bg-warning">
+                            <i class="bi bi-unlock-fill"></i> Modifiable
+                        </span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <small class="text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Les notes verrouillées ne peuvent plus être modifiées
+                </small>
+            </div>
+            <div>
+                <a th:href="@{/admin/courses/{id}(id=${cours.id})}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Retour au cours
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

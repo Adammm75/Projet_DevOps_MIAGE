@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/teacher/courses}">Mes cours</a></li>
+        <li class="breadcrumb-item">
+            <a th:href="@{/teacher/courses/{id}(id=${course.id})}" th:text="${course.code}">CODE</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a th:href="@{/teacher/assignments/course/{id}(id=${course.id})}">Devoirs</a>
+        </li>
+        <li class="breadcrumb-item active">Créer un devoir</li>
+    </ol>
+</nav>
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-0">
+            <i class="bi bi-file-earmark-plus me-2"></i>Créer un nouveau devoir
+        </h2>
+        <p class="text-muted mb-0">Définissez les paramètres du devoir à assigner à vos étudiants</p>
+    </div>
+</div>
+
+<!-- Messages d'erreur -->
+<div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<!-- Formulaire -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form th:action="@{/teacher/assignments}" method="post">
+
+                    <!-- COURS PRÉ-SÉLECTIONNÉ (caché) -->
+                    <input type="hidden" name="courseId" th:value="${course.id}">
+
+                    <!-- Affichage du cours sélectionné -->
+                    <div class="mb-4 alert alert-info">
+                        <h6 class="mb-0">
+                            <i class="bi bi-book me-2"></i>
+                            <strong>Cours :</strong>
+                            <span class="badge bg-primary me-2" th:text="${course.code}">CODE</span>
+                            <span th:text="${course.title}">Titre du cours</span>
+                        </h6>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Titre -->
+                    <div class="mb-4">
+                        <label for="title" class="form-label">
+                            <strong>Titre du devoir <span class="text-danger">*</span></strong>
+                        </label>
+                        <input type="text"
+                               class="form-control form-control-lg"
+                               id="title"
+                               name="title"
+                               placeholder="Ex: TP1 - Développement Web"
+                               required
+                               maxlength="255">
+                        <div class="form-text">
+                            Un titre clair et descriptif
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <label for="description" class="form-label">
+                            <strong>Description / Consignes</strong>
+                        </label>
+                        <textarea class="form-control"
+                                  id="description"
+                                  name="description"
+                                  rows="6"
+                                  placeholder="Décrivez les objectifs, consignes et critères d'évaluation..."></textarea>
+                        <div class="form-text">
+                            Soyez précis dans vos consignes pour faciliter le travail des étudiants
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- ⭐ AFFECTATION AUX CLASSES -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <strong><i class="bi bi-people me-2"></i>Affecter aux classes</strong>
+                        </label>
+
+                        <div th:if="${classes == null || #lists.isEmpty(classes)}" class="alert alert-warning">
+                            <i class="bi bi-info-circle me-2"></i>Aucune classe disponible. Vous devez d'abord être affecté à des classes.
+                        </div>
+
+                        <div th:if="${classes != null && !#lists.isEmpty(classes)}">
+                            <p class="text-muted small mb-3">Sélectionnez les classes qui recevront ce devoir</p>
+
+                            <div class="row g-3">
+                                <div th:each="classe : ${classes}" class="col-md-6">
+                                    <div class="form-check p-3 border rounded" style="transition: all 0.3s;">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="classeIds"
+                                               th:value="${classe.id}"
+                                               th:id="'classe-' + ${classe.id}">
+                                        <label class="form-check-label w-100" th:for="'classe-' + ${classe.id}">
+                                            <strong th:text="${classe.nom}">Nom classe</strong>
+                                            <div class="small text-muted">
+                                                <span th:if="${classe.code != null}" th:text="${classe.code}">Code</span>
+                                                <span th:if="${classe.anneeUniversitaire != null}"> - </span>
+                                                <span th:if="${classe.anneeUniversitaire != null}" th:text="${classe.anneeUniversitaire}">2024-2025</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-text mt-3">
+                                <i class="bi bi-lightbulb me-1"></i>
+                                Vous pourrez modifier ces affectations après la création
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Date limite et Note max -->
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label for="dueDate" class="form-label">
+                                <strong>Date et heure limite <span class="text-danger">*</span></strong>
+                            </label>
+                            <input type="datetime-local"
+                                   class="form-control form-control-lg"
+                                   id="dueDate"
+                                   name="dueDate"
+                                   required>
+                            <div class="form-text">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Les étudiants ne pourront plus soumettre après cette date
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label for="maxGrade" class="form-label">
+                                <strong>Note maximale (points) <span class="text-danger">*</span></strong>
+                            </label>
+                            <input type="number"
+                                   class="form-control form-control-lg"
+                                   id="maxGrade"
+                                   name="maxGrade"
+                                   value="20"
+                                   min="1"
+                                   max="100"
+                                   step="0.5"
+                                   required>
+                            <div class="form-text">
+                                Barème de notation (généralement sur 20)
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Boutons -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle me-2"></i>Créer le devoir
+                        </button>
+                        <a th:href="@{/teacher/assignments/course/{id}(id=${course.id})}"
+                           class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-circle me-2"></i>Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar avec conseils -->
+    <div class="col-lg-4">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-lightbulb me-2"></i>Conseils pour créer un devoir
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6 class="mb-3">Titre</h6>
+                <ul class="small mb-4">
+                    <li>Utilisez une numérotation claire (TP1, TP2...)</li>
+                    <li>Indiquez le sujet principal</li>
+                </ul>
+
+                <h6 class="mb-3">Classes</h6>
+                <ul class="small mb-4">
+                    <li>Sélectionnez les classes concernées par ce devoir</li>
+                    <li>Seuls les étudiants des classes sélectionnées verront le devoir</li>
+                </ul>
+
+                <h6 class="mb-3">Description</h6>
+                <ul class="small mb-4">
+                    <li>Définissez clairement les objectifs d'apprentissage</li>
+                    <li>Listez les livrables attendus</li>
+                    <li>Précisez les critères d'évaluation</li>
+                </ul>
+
+                <h6 class="mb-3">Date limite</h6>
+                <ul class="small mb-4">
+                    <li>Donnez suffisamment de temps aux étudiants</li>
+                    <li>Évitez les périodes d'examens</li>
+                </ul>
+
+                <h6 class="mb-3">Notation</h6>
+                <ul class="small mb-0">
+                    <li>Utilisez un barème cohérent</li>
+                    <li>Prévoyez des critères objectifs</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script pour définir la date minimale à maintenant -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dueDateInput = document.getElementById('dueDate');
+        if (dueDateInput) {
+            // Définir la date minimale à maintenant
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            dueDateInput.min = now.toISOString().slice(0, 16);
+
+            // Définir une valeur par défaut à J+7
+            const nextWeek = new Date();
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            nextWeek.setHours(23, 59);
+            nextWeek.setMinutes(nextWeek.getMinutes() - nextWeek.getTimezoneOffset());
+            dueDateInput.value = nextWeek.toISOString().slice(0, 16);
+        }
+    });
+</script>
+
+</body>
+</html>

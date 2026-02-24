@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-0">
+            <i class="bi bi-bell me-2"></i>Notifications Administrateur
+        </h2>
+        <p class="text-muted mb-0">Centre de notifications et tableau de bord</p>
+    </div>
+    <div class="col-auto">
+        <form th:action="@{/notifications/read-all}" method="post" class="d-inline">
+            <button type="submit" class="btn btn-outline-primary" th:if="${hasUnread}">
+                <i class="bi bi-check-all me-2"></i>Tout marquer comme lu
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Statistiques rapides ADMIN -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center border-danger">
+            <div class="card-body">
+                <i class="bi bi-exclamation-triangle-fill fs-2 text-danger"></i>
+                <h6 class="mt-2 mb-0 text-danger">Alertes Système</h6>
+                <h4 class="text-danger mb-0" th:text="${systemAlertCount != null ? systemAlertCount : 0}">0</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-info">
+            <div class="card-body">
+                <i class="bi bi-person-plus-fill fs-2 text-info"></i>
+                <h6 class="mt-2 mb-0 text-info">Nouveaux Utilisateurs</h6>
+                <h4 class="text-info mb-0" th:text="${newUserCount != null ? newUserCount : 0}">0</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-success">
+            <div class="card-body">
+                <i class="bi bi-book-fill fs-2 text-success"></i>
+                <h6 class="mt-2 mb-0 text-success">Nouveaux Cours</h6>
+                <h4 class="text-success mb-0" th:text="${courseCount != null ? courseCount : 0}">0</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-primary">
+            <div class="card-body">
+                <i class="bi bi-graph-up-arrow fs-2 text-primary"></i>
+                <h6 class="mt-2 mb-0 text-primary">Total Utilisateurs</h6>
+                <h4 class="text-primary mb-0" th:text="${stats != null ? stats.totalUsers : 0}">0</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtres par catégorie -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="btn-group flex-wrap" role="group">
+            <button type="button" class="btn btn-outline-primary active" onclick="showSection('all')">
+                <i class="bi bi-list me-2"></i>Toutes
+            </button>
+            <button type="button" class="btn btn-outline-danger" onclick="showSection('system')">
+                <i class="bi bi-exclamation-triangle me-2"></i>Système
+            </button>
+            <button type="button" class="btn btn-outline-info" onclick="showSection('users')">
+                <i class="bi bi-people me-2"></i>Utilisateurs
+            </button>
+            <button type="button" class="btn btn-outline-success" onclick="showSection('courses')">
+                <i class="bi bi-book me-2"></i>Cours
+            </button>
+            <button type="button" class="btn btn-outline-secondary" onclick="showSection('stats')">
+                <i class="bi bi-graph-up me-2"></i>Visualisations
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 🚨 SECTION ALERTES SYSTÈME -->
+<div id="section-system" class="notification-section">
+    <div class="card mb-4" th:if="${systemAlerts != null && !#lists.isEmpty(systemAlerts)}">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                Alertes Système Critiques
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="list-group list-group-flush">
+                <div th:each="n : ${systemAlerts}" class="list-group-item list-group-item-danger">
+                    <div class="d-flex align-items-start">
+                        <div class="me-3 mt-1">
+                            <i class="bi bi-shield-exclamation fs-3 text-danger"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-0 fw-bold text-danger">
+                                    <span th:text="${n.title}">Alerte système</span>
+                                </h6>
+                                <small class="text-danger ms-3" th:text="${#temporals.format(n.createdAt, 'dd/MM HH:mm')}">01/01 10:00</small>
+                            </div>
+                            <p class="mb-2" th:text="${n.content}">Détails de l'alerte</p>
+                            <span class="badge bg-danger">CRITIQUE</span>
+                        </div>
+                        <div class="ms-3">
+                            <form th:action="@{|/notifications/${n.id}/read|}" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-danger" title="Traiter">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card" th:if="${systemAlerts == null || #lists.isEmpty(systemAlerts)}">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-check-circle fs-1 text-success d-block mb-3"></i>
+            <h5 class="text-success">Aucune alerte système</h5>
+            <p class="text-muted">Tous les systèmes fonctionnent normalement</p>
+        </div>
+    </div>
+</div>
+
+<!-- 👥 SECTION NOUVEAUX UTILISATEURS -->
+<div id="section-users" class="notification-section" style="display: none;">
+    <div class="card mb-4" th:if="${newUserNotifications != null && !#lists.isEmpty(newUserNotifications)}">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-person-plus-fill me-2"></i>
+                Nouveaux Utilisateurs
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="list-group list-group-flush">
+                <div th:each="n : ${newUserNotifications}" class="list-group-item" th:classappend="${!n.isRead} ? 'border-start border-info border-3'">
+                    <div class="d-flex align-items-start">
+                        <div class="me-3 mt-1">
+                            <i class="bi bi-person-circle fs-3 text-info"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-0" th:classappend="${!n.isRead} ? 'fw-bold'">
+                                    <span th:text="${n.title}">Nouvelle inscription</span>
+                                </h6>
+                                <small class="text-muted ms-3" th:text="${#temporals.format(n.createdAt, 'dd/MM HH:mm')}">01/01 10:00</small>
+                            </div>
+                            <p class="mb-2" th:text="${n.content}">Détails de l'inscription</p>
+                            <span class="badge bg-info">Nouvel utilisateur</span>
+                        </div>
+                        <div class="ms-3">
+                            <a th:href="@{/admin/users}" class="btn btn-sm btn-info me-1">
+                                <i class="bi bi-eye"></i> Voir
+                            </a>
+                            <form th:action="@{|/notifications/${n.id}/read|}" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Marquer comme lu">
+                                    <i class="bi bi-check"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card" th:if="${newUserNotifications == null || #lists.isEmpty(newUserNotifications)}">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-people fs-1 text-muted d-block mb-3"></i>
+            <h5 class="text-muted">Aucun nouvel utilisateur</h5>
+        </div>
+    </div>
+</div>
+
+<!-- 📚 SECTION COURS -->
+<div id="section-courses" class="notification-section" style="display: none;">
+    <div class="card mb-4" th:if="${courseNotifications != null && !#lists.isEmpty(courseNotifications)}">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-book-fill me-2"></i>
+                Activité des Cours
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="list-group list-group-flush">
+                <div th:each="n : ${courseNotifications}" class="list-group-item" th:classappend="${!n.isRead} ? 'border-start border-success border-3'">
+                    <div class="d-flex align-items-start">
+                        <div class="me-3 mt-1">
+                            <i class="bi bi-book fs-3 text-success"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-0" th:classappend="${!n.isRead} ? 'fw-bold'">
+                                    <span th:text="${n.title}">Activité sur un cours</span>
+                                </h6>
+                                <small class="text-muted ms-3" th:text="${#temporals.format(n.createdAt, 'dd/MM HH:mm')}">01/01 10:00</small>
+                            </div>
+                            <p class="mb-2" th:text="${n.content}">Détails</p>
+                            <div class="d-flex gap-2">
+                                <span class="badge bg-success">Cours</span>
+                                <span th:if="${n.relatedCourse != null}" class="badge bg-secondary">
+                                    <i class="bi bi-book me-1"></i>
+                                    <span th:text="${n.relatedCourse.code}">CODE</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="ms-3">
+                            <a th:href="@{/admin/courses}" class="btn btn-sm btn-success me-1">
+                                <i class="bi bi-eye"></i> Voir
+                            </a>
+                            <form th:action="@{|/notifications/${n.id}/read|}" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Marquer comme lu">
+                                    <i class="bi bi-check"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card" th:if="${courseNotifications == null || #lists.isEmpty(courseNotifications)}">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-book fs-1 text-muted d-block mb-3"></i>
+            <h5 class="text-muted">Aucune activité récente</h5>
+        </div>
+    </div>
+</div>
+
+<!-- 📊 SECTION VISUALISATIONS & STATS - TAILLE RÉDUITE -->
+<div id="section-stats" class="notification-section" style="display: none;">
+    <div class="row g-4">
+        <!-- Graphique 1 : Inscriptions 7 derniers jours -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up me-2"></i>
+                        Inscriptions (7 derniers jours)
+                    </h5>
+                </div>
+                <div class="card-body" style="height: 300px;">
+                    <canvas id="registrationsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graphique 2 : Répartition utilisateurs -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pie-chart me-2"></i>
+                        Répartition des Utilisateurs
+                    </h5>
+                </div>
+                <div class="card-body" style="height: 300px;">
+                    <canvas id="usersChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graphique 3 : Top 5 cours -->
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bar-chart me-2"></i>
+                        Top 5 Cours Récents
+                    </h5>
+                </div>
+                <div class="card-body" style="height: 300px;">
+                    <canvas id="coursesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats supplémentaires -->
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Statistiques Détaillées
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="border-start border-primary border-4 ps-3">
+                                <h6 class="text-muted mb-1">Total Utilisateurs</h6>
+                                <h4 class="mb-0" th:text="${stats != null ? stats.totalUsers : 0}">0</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border-start border-success border-4 ps-3">
+                                <h6 class="text-muted mb-1">Total Cours</h6>
+                                <h4 class="mb-0" th:text="${stats != null ? stats.totalCourses : 0}">0</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border-start border-info border-4 ps-3">
+                                <h6 class="text-muted mb-1">Nouveaux (aujourd'hui)</h6>
+                                <h4 class="mb-0" th:text="${stats != null ? stats.newUsersToday : 0}">0</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border-start border-warning border-4 ps-3">
+                                <h6 class="text-muted mb-1">Cours (aujourd'hui)</h6>
+                                <h4 class="mb-0" th:text="${stats != null ? stats.newCoursesToday : 0}">0</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 📋 AUTRES NOTIFICATIONS -->
+<div id="section-others" class="notification-section" style="display: none;">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-list-check me-2"></i>
+                Autres Notifications
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="list-group list-group-flush">
+                <div th:if="${otherNotifications == null || #lists.isEmpty(otherNotifications)}" class="list-group-item text-center py-5">
+                    <i class="bi bi-bell-slash fs-1 text-muted d-block mb-3"></i>
+                    <h5 class="text-muted">Aucune autre notification</h5>
+                    <p class="text-muted">Vous êtes à jour !</p>
+                </div>
+                <div th:each="n : ${otherNotifications}" class="list-group-item" th:classappend="${!n.isRead} ? 'bg-light border-start border-secondary border-3'">
+                    <div class="d-flex align-items-start">
+                        <div class="me-3 mt-1">
+                            <i class="bi bi-info-circle fs-3 text-secondary"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-0" th:classappend="${!n.isRead} ? 'fw-bold'">
+                                    <span th:text="${n.title}">Notification</span>
+                                </h6>
+                                <small class="text-muted ms-3" th:text="${#temporals.format(n.createdAt, 'dd/MM HH:mm')}">01/01 10:00</small>
+                            </div>
+                            <p class="mb-2" th:text="${n.content}">Contenu</p>
+                        </div>
+                        <div class="ms-3">
+                            <form th:action="@{|/notifications/${n.id}/read|}" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Marquer comme lu">
+                                    <i class="bi bi-check"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+
+    // JavaScript pour afficher/masquer les sections
+    function showSection(section) {
+        const sections = document.querySelectorAll('.notification-section');
+        sections.forEach(s => s.style.display = 'none');
+
+        if (section === 'all') {
+            sections.forEach(s => s.style.display = 'block');
+        } else {
+            document.getElementById('section-' + section).style.display = 'block';
+        }
+
+        // Mettre à jour les boutons actifs
+        document.querySelectorAll('.btn-group button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.closest('button').classList.add('active');
+    }
+
+    // Données des graphiques depuis Thymeleaf
+    const stats = /*[[${stats}]]*/ null;
+
+    if (stats) {
+        // Graphique 1 : Inscriptions 7 derniers jours
+        const registrationsData = stats.last7DaysRegistrations || [];
+        const regLabels = registrationsData.map(d => d.date);
+        const regCounts = registrationsData.map(d => d.count);
+
+        new Chart(document.getElementById('registrationsChart'), {
+            type: 'line',
+            data: {
+                labels: regLabels,
+                datasets: [{
+                    label: 'Inscriptions',
+                    data: regCounts,
+                    borderColor: 'rgb(13, 110, 253)',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                }
+            }
+        });
+
+        // Graphique 2 : Répartition utilisateurs
+        const usersByRole = stats.usersByRole || {};
+        new Chart(document.getElementById('usersChart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(usersByRole),
+                datasets: [{
+                    data: Object.values(usersByRole),
+                    backgroundColor: [
+                        'rgb(220, 53, 69)',   // Rouge Admin
+                        'rgb(25, 135, 84)',   // Vert Enseignants
+                        'rgb(13, 202, 240)'   // Bleu Étudiants
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // Graphique 3 : Top 5 cours
+        const topCourses = stats.topCourses || [];
+        const courseLabels = topCourses.map(c => c.courseCode + ' - ' + c.courseName);
+        const courseCounts = topCourses.map(c => c.studentCount);
+
+        new Chart(document.getElementById('coursesChart'), {
+            type: 'bar',
+            data: {
+                labels: courseLabels,
+                datasets: [{
+                    label: 'Étudiants inscrits',
+                    data: courseCounts,
+                    backgroundColor: 'rgb(25, 135, 84)',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { beginAtZero: true, ticks: { stepSize: 1 } }
+                }
+            }
+        });
+    }
+
+    /*]]>*/
+</script>
+
+</body>
+</html>

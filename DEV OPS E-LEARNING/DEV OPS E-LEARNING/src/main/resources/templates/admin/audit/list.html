@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-0">
+            <i class="bi bi-clock-history me-2"></i>Historique des Actions
+        </h2>
+        <p class="text-muted mb-0">Journal d'audit des modifications administratives</p>
+    </div>
+</div>
+
+<!-- Filtres de recherche -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form th:action="@{/admin/audit}" method="get" class="row g-3">
+            <div class="col-md-5">
+                <input type="text"
+                       class="form-control"
+                       name="search"
+                       th:value="${search}"
+                       placeholder="Rechercher par action ou type d'entité...">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="entityType">
+                    <option value="">Tous les types</option>
+                    <option value="USER" th:selected="${entityType == 'USER'}">Utilisateurs</option>
+                    <option value="COURSE" th:selected="${entityType == 'COURSE'}">Cours</option>
+                    <option value="ENROLLMENT" th:selected="${entityType == 'ENROLLMENT'}">Inscriptions</option>
+                    <option value="GRADE" th:selected="${entityType == 'GRADE'}">Notes</option>
+                    <option value="CLASS" th:selected="${entityType == 'CLASS'}">Classes</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-2"></i>Rechercher
+                </button>
+            </div>
+            <div class="col-md-2">
+                <a th:href="@{/admin/audit}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-x-circle me-2"></i>Réinitialiser
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Statistiques -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center border-primary">
+            <div class="card-body">
+                <i class="bi bi-list-ul fs-2 text-primary"></i>
+                <h6 class="mt-2 mb-0">Total Actions</h6>
+                <h4 class="text-primary mb-0" th:text="${logs != null ? #lists.size(logs) : 0}">0</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-success">
+            <div class="card-body">
+                <i class="bi bi-plus-circle fs-2 text-success"></i>
+                <h6 class="mt-2 mb-0">Créations</h6>
+                <h4 class="text-success mb-0">0</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-warning">
+            <div class="card-body">
+                <i class="bi bi-pencil fs-2 text-warning"></i>
+                <h6 class="mt-2 mb-0">Modifications</h6>
+                <h4 class="text-warning mb-0">0</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-danger">
+            <div class="card-body">
+                <i class="bi bi-trash fs-2 text-danger"></i>
+                <h6 class="mt-2 mb-0">Suppressions</h6>
+                <h4 class="text-danger mb-0">0</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tableau des logs -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-list me-2"></i>Journal des Actions</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                <tr>
+                    <th>Date/Heure</th>
+                    <th>Utilisateur</th>
+                    <th>Action</th>
+                    <th>Type</th>
+                    <th>Entité</th>
+                    <th>IP</th>
+                    <th class="text-end">Détails</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${logs == null || #lists.isEmpty(logs)}">
+                    <td colspan="7" class="text-center py-5">
+                        <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+                        <h5 class="text-muted">Aucun historique disponible</h5>
+                    </td>
+                </tr>
+
+                <tr th:each="log : ${logs}">
+                    <td>
+                        <!-- ✅ CORRIGÉ : Formatage Instant -->
+                        <small th:text="${#dates.format(T(java.util.Date).from(log.createdAt), 'dd/MM/yyyy HH:mm:ss')}">01/01/2025 10:00:00</small>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+                                 style="width: 30px; height: 30px; font-size: 12px;">
+                                <strong th:text="${#strings.substring(log.actor.firstName, 0, 1) + #strings.substring(log.actor.lastName, 0, 1)}">AB</strong>
+                            </div>
+                            <div>
+                                <small>
+                                    <strong th:text="${log.actor.firstName + ' ' + log.actor.lastName}">Nom</strong>
+                                    <br>
+                                    <span class="text-muted" th:text="${log.actor.email}">email</span>
+                                </small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span th:if="${#strings.contains(log.action, 'CREATE') || #strings.contains(log.action, 'ENROLL')}"
+                              class="badge bg-success"
+                              th:text="${log.action}">ACTION</span>
+                        <span th:if="${#strings.contains(log.action, 'UPDATE') || #strings.contains(log.action, 'EDIT')}"
+                              class="badge bg-warning"
+                              th:text="${log.action}">ACTION</span>
+                        <span th:if="${#strings.contains(log.action, 'DELETE') || #strings.contains(log.action, 'REMOVE') || #strings.contains(log.action, 'UNENROLL')}"
+                              class="badge bg-danger"
+                              th:text="${log.action}">ACTION</span>
+                        <span th:if="${!#strings.contains(log.action, 'CREATE') && !#strings.contains(log.action, 'ENROLL') && !#strings.contains(log.action, 'UPDATE') && !#strings.contains(log.action, 'EDIT') && !#strings.contains(log.action, 'DELETE') && !#strings.contains(log.action, 'REMOVE') && !#strings.contains(log.action, 'UNENROLL')}"
+                              class="badge bg-info"
+                              th:text="${log.action}">ACTION</span>
+                    </td>
+                    <td>
+                        <span th:if="${log.entityType != null}" class="badge bg-secondary" th:text="${log.entityType}">TYPE</span>
+                        <span th:if="${log.entityType == null}" class="text-muted">-</span>
+                    </td>
+                    <td>
+                        <span th:if="${log.entityId != null}" class="text-muted">
+                            <small>ID: <span th:text="${log.entityId}">1</span></small>
+                        </span>
+                        <span th:if="${log.entityId == null}" class="text-muted">-</span>
+                    </td>
+                    <td>
+                        <small class="text-muted" th:text="${log.ipAddress}">127.0.0.1</small>
+                    </td>
+                    <td class="text-end">
+                        <button type="button"
+                                class="btn btn-sm btn-outline-info"
+                                data-bs-toggle="modal"
+                                th:data-bs-target="'#detailsModal' + ${log.id}">
+                            <i class="bi bi-eye"></i>
+                        </button>
+
+                        <!-- Modal détails -->
+                        <div class="modal fade" th:id="'detailsModal' + ${log.id}" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Détails de l'Action</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <dl class="row">
+                                            <dt class="col-sm-3">Date/Heure</dt>
+                                            <dd class="col-sm-9" th:text="${#dates.format(T(java.util.Date).from(log.createdAt), 'dd/MM/yyyy HH:mm:ss')}">-</dd>
+
+                                            <dt class="col-sm-3">Utilisateur</dt>
+                                            <dd class="col-sm-9" th:text="${log.actor.firstName + ' ' + log.actor.lastName + ' (' + log.actor.email + ')'}">-</dd>
+
+                                            <dt class="col-sm-3">Action</dt>
+                                            <dd class="col-sm-9" th:text="${log.action}">-</dd>
+
+                                            <dt class="col-sm-3">Type d'entité</dt>
+                                            <dd class="col-sm-9" th:text="${log.entityType}">-</dd>
+
+                                            <dt class="col-sm-3">ID Entité</dt>
+                                            <dd class="col-sm-9" th:text="${log.entityId}">-</dd>
+
+                                            <dt class="col-sm-3">Adresse IP</dt>
+                                            <dd class="col-sm-9" th:text="${log.ipAddress}">-</dd>
+
+                                            <dt class="col-sm-3">Données</dt>
+                                            <dd class="col-sm-9">
+                                                <pre th:if="${log.afterData != null}" class="bg-light p-3 rounded" th:text="${log.afterData}">-</pre>
+                                                <span th:if="${log.afterData == null}" class="text-muted">Aucune donnée</span>
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer">
+        <small class="text-muted">
+            <i class="bi bi-info-circle me-1"></i>
+            Affichage des 50 dernières actions. Utilisez les filtres pour affiner la recherche.
+        </small>
+    </div>
+</div>
+
+</body>
+</html>

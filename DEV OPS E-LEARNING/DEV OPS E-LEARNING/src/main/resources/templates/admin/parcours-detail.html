@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<div class="row mb-4">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/admin/structure}">Structure Pédagogique</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Détails Parcours</li>
+            </ol>
+        </nav>
+        <h2 class="mb-0">
+            <i class="bi bi-signpost me-2"></i><span th:text="${parcours.nom}">Parcours</span>
+        </h2>
+    </div>
+    <div class="col-auto">
+        <a th:href="@{/admin/structure/parcours/{id}/edit(id=${parcours.id})}" class="btn btn-primary">
+            <i class="bi bi-pencil me-2"></i>Modifier
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Informations</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th style="width: 200px;">ID</th>
+                        <td><span class="badge bg-primary" th:text="${parcours.id}">#1</span></td>
+                    </tr>
+                    <tr>
+                        <th>Nom</th>
+                        <td><strong th:text="${parcours.nom}">M1 MIAGE</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Filière</th>
+                        <td>
+                            <span class="badge bg-secondary"
+                                  th:text="${parcours.filiere != null ? parcours.filiere.nom : 'N/A'}">
+                                Filière
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Niveau d'études</th>
+                        <td>
+                            <span class="badge bg-info"
+                                  th:text="${parcours.niveau != null ? parcours.niveau.libelle : 'N/A'}">
+                                Niveau
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Description</th>
+                        <td th:text="${parcours.description ?: 'Aucune description'}">Description</td>
+                    </tr>
+                    <tr>
+                        <th>Nombre de classes</th>
+                        <td>
+                            <span class="badge bg-success" th:text="${nbClasses} + ' classes'">0 classes</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Zone de danger</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    La suppression d'un parcours est <strong>irréversible</strong>.
+                </p>
+                <form th:action="@{/admin/structure/parcours/{id}/delete(id=${parcours.id})}"
+                      method="post"
+                      onsubmit="return confirm('Êtes-vous ABSOLUMENT sûr de vouloir supprimer ce parcours ?');">
+                    <button type="submit" class="btn btn-danger w-100">
+                        <i class="bi bi-trash me-2"></i>Supprimer le parcours
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

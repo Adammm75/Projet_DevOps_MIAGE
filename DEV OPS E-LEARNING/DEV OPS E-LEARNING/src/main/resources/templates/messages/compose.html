@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/messages}">Messagerie</a></li>
+        <li class="breadcrumb-item active">Nouveau message</li>
+    </ol>
+</nav>
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-0">
+            <i class="bi bi-pencil-square me-2"></i>Nouveau message
+        </h2>
+        <p class="text-muted mb-0">Envoyer un message à un autre utilisateur</p>
+    </div>
+</div>
+
+<!-- Alerte succès -->
+<div th:if="${param.sent}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+    <i class="bi bi-check-circle me-2"></i>Votre message a bien été envoyé !
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <!-- ✅ Action vers /messages/compose -->
+                <form th:action="@{/messages/compose}" method="post">
+
+                    <!-- Email destinataire (pré-rempli si recipientId fourni) -->
+                    <div class="mb-4">
+                        <label for="recipientEmail" class="form-label">
+                            <strong>Destinataire (email) *</strong>
+                        </label>
+                        <!-- Bandeau nom enseignant si pré-rempli -->
+                        <div th:if="${recipientName != null && !#strings.isEmpty(recipientName)}"
+                             class="alert alert-info py-2 mb-2">
+                            <i class="bi bi-person-check me-2"></i>
+                            À : <strong th:text="${recipientName}">Nom</strong>
+                        </div>
+                        <input type="email"
+                               class="form-control form-control-lg"
+                               id="recipientEmail"
+                               name="recipientEmail"
+                               th:value="${recipientEmail}"
+                               placeholder="exemple@email.com"
+                               required>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Entrez l'email de l'utilisateur à contacter
+                        </div>
+                    </div>
+
+                    <!-- Cours (optionnel) -->
+                    <div class="mb-4">
+                        <label for="courseId" class="form-label">
+                            <strong>Cours concerné (optionnel)</strong>
+                        </label>
+                        <select class="form-select"
+                                id="courseId"
+                                name="courseId">
+                            <option value="">-- Aucun cours spécifique --</option>
+                            <option th:each="c : ${courses}"
+                                    th:value="${c.id}"
+                                    th:text="${c.code + ' - ' + c.title}"
+                                    th:selected="${preselectedCourseId != null && preselectedCourseId == c.id}">
+                                Cours
+                            </option>
+                        </select>
+                        <div class="form-text">
+                            Si ce message concerne un cours en particulier
+                        </div>
+                    </div>
+
+                    <!-- Sujet -->
+                    <div class="mb-4">
+                        <label for="subject" class="form-label">
+                            <strong>Sujet *</strong>
+                        </label>
+                        <input type="text"
+                               class="form-control form-control-lg"
+                               id="subject"
+                               name="subject"
+                               placeholder="Sujet du message"
+                               required>
+                    </div>
+
+                    <!-- Message -->
+                    <div class="mb-4">
+                        <label for="content" class="form-label">
+                            <strong>Message *</strong>
+                        </label>
+                        <textarea class="form-control"
+                                  id="content"
+                                  name="content"
+                                  rows="10"
+                                  placeholder="Écrivez votre message ici..."
+                                  required></textarea>
+                        <div class="form-text">
+                            Soyez clair et courtois dans votre message
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Boutons -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-send me-2"></i>Envoyer le message
+                        </button>
+                        <button type="reset" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Réinitialiser
+                        </button>
+                        <a th:href="@{/messages}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-circle me-2"></i>Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar avec conseils -->
+    <div class="col-lg-4">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-lightbulb me-2"></i>Conseils de messagerie
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6 class="mb-3">Destinataire</h6>
+                <ul class="small mb-4">
+                    <li>Vérifiez l'adresse email avant d'envoyer</li>
+                    <li>Assurez-vous que la personne est bien enregistrée sur la plateforme</li>
+                </ul>
+
+                <h6 class="mb-3">Sujet</h6>
+                <ul class="small mb-4">
+                    <li>Utilisez un sujet clair et descriptif</li>
+                    <li>Évitez les sujets trop vagues comme "Question"</li>
+                </ul>
+
+                <h6 class="mb-3">Message</h6>
+                <ul class="small mb-0">
+                    <li>Soyez poli et professionnel</li>
+                    <li>Allez droit au but</li>
+                    <li>Relisez avant d'envoyer</li>
+                    <li>Évitez le langage SMS</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card mt-3 border-warning">
+            <div class="card-body">
+                <h6 class="text-warning">
+                    <i class="bi bi-shield-check me-2"></i>Confidentialité
+                </h6>
+                <p class="small mb-0">
+                    Les messages envoyés via cette plateforme sont privés et ne sont visibles
+                    que par vous et le destinataire.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
