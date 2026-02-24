@@ -16,33 +16,38 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
 
+    
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
         http
-            // Désactivation CSRF pour les endpoints API (multipart POST avec curl)
+            // Désactivation CSRF pour les endpoints API
             .csrf(csrf -> csrf.disable())
 
             // Définition des règles d'accès
             .authorizeHttpRequests(auth -> auth
-                // Pages publiques (web)
-                .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
-                // Endpoint audio public pour upload via API
+                // ✅ RÈGLE 1 : APIs publiques (tes endpoints de test)
+                .requestMatchers("/api/inactivity/**").permitAll()
+                .requestMatchers("/api/activity/**").permitAll()
                 .requestMatchers("/api/v1/audio/upload").permitAll()
-                // Accès par rôle
+                .requestMatchers("/api/auth/**").permitAll()
+
+                .requestMatchers("/api/progress/**").permitAll()
+
+                .requestMatchers("/api/student/**").permitAll()
+                //.requestMatchers("/api/student/steps?**").permitAll()
+                
+                // ✅ RÈGLE 2 : Pages publiques (login, register, assets)
+                .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
+                
+                // ✅ RÈGLE 3 : Accès par rôle (pages web protégées)
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/teacher/**").hasRole("TEACHER")
                 .requestMatchers("/student/**").hasRole("STUDENT")
-                // Endpoint de l'inactivité
-                .requestMatchers("/api/inactivity/**").permitAll()
-                .requestMatchers("/api/activity/**").permitAll()
-
-                // Tout le reste nécessite une authentification
-                .anyRequest().authenticated()
-
                 
+                // ✅ RÈGLE 4 : Tout le reste nécessite authentification
+                .anyRequest().authenticated()
             )
-            
 
             // Configuration du login web classique
             .formLogin(login -> login
@@ -65,13 +70,11 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // Encoder pour les mots de passe
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // Authentication provider pour Spring Security
     @Bean
     public DaoAuthenticationProvider authProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();

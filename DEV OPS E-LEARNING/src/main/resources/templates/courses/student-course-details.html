@@ -66,6 +66,88 @@
     </li>
 </ul>
 
+<!-- ===================================================== -->
+<!-- MODE APPRENDRE À MON RYTHME -->
+<!-- ===================================================== -->
+<div class="card mb-4 border-success shadow-sm">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">
+            🧠 Mode "Apprendre à mon rythme"
+        </h5>
+    </div>
+
+    <div class="card-body">
+
+        <!-- Barre progression -->
+        <div class="mb-3">
+            <div class="progress" style="height: 25px;">
+                <div class="progress-bar bg-success"
+                     role="progressbar"
+                     th:style="'width:' + ${progress} + '%;'"
+                     th:text="${#numbers.formatDecimal(progress,1,1)} + '%'">
+                </div>
+            </div>
+        </div>
+
+        <!-- Message motivation -->
+        <p class="text-muted">
+            Tu as terminé
+            <strong th:text="${steps.?[status.name() == 'DONE'].size()}">0</strong>
+            étapes sur 5 — continue quand tu veux.
+        </p>
+
+        <!-- Liste étapes -->
+        <ul class="list-group">
+
+            <li class="list-group-item d-flex justify-content-between align-items-center"
+                th:each="step : ${steps}">
+
+                <div>
+                    <span th:switch="${step.status.name()}">
+
+                        <span th:case="'DONE'" class="text-success fw-bold">
+                            ✔️
+                        </span>
+
+                        <span th:case="'IN_PROGRESS'" class="text-warning fw-bold">
+                            ⏳
+                        </span>
+
+                        <span th:case="'TODO'" class="text-muted fw-bold">
+                            🔒
+                        </span>
+
+                    </span>
+
+                    <span class="ms-2"
+                          th:text="${step.stepName}">
+                        STEP
+                    </span>
+                </div>
+
+                <!-- Bouton marquer terminé -->
+                <form th:if="${step.status.name() != 'DONE'}"
+                      th:action="@{/student/steps/complete}"
+                      method="post">
+
+                    <input type="hidden" name="courseId"
+                           th:value="${course.id}"/>
+
+                    <input type="hidden" name="stepName"
+                           th:value="${step.stepName}"/>
+
+                    <button class="btn btn-sm btn-outline-success">
+                        Terminer
+                    </button>
+                </form>
+
+            </li>
+        </ul>
+
+    </div>
+</div>
+
+
 <!-- Contenu des tabs -->
 <div class="tab-content" id="courseTabContent">
 

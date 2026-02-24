@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -26,7 +25,7 @@ public class InactivityAlertService {
     private final StudentActivityRepository activityRepository;
     private final InactivityAlertRepository alertRepository;
     private final NotificationService notificationService;
-    private final EmailService emailService;
+    // private final EmailService emailService;
 
     private final int DEFAULT_DAYS = 7;
 
@@ -37,13 +36,13 @@ public class InactivityAlertService {
 
         // 1️⃣ Récupérer tous les étudiants
         List<User> students = userRepository.findByRoleName("ROLE_STUDENT");
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
 
         for (User student : students) {
 
             Long studentId = student.getId();
 
-            // 2️⃣ Récupérer les cours auxquels l’étudiant est inscrit
+            // 2️⃣ Récupérer les cours auxquels l'étudiant est inscrit
             List<Cours> courses = coursRepository.findCoursesForStudent(studentId);
 
             for (Cours course : courses) {
@@ -67,7 +66,7 @@ public class InactivityAlertService {
 
                     if (existing.isEmpty()) {
 
-                        // ➤ Créer l’alerte
+                        // ➤ Créer l'alerte
                         InactivityAlert alert = alertRepository.save(
                                 InactivityAlert.builder()
                                         .student(student)
@@ -81,37 +80,48 @@ public class InactivityAlertService {
                         // ➤ Récupérer les professeurs du cours
                         List<User> teachers = coursRepository.findTeachersForCourse(courseId);
 
-                        String title = "Alerte d'inactivité : " + student.getFirstName() + " " + student.getLastName();
-                        String content = "L'étudiant " + student.getFirstName() + " "
-                                + student.getLastName() + " est inactif depuis "
-                                + daysInactive + " jours dans le cours " + course.getTitle();
-
-                        // ➤ Notifications internes
-                        teachers.forEach(t ->
-                                notificationService.createNotification(
-                                        t.getId(), "INACTIVITY_ALERT", title, content, courseId, alert.getId()
-                                )
+                        // ✅ MESSAGE PERSONNALISÉ POUR L'ÉTUDIANT
+                        String titleStudent = "⚠️ Tu es inactif(ve) dans un cours";
+                        String contentStudent = String.format(
+                                "Tu es inactif(ve) depuis %d jours dans le cours \"%s\". " +
+                                        "N'oublie pas de consulter les ressources et de participer aux activités !",
+                                daysInactive, course.getTitle()
                         );
 
                         notificationService.createNotification(
                                 studentId, "INACTIVITY_ALERT",
-                                "Tu es inactif(ve)", content, courseId, alert.getId()
+                                titleStudent, contentStudent, courseId, alert.getId()
                         );
 
-                        // ➤ Envoi d’e‑mails
+                        // ✅ MESSAGE PERSONNALISÉ POUR LES ENSEIGNANTS
+                        String titleTeacher = "⚠️ Alerte d'inactivité : " + student.getFirstName() + " " + student.getLastName();
+                        String contentTeacher = String.format(
+                                "L'étudiant %s %s est inactif depuis %d jours dans le cours \"%s\". " +
+                                        "Pensez à le contacter pour l'encourager.",
+                                student.getFirstName(), student.getLastName(), daysInactive, course.getTitle()
+                        );
+
                         teachers.forEach(t ->
+                                notificationService.createNotification(
+                                        t.getId(), "INACTIVITY_ALERT",
+                                        titleTeacher, contentTeacher, courseId, alert.getId()
+                                )
+                        );
+
+                        // ➤ Envoi d'e‑mails (commenté)
+                        /*teachers.forEach(t ->
                                 emailService.sendEmail(
                                         t.getEmail(),
                                         "Alerte d'inactivité - " + student.getFirstName(),
-                                        content
+                                        contentTeacher
                                 )
                         );
 
                         emailService.sendEmail(
                                 student.getEmail(),
                                 "Tu es inactif dans le cours " + course.getTitle(),
-                                "Tu n'as pas été actif depuis " + daysInactive + " jours. Reviens vite !"
-                        );
+                                contentStudent
+                        );*/
                     }
 
                 } else {
@@ -125,36 +135,48 @@ public class InactivityAlertService {
                             alert.setDaysInactive((int) daysInactive);
                             alertRepository.save(alert);
 
-                            // ➤ Notifications internes
-                            notificationService.createNotification(
-                                    studentId, "INACTIVITY_RESOLVED",
-                                    "Alerte résolue",
-                                    "Ton activité a repris.", courseId, alert.getId()
+                            // ✅ MESSAGE PERSONNALISÉ POUR L'ÉTUDIANT (résolution)
+                            String titleStudent = "✅ Alerte résolue - Bravo !";
+                            String contentStudent = String.format(
+                                    "Bravo ! Tu as repris ton activité dans le cours \"%s\". Continue comme ça ! 🎉",
+                                    course.getTitle()
                             );
 
+                            notificationService.createNotification(
+                                    studentId, "INACTIVITY_RESOLVED",
+                                    titleStudent, contentStudent, courseId, alert.getId()
+                            );
+
+                            // ✅ MESSAGE PERSONNALISÉ POUR LES ENSEIGNANTS (résolution)
                             List<User> teachers = coursRepository.findTeachersForCourse(courseId);
+                            String titleTeacher = "✅ Reprise d'activité : " + student.getFirstName() + " " + student.getLastName();
+                            String contentTeacher = String.format(
+                                    "L'étudiant %s %s a repris son activité dans le cours \"%s\". " +
+                                            "L'alerte d'inactivité a été automatiquement fermée.",
+                                    student.getFirstName(), student.getLastName(), course.getTitle()
+                            );
+
                             teachers.forEach(t ->
                                     notificationService.createNotification(
                                             t.getId(), "INACTIVITY_RESOLVED",
-                                            "Alerte résolue pour " + student.getFirstName(),
-                                            "L'étudiant a repris son activité.", courseId, alert.getId()
+                                            titleTeacher, contentTeacher, courseId, alert.getId()
                                     )
                             );
 
-                            // ➤ Envoi d’e‑mails
-                            emailService.sendEmail(
+                            // ➤ Envoi d'e‑mails (commenté)
+                            /*emailService.sendEmail(
                                     student.getEmail(),
                                     "Alerte résolue",
-                                    "Bravo ! Ton activité a repris dans le cours " + course.getTitle()
+                                    contentStudent
                             );
 
                             teachers.forEach(t ->
                                     emailService.sendEmail(
                                             t.getEmail(),
                                             "Alerte résolue pour " + student.getFirstName(),
-                                            "L'étudiant a repris son activité dans le cours " + course.getTitle()
+                                            contentTeacher
                                     )
-                            );
+                            );*/
                         }
                     }
                 }
