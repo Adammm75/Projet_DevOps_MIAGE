@@ -1,0 +1,29 @@
+package org.example.devopslearning.entities;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "user_roles")
+public class UserRole {
+
+    @EmbeddedId
+    private UserRoleId id;
+
+    @MapsId("userId")
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)  // 🔥 Changé de LAZY à EAGER
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @MapsId("roleId")
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)  // 🔥 Changé de LAZY à EAGER
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
+}

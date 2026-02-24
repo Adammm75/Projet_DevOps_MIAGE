@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<div class="row mb-4">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/admin/courses}">Cours</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/admin/courses/{id}(id=${cours.id})}" th:text="${cours.title}">Cours</a></li>
+                <li class="breadcrumb-item active">Inscriptions</li>
+            </ol>
+        </nav>
+        <h2 class="mb-0">
+            <i class="bi bi-people-fill me-2"></i>Gestion des Inscriptions
+        </h2>
+        <p class="text-muted mb-0">
+            <span class="badge bg-primary me-2" th:text="${cours.code}">CODE</span>
+            <span th:text="${cours.title}">Titre du cours</span>
+        </p>
+    </div>
+</div>
+
+<!-- ✅ Enseignants affectés -->
+<div class="row mb-4">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-badge me-2"></i>
+                    Enseignants Affectés
+                    <span class="badge bg-white text-success ms-2" th:text="${assignedTeachers != null ? #lists.size(assignedTeachers) : 0}">0</span>
+                </h5>
+            </div>
+
+            <!-- ✅ CORRECTION : Afficher le tableau SEULEMENT si des enseignants existent -->
+            <div th:if="${assignedTeachers != null && !#lists.isEmpty(assignedTeachers)}" class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Enseignant</th>
+                            <th>Email</th>
+                            <th>Rôle</th>
+                            <th class="text-end" style="width: 120px;">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="teacher : ${assignedTeachers}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+                                         style="width: 35px; height: 35px;">
+                                        <strong th:text="${#strings.substring(teacher.firstName, 0, 1) + #strings.substring(teacher.lastName, 0, 1)}">AB</strong>
+                                    </div>
+                                    <div>
+                                        <strong th:text="${teacher.firstName + ' ' + teacher.lastName}">Nom Prénom</strong>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <small class="text-muted" th:text="${teacher.email}">email@example.com</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">Enseignant</span>
+                            </td>
+                            <td class="text-end">
+                                <form th:action="@{/admin/courses/{courseId}/enrollment/remove-teacher/{teacherId}(courseId=${cours.id}, teacherId=${teacher.id})}"
+                                      method="post"
+                                      style="display:inline;"
+                                      onsubmit="return confirm('Retirer cet enseignant du cours ?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-person-dash"></i> Retirer
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ✅ Message vide -->
+            <div th:if="${assignedTeachers == null || #lists.isEmpty(assignedTeachers)}" class="card-body text-center py-5">
+                <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+                <h5 class="text-muted">Aucun enseignant affecté à ce cours</h5>
+                <p class="text-muted">Utilisez le formulaire ci-dessous pour affecter un enseignant.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ Classes inscrites -->
+<div class="row mb-4">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-people me-2"></i>
+                    Classes Inscrites
+                    <span class="badge bg-white text-info ms-2" th:text="${enrolledClasses != null ? #lists.size(enrolledClasses) : 0}">0</span>
+                </h5>
+            </div>
+
+            <!-- ✅ CORRECTION : Afficher le tableau SEULEMENT si des classes existent -->
+            <div th:if="${enrolledClasses != null && !#lists.isEmpty(enrolledClasses)}" class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Classe</th>
+                            <th>Code</th>
+                            <th>Parcours</th>
+                            <th>Année</th>
+                            <th class="text-end" style="width: 150px;">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="classe : ${enrolledClasses}">
+                            <td>
+                                <strong th:text="${classe.nom}">Nom de la classe</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary" th:text="${classe.code}">CODE</span>
+                            </td>
+                            <td>
+                                <span th:if="${classe.parcours != null}" th:text="${classe.parcours.nom}">Parcours</span>
+                                <span th:if="${classe.parcours == null}" class="text-muted">N/A</span>
+                            </td>
+                            <td>
+                                <small th:text="${classe.anneeUniversitaire}">2024-2025</small>
+                            </td>
+                            <td class="text-end">
+                                <form th:action="@{/admin/courses/{courseId}/enrollment/unenroll-class/{classId}(courseId=${cours.id}, classId=${classe.id})}"
+                                      method="post"
+                                      style="display:inline;"
+                                      onsubmit="return confirm('Désinscrire toute la classe de ce cours ?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-people-fill"></i> Désinscrire
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ✅ Message vide -->
+            <div th:if="${enrolledClasses == null || #lists.isEmpty(enrolledClasses)}" class="card-body text-center py-5">
+                <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+                <h5 class="text-muted">Aucune classe inscrite à ce cours</h5>
+                <p class="text-muted">Utilisez le formulaire ci-dessous pour inscrire une classe.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="row">
+    <!-- Inscrire une classe -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Inscrire une Nouvelle Classe
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Tous les étudiants de la classe seront automatiquement inscrits à ce cours.
+                </p>
+                <form th:action="@{/admin/courses/{id}/enrollment/enroll-class(id=${cours.id})}" method="post">
+                    <div class="mb-3">
+                        <label for="classId" class="form-label">Sélectionner une classe</label>
+                        <select class="form-select" id="classId" name="classId" required>
+                            <option value="">-- Choisir une classe --</option>
+                            <option th:each="c : ${classes}"
+                                    th:value="${c.id}"
+                                    th:text="${c.nom + ' (' + c.code + ')'}">
+                                Classe
+                            </option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-info w-100">
+                        <i class="bi bi-plus-circle me-2"></i>Inscrire la classe
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Affecter un enseignant -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-plus me-2"></i>
+                    Affecter un Nouvel Enseignant
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Assigner un enseignant à ce cours.
+                </p>
+                <form th:action="@{/admin/courses/{id}/enrollment/assign-teacher(id=${cours.id})}" method="post">
+                    <div class="mb-3">
+                        <label for="teacherId" class="form-label">Sélectionner un enseignant</label>
+                        <select class="form-select" id="teacherId" name="teacherId" required>
+                            <option value="">-- Choisir un enseignant --</option>
+                            <option th:each="t : ${teachers}"
+                                    th:value="${t.id}"
+                                    th:text="${t.firstName + ' ' + t.lastName + ' (' + t.email + ')'}">
+                                Enseignant
+                            </option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-person-plus me-2"></i>Affecter l'enseignant
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import CSV -->
+<div class="row mb-4">
+    <div class="col-lg-12">
+        <div class="card border-warning">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0">
+                    <i class="bi bi-file-earmark-spreadsheet me-2"></i>
+                    Import CSV (Prochainement)
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle me-2"></i>
+                    La fonctionnalité d'import CSV sera disponible prochainement.
+                    <br>
+                    Elle permettra d'importer des listes d'utilisateurs et d'inscriptions en masse.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Retour -->
+<div class="row">
+    <div class="col">
+        <a th:href="@{/admin/courses/{id}(id=${cours.id})}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Retour au cours
+        </a>
+    </div>
+</div>
+
+</body>
+</html>

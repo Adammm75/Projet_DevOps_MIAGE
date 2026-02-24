@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<div class="row mb-4">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/admin/structure}">Structure Pédagogique</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Détails Filière</li>
+            </ol>
+        </nav>
+        <h2 class="mb-0">
+            <i class="bi bi-collection me-2"></i><span th:text="${filiere.nom}">Filière</span>
+        </h2>
+    </div>
+    <div class="col-auto">
+        <a th:href="@{/admin/structure/filieres/{id}/edit(id=${filiere.id})}" class="btn btn-primary">
+            <i class="bi bi-pencil me-2"></i>Modifier
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Informations</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th style="width: 200px;">ID</th>
+                        <td><span class="badge bg-primary" th:text="${filiere.id}">#1</span></td>
+                    </tr>
+                    <tr>
+                        <th>Nom</th>
+                        <td><strong th:text="${filiere.nom}">Informatique</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Description</th>
+                        <td th:text="${filiere.description ?: 'Aucune description'}">Description</td>
+                    </tr>
+                    <tr>
+                        <th>Nombre de parcours</th>
+                        <td>
+                            <span class="badge bg-info" th:text="${nbParcours} + ' parcours'">0 parcours</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Zone de danger</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    La suppression d'une filière est <strong>irréversible</strong>.
+                </p>
+                <form th:action="@{/admin/structure/filieres/{id}/delete(id=${filiere.id})}"
+                      method="post"
+                      onsubmit="return confirm('Êtes-vous ABSOLUMENT sûr de vouloir supprimer cette filière ?');">
+                    <button type="submit" class="btn btn-danger w-100">
+                        <i class="bi bi-trash me-2"></i>Supprimer la filière
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

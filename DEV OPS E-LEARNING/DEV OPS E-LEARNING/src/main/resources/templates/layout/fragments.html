@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<!-- Flash Messages Fragment -->
+<div th:fragment="flash">
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${info}" class="alert alert-info alert-dismissible fade show" role="alert">
+        <i class="bi bi-info-circle me-2"></i>
+        <span th:text="${info}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${warning}" class="alert alert-warning alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-circle me-2"></i>
+        <span th:text="${warning}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+</div>
+
+<!-- Loading Spinner Fragment -->
+<div th:fragment="loading-spinner" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Chargement...</span>
+    </div>
+    <p class="mt-3 text-muted">Chargement en cours...</p>
+</div>
+
+<!-- Empty State Fragment -->
+<div th:fragment="empty-state(icon, title, message)">
+    <div class="text-center py-5">
+        <i class="bi fs-1 text-muted d-block mb-3" th:classappend="${icon}"></i>
+        <h5 class="text-muted" th:text="${title}">Titre</h5>
+        <p class="text-muted" th:text="${message}">Message</p>
+    </div>
+</div>
+
+<!-- Pagination Fragment -->
+<div th:fragment="pagination(currentPage, totalPages, baseUrl)">
+    <nav th:if="${totalPages > 1}">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                <a class="page-link" th:href="@{${baseUrl}(page=${currentPage - 1})}">
+                    <i class="bi bi-chevron-left"></i> Précédent
+                </a>
+            </li>
+
+            <li class="page-item"
+                th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                th:classappend="${i == currentPage} ? 'active'">
+                <a class="page-link" th:href="@{${baseUrl}(page=${i})}" th:text="${i + 1}">1</a>
+            </li>
+
+            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                <a class="page-link" th:href="@{${baseUrl}(page=${currentPage + 1})}">
+                    Suivant <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<!-- User Avatar Fragment -->
+<div th:fragment="user-avatar(user, size)">
+    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+         th:style="'width: ' + ${size} + 'px; height: ' + ${size} + 'px;'">
+        <strong th:text="${#strings.substring(user.firstName, 0, 1) + #strings.substring(user.lastName, 0, 1)}">
+            AB
+        </strong>
+    </div>
+</div>
+
+<!-- Badge Role Fragment -->
+<span th:fragment="role-badge(roleName)">
+    <span class="badge"
+          th:classappend="${roleName == 'ROLE_ADMIN'} ? 'bg-danger' :
+                         ${roleName == 'ROLE_TEACHER'} ? 'bg-success' :
+                         ${roleName == 'ROLE_STUDENT'} ? 'bg-info' : 'bg-secondary'"
+          th:text="${#strings.replace(roleName, 'ROLE_', '')}">
+        ROLE
+    </span>
+</span>
+
+<!-- Confirm Delete Modal Fragment -->
+<div th:fragment="confirm-delete-modal(id, title, message, action)">
+    <div class="modal fade" th:id="${id}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" th:text="${title}">Confirmation</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p th:text="${message}">Êtes-vous sûr ?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <form th:action="${action}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-danger">Supprimer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Card Fragment -->
+<div th:fragment="stats-card(icon, label, value, colorClass)">
+    <div class="card text-center" th:classappend="'border-' + ${colorClass}">
+        <div class="card-body">
+            <i class="bi fs-2" th:classappend="${icon} + ' text-' + ${colorClass}"></i>
+            <h6 class="mt-2 mb-0" th:text="${label}">Label</h6>
+            <h4 class="mb-0" th:classappend="'text-' + ${colorClass}" th:text="${value}">0</h4>
+        </div>
+    </div>
+</div>
+
+<!-- File Type Icon Fragment -->
+<i th:fragment="file-type-icon(fileType)"
+   class="bi fs-3"
+   th:classappend="${fileType == 'PDF'} ? 'bi-file-pdf text-danger' :
+                   ${fileType == 'WORD'} ? 'bi-file-word text-primary' :
+                   ${fileType == 'PPT'} ? 'bi-file-ppt text-warning' :
+                   ${fileType == 'EXCEL'} ? 'bi-file-excel text-success' :
+                   'bi-file-earmark text-secondary'"></i>
+
+<!-- Date Format Fragment (fonction utilitaire) -->
+<span th:fragment="format-date(date)">
+    <span th:text="${#temporals.format(date, 'dd/MM/yyyy')}">01/01/2024</span>
+</span>
+
+<span th:fragment="format-datetime(datetime)">
+    <span th:text="${#temporals.format(datetime, 'dd/MM/yyyy HH:mm')}">01/01/2024 10:00</span>
+</span>
+
+<!-- Grade Badge Fragment -->
+<span th:fragment="grade-badge(grade, maxGrade)">
+    <span class="badge fs-6"
+          th:classappend="${grade >= maxGrade * 0.8} ? 'bg-success' :
+                         ${grade >= maxGrade * 0.6} ? 'bg-info' :
+                         ${grade >= maxGrade * 0.5} ? 'bg-warning' : 'bg-danger'">
+        <span th:text="${#numbers.formatDecimal(grade, 1, 2)}">0.00</span>
+        <span th:text="'/' + ${#numbers.formatDecimal(maxGrade, 1, 2)}">/ 20.00</span>
+    </span>
+</span>
+
+<!-- Progress Bar Fragment -->
+<div th:fragment="progress-bar(current, max, colorClass)">
+    <div class="progress" style="height: 25px;">
+        <div class="progress-bar"
+             th:classappend="'bg-' + ${colorClass}"
+             role="progressbar"
+             th:style="'width: ' + ${(current / max) * 100} + '%'"
+             th:attr="aria-valuenow=${current}, aria-valuemin=0, aria-valuemax=${max}">
+            <strong th:text="${#numbers.formatDecimal((current / max) * 100, 1, 0)} + '%'">0%</strong>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

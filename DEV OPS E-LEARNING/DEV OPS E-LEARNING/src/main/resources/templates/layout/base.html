@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout(content)">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} ?: 'DevOps E-Learning'">DevOps E-Learning</title>
+
+    <!-- Bootstrap 5.3.3 -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --navbar-height: 60px;
+        }
+
+        body {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+
+        .wrapper {
+            display: flex;
+            width: 100%;
+        }
+
+        .sidebar {
+            min-width: var(--sidebar-width);
+            max-width: var(--sidebar-width);
+            background: #343a40;
+            color: white;
+            min-height: calc(100vh - var(--navbar-height));
+            position: sticky;
+            top: var(--navbar-height);
+            overflow-y: auto;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.75);
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            margin-bottom: 0.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar .nav-link:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: #0d6efd;
+        }
+
+        .nav-section-title {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 0.5rem 1rem;
+            margin-top: 1rem;
+        }
+
+        .content {
+            width: 100%;
+            padding: 2rem;
+            background-color: #ffffff;
+            min-height: calc(100vh - var(--navbar-height));
+        }
+
+        .navbar {
+            height: var(--navbar-height);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold" th:href="@{/dashboard}">
+            <i class="bi bi-mortarboard-fill me-2"></i>DevOps E-Learning
+        </a>
+
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i>
+                        <span sec:authentication="principal.username">User</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <form th:action="@{/logout}" method="post">
+                                <button class="dropdown-item text-danger" type="submit">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="wrapper">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar" sec:authorize="isAuthenticated()">
+        <div class="p-3">
+
+            <!-- Dashboard -->
+            <a class="nav-link"
+               th:href="@{/dashboard}"
+               th:classappend="${currentPath == '/dashboard'} ? 'active' : ''">
+                <i class="bi bi-speedometer2 me-2"></i>Dashboard
+            </a>
+
+            <!-- ======================================== -->
+            <!-- SIDEBAR ÉTUDIANT -->
+            <!-- ======================================== -->
+            <div sec:authorize="hasRole('STUDENT')">
+
+                <div class="nav-section-title">Apprentissage</div>
+
+                <!-- Mes cours -->
+                <a class="nav-link"
+                   th:href="@{/student/courses}"
+                   th:classappend="${#strings.startsWith(currentPath, '/student/courses')} ? 'active' : ''">
+                    <i class="bi bi-book me-2"></i>Mes cours
+                </a>
+
+                <!-- Devoirs -->
+                <a class="nav-link"
+                   th:href="@{/student/assignments}"
+                   th:classappend="${#strings.startsWith(currentPath, '/student/assignments')} ? 'active' : ''">
+                    <i class="bi bi-file-earmark-text me-2"></i>Devoirs
+                </a>
+
+                <!-- QCM -->
+                <a class="nav-link"
+                   th:href="@{/student/qcm}"
+                   th:classappend="${#strings.startsWith(currentPath, '/student/qcm')} ? 'active' : ''">
+                    <i class="bi bi-question-circle me-2"></i>QCM
+                </a>
+
+                <!-- Mes notes -->
+                <a class="nav-link"
+                   th:href="@{/student/grades}"
+                   th:classappend="${#strings.startsWith(currentPath, '/student/grades')} ? 'active' : ''">
+                    <i class="bi bi-graph-up me-2"></i>Mes notes
+                </a>
+
+                <div class="nav-section-title">Communication</div>
+
+                <!-- Messagerie -->
+                <a class="nav-link"
+                   th:href="@{/messages}"
+                   th:classappend="${#strings.startsWith(currentPath, '/messages')} ? 'active' : ''">
+                    <i class="bi bi-envelope me-2"></i>Messagerie
+                </a>
+
+                <!-- Notifications -->
+                <a class="nav-link"
+                   th:href="@{/student/notifications}"
+                   th:classappend="${#strings.startsWith(currentPath, '/student/notifications') || #strings.startsWith(currentPath, '/notifications')} ? 'active' : ''">
+                    <i class="bi bi-bell me-2"></i>Notifications
+                    <span th:if="${unreadCount != null && unreadCount > 0}"
+                          class="badge bg-danger ms-2"
+                          th:text="${unreadCount}">0</span>
+                </a>
+
+                <div class="nav-section-title">Compte</div>
+
+                <!-- Mon profil -->
+                <a class="nav-link"
+                   th:href="@{/student/profile}"
+                   th:classappend="${#strings.startsWith(currentPath, '/student/profile')} ? 'active' : ''">
+                    <i class="bi bi-person-circle me-2"></i>Mon profil
+                </a>
+
+            </div>
+
+            <!-- ======================================== -->
+            <!-- SIDEBAR ENSEIGNANT -->
+            <!-- ======================================== -->
+            <div sec:authorize="hasRole('TEACHER')">
+
+                <div class="nav-section-title">Cours</div>
+
+                <!-- Mes cours -->
+                <a class="nav-link"
+                   th:href="@{/teacher/courses}"
+                   th:classappend="${#strings.startsWith(currentPath, '/teacher/courses')} ? 'active' : ''">
+                    <i class="bi bi-journal-text me-2"></i>Mes cours
+                </a>
+
+                <!-- Ressources -->
+                <a class="nav-link"
+                   th:href="@{/teacher/resources}"
+                   th:classappend="${#strings.startsWith(currentPath, '/teacher/resources')} ? 'active' : ''">
+                    <i class="bi bi-folder me-2"></i>Ressources
+                </a>
+
+                <div class="nav-section-title">Évaluations</div>
+
+                <!-- Devoirs -->
+                <a class="nav-link"
+                   th:href="@{/teacher/assignments}"
+                   th:classappend="${#strings.startsWith(currentPath, '/teacher/assignments')} ? 'active' : ''">
+                    <i class="bi bi-file-earmark-text me-2"></i>Devoirs
+                </a>
+
+                <!-- QCM -->
+                <a class="nav-link"
+                   th:href="@{/teacher/qcm}"
+                   th:classappend="${#strings.startsWith(currentPath, '/teacher/qcm')} ? 'active' : ''">
+                    <i class="bi bi-list-check me-2"></i>QCM
+                </a>
+
+                <!-- Notes -->
+                <a class="nav-link"
+                   th:href="@{/teacher/grades}"
+                   th:classappend="${#strings.startsWith(currentPath, '/teacher/grades')} ? 'active' : ''">
+                    <i class="bi bi-clipboard-data me-2"></i>Notes
+                </a>
+
+                <div class="nav-section-title">Étudiants</div>
+
+                <!-- Étudiants & Activité -->
+                <a class="nav-link"
+                   th:href="@{/teacher/students}"
+                   th:classappend="${#strings.startsWith(currentPath, '/teacher/students')} ? 'active' : ''">
+                    <i class="bi bi-people me-2"></i>Étudiants
+                </a>
+
+                <div class="nav-section-title">Communication</div>
+
+                <!-- Messagerie -->
+                <a class="nav-link"
+                   th:href="@{/messages}"
+                   th:classappend="${#strings.startsWith(currentPath, '/messages')} ? 'active' : ''">
+                    <i class="bi bi-envelope me-2"></i>Messagerie
+                </a>
+
+                <!-- Notifications -->
+                <a class="nav-link"
+                   th:href="@{/notifications}"
+                   th:classappend="${#strings.startsWith(currentPath, '/notifications')} ? 'active' : ''">
+                    <i class="bi bi-bell me-2"></i>Notifications
+                </a>
+
+            </div>
+
+            <!-- ======================================== -->
+            <!-- SIDEBAR ADMIN -->
+            <!-- ======================================== -->
+            <div sec:authorize="hasRole('ADMIN')">
+
+                <div class="nav-section-title">Cours</div>
+
+                <!-- Tous les cours -->
+                <a class="nav-link"
+                   th:href="@{/admin/courses}"
+                   th:classappend="${#strings.startsWith(currentPath, '/admin/courses')} ? 'active' : ''">
+                    <i class="bi bi-collection me-2"></i>Tous les cours
+                </a>
+
+                <div class="nav-section-title">Administration</div>
+
+                <!-- Structure Pédagogique -->
+                <a class="nav-link"
+                   th:href="@{/admin/structure}"
+                   th:classappend="${#strings.startsWith(currentPath, '/admin/structure')} ? 'active' : ''">
+                    <i class="bi bi-diagram-3 me-2"></i>Structure
+                </a>
+
+                <!-- Utilisateurs -->
+                <a class="nav-link"
+                   th:href="@{/admin/users}"
+                   th:classappend="${#strings.startsWith(currentPath, '/admin/users')} ? 'active' : ''">
+                    <i class="bi bi-people me-2"></i>Utilisateurs
+                </a>
+
+                <!-- Audit -->
+                <a class="nav-link"
+                   th:href="@{/admin/audit}"
+                   th:classappend="${#strings.startsWith(currentPath, '/admin/audit')} ? 'active' : ''">
+                    <i class="bi bi-clock-history me-2"></i>Audit
+                </a>
+
+                <div class="nav-section-title">Communication</div>
+
+                <!-- Messagerie -->
+                <a class="nav-link"
+                   th:href="@{/messages}"
+                   th:classappend="${#strings.startsWith(currentPath, '/messages')} ? 'active' : ''">
+                    <i class="bi bi-envelope me-2"></i>Messagerie
+                </a>
+
+                <!-- Notifications -->
+                <a class="nav-link"
+                   th:href="@{/notifications}"
+                   th:classappend="${#strings.startsWith(currentPath, '/notifications')} ? 'active' : ''">
+                    <i class="bi bi-bell me-2"></i>Notifications
+                </a>
+
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- CONTENT -->
+    <main class="content">
+        <div th:replace="~{layout/fragments :: flash}"></div>
+        <div th:replace="${content}"></div>
+    </main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

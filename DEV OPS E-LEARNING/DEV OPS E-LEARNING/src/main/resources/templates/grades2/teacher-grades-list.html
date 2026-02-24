@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+<body>
+
+<!-- HEADER -->
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-0 fw-bold">
+            <i class="bi bi-clipboard-data me-2 text-primary"></i>Gestion des Notes
+        </h2>
+        <p class="text-muted mb-0">Notes organisées par classes et par cours</p>
+    </div>
+</div>
+
+<!-- AUCUN COURS -->
+<div th:if="${coursesByClass == null || #maps.isEmpty(coursesByClass)}"
+     class="alert alert-info border-0 d-flex align-items-center">
+    <i class="bi bi-info-circle fs-3 me-3"></i>
+    <div>Vous n'avez créé aucun cours pour le moment.</div>
+</div>
+
+<!-- BOUCLE PAR CLASSE -->
+<div th:if="${coursesByClass != null && !#maps.isEmpty(coursesByClass)}">
+    <div th:each="entry : ${coursesByClass}" class="mb-5">
+
+        <!-- EN-TÊTE DE LA CLASSE -->
+        <div class="d-flex align-items-center mb-3">
+            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3 shadow"
+                 style="width:42px;height:42px;">
+                <i class="bi bi-mortarboard text-white fs-5"></i>
+            </div>
+            <div>
+                <!-- Classe nommée -->
+                <h4 class="mb-0 fw-bold" th:if="${entry.key != null}"
+                    th:text="${entry.key.nom + ' — ' + entry.key.anneeUniversitaire}">
+                    Classe L3 Info — 2024-2025
+                </h4>
+                <!-- Sans classe -->
+                <h4 class="mb-0 fw-bold text-muted" th:if="${entry.key == null}">
+                    <i class="bi bi-question-circle me-1"></i>Cours sans classe affectée
+                </h4>
+                <small class="text-muted" th:if="${entry.key != null}"
+                       th:text="'Code : ' + ${entry.key.code}">Code</small>
+            </div>
+            <span class="badge bg-primary ms-auto px-3 py-2 fs-6"
+                  th:text="${#lists.size(entry.value)} + ' cours'">3 cours</span>
+        </div>
+
+        <!-- GRILLE DES COURS DE CETTE CLASSE -->
+        <div class="row g-3">
+            <div class="col-xl-4 col-lg-6 col-md-6"
+                 th:each="stat : ${entry.value}">
+                <div class="card h-100 border-0 shadow-sm hover-card">
+                    <div class="card-body p-4">
+
+                        <!-- Titre + code -->
+                        <div class="mb-3">
+                            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1 mb-2"
+                                  th:text="${stat.cours.code}">CODE</span>
+                            <h5 class="card-title fw-bold mb-0"
+                                th:text="${stat.cours.title}">Nom du cours</h5>
+                        </div>
+
+                        <!-- Stats : étudiants / devoirs / QCM -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-4">
+                                <div class="text-center p-2 bg-primary bg-opacity-10 rounded-3">
+                                    <div class="fw-bold text-primary fs-5"
+                                         th:text="${stat.totalStudents}">0</div>
+                                    <div class="text-muted" style="font-size:0.7rem;">Étudiants</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-center p-2 bg-info bg-opacity-10 rounded-3">
+                                    <div class="fw-bold text-info fs-5"
+                                         th:text="${stat.totalAssignments}">0</div>
+                                    <div class="text-muted" style="font-size:0.7rem;">Devoirs</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-center p-2 bg-warning bg-opacity-10 rounded-3">
+                                    <div class="fw-bold text-warning fs-5"
+                                         th:text="${stat.totalQcm}">0</div>
+                                    <div class="text-muted" style="font-size:0.7rem;">QCM</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Moyenne générale -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted fw-semibold">Moyenne générale</small>
+                                <span class="badge fs-6 px-2 py-1"
+                                      th:classappend="${stat.moyenneGenerale != null && stat.moyenneGenerale >= 10} ? 'bg-success' : 'bg-danger'"
+                                      th:text="${stat.moyenneGenerale != null ? #numbers.formatDecimal(stat.moyenneGenerale, 1, 2) + '/20' : 'N/A'}">
+                                    N/A
+                                </span>
+                            </div>
+                            <div class="progress rounded-pill" style="height:8px;">
+                                <div class="progress-bar rounded-pill"
+                                     th:classappend="${stat.moyenneGenerale != null && stat.moyenneGenerale >= 10} ? 'bg-success' : 'bg-danger'"
+                                     th:style="'width: ' + ${stat.moyenneGenerale != null ? stat.moyenneGenerale * 5 : 0} + '%'">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Devoirs corrigés -->
+                        <div class="mb-3" th:if="${stat.totalAssignments > 0}">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small class="text-muted">Devoirs corrigés</small>
+                                <small class="fw-semibold"
+                                       th:text="${stat.gradedAssignments} + '/' + ${stat.totalAssignments}">0/0</small>
+                            </div>
+                            <div class="progress rounded-pill" style="height:6px;">
+                                <div class="progress-bar bg-info rounded-pill"
+                                     th:style="'width: ' + ${stat.totalAssignments > 0 ? (stat.gradedAssignments * 100 / stat.totalAssignments) : 0} + '%'">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bouton -->
+                        <a th:href="@{/teacher/grades/course/{id}(id=${stat.cours.id})}"
+                           class="btn btn-primary w-100 fw-semibold py-2">
+                            <i class="bi bi-eye me-2"></i>Voir les détails
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Séparateur entre classes -->
+        <hr class="mt-4 mb-0 opacity-25" th:unless="${entryStat.last}">
+    </div>
+</div>
+
+<style>
+    .hover-card { transition: all .25s ease; }
+    .hover-card:hover { transform: translateY(-4px); box-shadow: 0 .5rem 1.5rem rgba(0,0,0,.12) !important; }
+</style>
+
+</body>
+</html>
