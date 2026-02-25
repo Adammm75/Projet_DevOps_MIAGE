@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+<head>
+    <title>Modifier le QCM</title>
+</head>
+<body>
+
+<style>
+    :root {
+        --primary: #667eea;
+        --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --shadow-md: 0 4px 16px rgba(102, 126, 234, 0.15);
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+    }
+
+    .form-card-header {
+        background: var(--gradient-primary);
+        color: white;
+        padding: 1.5rem 2rem;
+        border-radius: 16px 16px 0 0;
+        margin: -2.5rem -2.5rem 2rem -2.5rem;
+    }
+
+    .question-card {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s;
+    }
+
+    .question-card:hover {
+        border-color: var(--primary);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+    }
+
+    .option-item {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .option-item.correct {
+        background: #d1fae5;
+        border: 2px solid #10b981;
+    }
+
+    .btn-add-question {
+        background: var(--gradient-primary);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .sidebar-card {
+        position: sticky;
+        top: 100px;
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: var(--shadow-md);
+    }
+
+    .stats-item {
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="container-fluid p-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/teacher/qcm}">Mes QCM</a></li>
+            <li class="breadcrumb-item active">Modifier</li>
+        </ol>
+    </nav>
+
+    <div class="mb-4">
+        <h1 class="page-title mb-2">
+            <i class="bi bi-pencil-square me-3"></i>Modifier le QCM
+        </h1>
+        <p class="text-muted mb-0">Modifiez les paramètres et questions du QCM</p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- INFORMATIONS DU QCM -->
+            <form th:action="@{|/teacher/qcm/${qcm.id}|}" method="post" id="qcmForm">
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <h5 class="mb-0"><i class="bi bi-info-circle-fill me-2"></i>Informations du QCM</h5>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Cours *</label>
+                        <select class="form-select form-select-lg" name="courseId" required>
+                            <option th:each="c : ${courses}"
+                                    th:value="${c.id}"
+                                    th:text="${c.code + ' - ' + c.title}"
+                                    th:selected="${c.id == qcm.cours?.id}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Titre *</label>
+                        <input type="text" class="form-control form-control-lg"
+                               name="titre" th:value="${qcm.titre}" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Description</label>
+                        <textarea class="form-control" name="description" rows="4" th:text="${qcm.description}"></textarea>
+                    </div>
+                </div>
+
+                <!-- PARAMÈTRES -->
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <h5 class="mb-0"><i class="bi bi-gear-fill me-2"></i>Paramètres</h5>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">Limite de temps (minutes)</label>
+                            <input type="number" class="form-control"
+                                   name="limiteTempsMinutes"
+                                   th:value="${qcm.limiteTempsMinutes}"
+                                   min="1">
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">Tentatives max</label>
+                            <input type="number" class="form-control"
+                                   name="tentativesMax"
+                                   th:value="${qcm.tentativesMax}"
+                                   min="1">
+                        </div>
+                    </div>
+
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox"
+                               name="publie" id="publie" value="true"
+                               th:checked="${qcm.publie}">
+                        <label class="form-check-label fw-bold" for="publie">Publié</label>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 mb-4">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="bi bi-check-circle me-2"></i>Enregistrer les modifications
+                    </button>
+                    <a th:href="@{/teacher/qcm}" class="btn btn-outline-secondary btn-lg">Annuler</a>
+                </div>
+            </form>
+
+            <!-- QUESTIONS -->
+            <div class="form-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0"><i class="bi bi-list-ol me-2"></i>Questions</h5>
+                    <button type="button" class="btn-add-question" onclick="showAddQuestionModal()">
+                        <i class="bi bi-plus-circle me-2"></i>Ajouter une question
+                    </button>
+                </div>
+
+                <div id="questionsContainer">
+                    <!-- Questions existantes -->
+                    <div th:if="${questions == null || #lists.isEmpty(questions)}" class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>Aucune question pour le moment. Cliquez sur "Ajouter une question" pour commencer.
+                    </div>
+
+                    <div th:each="question, iterStat : ${questions}" class="question-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">
+                                <span class="badge bg-primary">Question <span th:text="${iterStat.index + 1}">1</span></span>
+                                <span class="badge bg-secondary ms-2" th:text="${question.points + ' pts'}">1 pts</span>
+                            </h6>
+                            <form th:action="@{|/teacher/qcm/questions/${question.id}/delete|}" method="post" style="display:inline"
+                                  onsubmit="return confirm('Supprimer cette question ?')">
+                                <input type="hidden" name="qcmId" th:value="${qcm.id}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i> Supprimer
+                                </button>
+                            </form>
+                        </div>
+
+                        <p class="mb-3 fw-bold" th:text="${question.texteQuestion}">Texte de la question</p>
+
+                        <div class="mb-2"><strong>Options :</strong></div>
+                        <div th:each="option : ${question.options}"
+                             class="option-item"
+                             th:classappend="${option.estCorrecte} ? 'correct' : ''">
+                            <i class="bi" th:classappend="${option.estCorrecte} ? 'bi-check-circle-fill text-success' : 'bi-circle'"></i>
+                            <span th:text="${option.texteOption}">Texte de l'option</span>
+                            <span th:if="${option.estCorrecte}" class="badge bg-success ms-auto">Bonne réponse</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="col-lg-4">
+            <div class="sidebar-card">
+                <h6 class="mb-3"><i class="bi bi-bar-chart-fill me-2 text-info"></i>Statistiques</h6>
+
+                <div class="stats-item">
+                    <div class="small text-muted">Questions</div>
+                    <h4 class="mb-0" th:text="${questions != null ? #lists.size(questions) : 0}">0</h4>
+                </div>
+
+                <div class="stats-item">
+                    <div class="small text-muted">Tentatives totales</div>
+                    <h4 class="mb-0">0</h4>
+                </div>
+
+                <div class="stats-item">
+                    <div class="small text-muted">Score moyen</div>
+                    <h4 class="mb-0">--</h4>
+                </div>
+
+                <div class="stats-item">
+                    <div class="small text-muted">Créé le</div>
+                    <div th:text="${#temporals.format(qcm.dateCreation, 'dd/MM/yyyy')}">01/01/2024</div>
+                </div>
+            </div>
+
+            <div class="alert alert-warning mt-3">
+                <h6 class="alert-heading"><i class="bi bi-exclamation-triangle me-2"></i>Attention</h6>
+                <p class="small mb-0">
+                    Si des étudiants ont déjà passé ce QCM, la modification des questions
+                    peut affecter les résultats enregistrés.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL AJOUT QUESTION -->
+<div class="modal fade" id="addQuestionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Ajouter une question</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Texte de la question *</label>
+                    <textarea class="form-control" id="questionText" rows="3" required></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Type de question</label>
+                        <select class="form-select" id="questionType">
+                            <option value="CHOIX_SIMPLE">Choix simple</option>
+                            <option value="CHOIX_MULTIPLE">Choix multiple</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Points *</label>
+                        <input type="number" class="form-control" id="questionPoints" value="1" min="0.5" step="0.5" required>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Options de réponse</label>
+                    <div id="optionsContainer">
+                        <!-- Options ajoutées dynamiquement -->
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addOption()">
+                        <i class="bi bi-plus"></i> Ajouter une option
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-success" onclick="saveQuestion()">
+                    <i class="bi bi-check-circle me-2"></i>Enregistrer la question
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const qcmId = /*[[${qcm.id}]]*/ 0;
+    let optionCounter = 0;
+
+    function showAddQuestionModal() {
+        document.getElementById('questionText').value = '';
+        document.getElementById('questionPoints').value = 1;
+        document.getElementById('optionsContainer').innerHTML = '';
+        optionCounter = 0;
+
+        // Ajouter 4 options par défaut
+        for (let i = 0; i < 4; i++) {
+            addOption();
+        }
+
+        new bootstrap.Modal(document.getElementById('addQuestionModal')).show();
+    }
+
+    function addOption() {
+        optionCounter++;
+        const optionsContainer = document.getElementById('optionsContainer');
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'input-group mb-2';
+        optionDiv.innerHTML = `
+        <div class="input-group-text">
+            <input class="form-check-input mt-0 option-correct" type="radio" name="correctOption" value="${optionCounter}">
+        </div>
+        <input type="text" class="form-control option-text" placeholder="Texte de l'option" required>
+        <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+            <i class="bi bi-x"></i>
+        </button>
+    `;
+        optionsContainer.appendChild(optionDiv);
+    }
+
+    function saveQuestion() {
+        const questionText = document.getElementById('questionText').value.trim();
+        const questionType = document.getElementById('questionType').value;
+        const questionPoints = document.getElementById('questionPoints').value;
+
+        if (!questionText) {
+            alert('Veuillez saisir le texte de la question');
+            return;
+        }
+
+        const options = document.querySelectorAll('.option-text');
+        if (options.length < 2) {
+            alert('Veuillez ajouter au moins 2 options');
+            return;
+        }
+
+        const correctRadio = document.querySelector('input[name="correctOption"]:checked');
+        if (!correctRadio) {
+            alert('Veuillez sélectionner la bonne réponse');
+            return;
+        }
+
+        // Créer la question via AJAX
+        const formData = new URLSearchParams();
+        formData.append('texteQuestion', questionText);
+        formData.append('typeQuestion', questionType);
+        formData.append('points', questionPoints);
+
+        fetch(`/teacher/qcm/${qcmId}/api/questions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData
+        })
+            .then(response => response.json())
+            .then(question => {
+                // Ajouter les options
+                const promises = [];
+                options.forEach((optionInput, index) => {
+                    if (optionInput.value.trim()) {
+                        const optionData = new URLSearchParams();
+                        optionData.append('texteOption', optionInput.value.trim());
+                        optionData.append('estCorrecte', correctRadio.value == (index + 1));
+
+                        promises.push(
+                            fetch(`/teacher/qcm/questions/${question.id}/api/options`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                },
+                                body: optionData
+                            })
+                        );
+                    }
+                });
+
+                Promise.all(promises).then(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('addQuestionModal')).hide();
+                    location.reload();
+                });
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de la création de la question');
+            });
+    }
+</script>
+
+</body>
+</html>
