@@ -141,3 +141,5 @@ o	Envoie à Martin une notification personnalisée :
 “Tu n’as pas consulté le cours de Java depuis plus d’une semaine. Souhaites-tu reprendre là où tu t’étais arrêté ?”
 4.	L’enseignant peut accuser réception, contacter l’étudiant ou ignorer l’alerte.
 5.	Dès que Martin se reconnecte, l’alerte est automatiquement fermée et l’historique mis à jour.
+
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
