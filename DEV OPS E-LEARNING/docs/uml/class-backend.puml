@@ -1,0 +1,204 @@
+@startuml
+title Diagramme de classes (Backend) - Elearning
+
+hide circle
+skinparam classAttributeIconSize 0
+
+'========================
+' CLASSES PRINCIPALES
+'========================
+class User {
+  +id: Long
+  +email: String
+  +password: String
+  +firstName: String
+  +lastName: String
+  +phone: String
+  +createdAt: Instant
+}
+
+class Role {
+  +id: Long
+  +name: String
+}
+
+class UserRole {
+  +id: UserRoleId
+}
+
+class Cours {
+  +id: Long
+  +code: String
+  +title: String
+  +description: String
+  +createdAt: Instant
+  +updatedAt: Instant
+}
+
+class AcademicClass {
+  +id: Long
+  +nom: String
+  +code: String
+  +anneeUniversitaire: String
+}
+
+class Parcour {
+  +id: Long
+  +nom: String
+}
+
+class CourseEnrollment {
+  +id: Long
+  +enrolledAt: Instant
+  +status: String
+}
+
+class CourseTeacher {
+  +id: CourseTeacherId
+}
+
+class CoursClass {
+  +id: CoursClassId
+}
+
+class InscriptionsClass {
+  +id: Long
+  +dateInscription: Instant
+  +statut: String
+}
+
+class Assignment {
+  +id: Long
+  +title: String
+  +description: String
+  +dueDate: Instant
+  +maxGrade: BigDecimal
+  +createdAt: Instant
+}
+
+class AssignmentSubmission {
+  +id: Long
+  +submittedAt: Instant
+  +fileUrl: String
+  +grade: BigDecimal
+  +feedback: String
+  +gradedAt: Instant
+}
+
+class AssignmentClass {
+  +id: Long
+  +dateAffectation: Instant
+}
+
+class Message {
+  +id: Long
+  +subject: String
+  +content: String
+  +sentAt: Instant
+  +isRead: Boolean
+}
+
+class AuditLog {
+  +id: Long
+  +action: String
+  +entityType: String
+  +entityId: Long
+  +beforeData: String
+  +afterData: String
+  +ipAddress: String
+  +createdAt: Instant
+}
+
+class ActiviteEtudiante {
+  +id: Long
+  +activityType: String
+  +activityTime: Instant
+  +metadata: JSON
+}
+
+class NotesCour {
+  +id: Long
+  +noteFinale: BigDecimal
+  +noteMax: BigDecimal
+  +mention: String
+  +statut: String
+  +dateCalcul: Instant
+  +createdAt: Instant
+}
+
+class CourseRessource {
+  +id: Long
+  +type: String
+  +title: String
+  +description: String
+  +url: String
+  +fileName: String
+  +contentType: String
+  +s3AudioUrl: String
+  +transcript: String
+  +summary: String
+  +keywords: String
+  +structureJson: String
+  +createdAt: Instant
+  +updatedAt: Instant
+}
+
+'========================
+' RELATIONS
+'========================
+
+' Users / Roles
+User "1" -- "0..*" UserRole : userRoles
+Role "1" -- "0..*" UserRole : role
+
+' Cours
+User "1" <-- "0..*" Cours : createdBy
+
+' Inscriptions / Enrollments
+Cours "1" -- "0..*" CourseEnrollment
+User "1" -- "0..*" CourseEnrollment : student
+
+Cours "1" -- "0..*" CourseTeacher
+User "1" -- "0..*" CourseTeacher : teacher
+
+' Classes & parcours
+Parcour "1" -- "0..*" AcademicClass
+AcademicClass "1" -- "0..*" InscriptionsClass
+User "1" -- "0..*" InscriptionsClass : etudiant
+
+' Liaison Cours <-> Classe
+Cours "1" -- "0..*" CoursClass
+AcademicClass "1" -- "0..*" CoursClass
+
+' Assignments
+Cours "1" -- "0..*" Assignment
+User "1" -- "0..*" Assignment : createdBy
+
+Assignment "1" -- "0..*" AssignmentSubmission : submissions
+User "1" -- "0..*" AssignmentSubmission : student
+User "0..1" -- "0..*" AssignmentSubmission : gradedBy
+
+' Affectation devoir <-> classe
+Assignment "1" -- "0..*" AssignmentClass
+AcademicClass "1" -- "0..*" AssignmentClass
+
+' Messages
+User "1" -- "0..*" Message : sender
+User "1" -- "0..*" Message : recipient
+Cours "0..1" -- "0..*" Message
+
+' Audit logs
+User "1" -- "0..*" AuditLog : actor
+
+' Activité étudiante
+User "1" -- "0..*" ActiviteEtudiante : student
+Cours "0..1" -- "0..*" ActiviteEtudiante : course
+
+' Notes
+Cours "1" -- "0..*" NotesCour
+User "1" -- "0..*" NotesCour : etudiant
+
+' Ressources
+Cours "1" -- "0..*" CourseRessource
+
+@enduml

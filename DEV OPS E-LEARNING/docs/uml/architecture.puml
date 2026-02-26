@@ -1,0 +1,49 @@
+@startuml
+title Architecture (Elearning) - Front / API / DB / Docker / Sécurité
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+actor "Étudiant" as student
+actor "Enseignant" as teacher
+actor "Administrateur" as admin
+
+node "Navigateur Web" as browser {
+  component "UI Web\nHTML/CSS/JS + Thymeleaf" as ui
+  component "Cookies de session" as session
+}
+
+node "Docker Compose" as dc {
+  node "Container Backend" as backendC {
+    component "Spring Boot API REST" as api
+    component "Spring Security\nSession + Cookies" as security
+  }
+
+  node "Container DB" as dbC {
+    database "MySQL" as db
+  }
+}
+
+student --> ui
+teacher --> ui
+admin --> ui
+
+ui --> api : HTTP(S)\nFetch/AJAX (REST)
+api --> security : Auth / Roles\n(ADMIN/TEACHER/STUDENT)
+security --> session : Vérifie session
+api --> db : JPA/Hibernate\nSQL
+
+note right of security
+Authentification via session :
+- login -> création session
+- session stockée côté serveur
+- cookie envoyé automatiquement
+end note
+
+note bottom of dc
+docker-compose.yml lance :
+- backend (Spring Boot)
+- db (MySQL)
+end note
+
+@enduml
