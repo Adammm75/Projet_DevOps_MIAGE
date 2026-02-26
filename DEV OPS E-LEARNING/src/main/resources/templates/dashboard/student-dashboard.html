@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-0">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard Étudiant
+        </h2>
+        <p class="text-muted mb-0">Bonjour <span th:text="${#authentication.name}">Utilisateur</span> !</p>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Mes Cours</h6>
+                        <h3 class="mb-0" th:text="${cours != null ? #lists.size(cours) : 0}">0</h3>
+                    </div>
+                    <div class="fs-1 text-primary">
+                        <i class="bi bi-book"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Devoirs à rendre</h6>
+                        <h3 class="mb-0" th:text="${devoirs != null ? #lists.size(devoirs) : 0}">0</h3>
+                    </div>
+                    <div class="fs-1 text-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Moyenne générale</h6>
+                        <h3 class="mb-0">
+                            <span th:if="${averageGrade != null}">
+                                <span th:text="${#numbers.formatDecimal(averageGrade, 1, 2)}">0.00</span>/20
+                            </span>
+                            <span th:if="${averageGrade == null}">N/A</span>
+                        </h3>
+                    </div>
+                    <div class="fs-1 text-success">
+                        <i class="bi bi-trophy"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <a th:href="@{/messages}" class="text-decoration-none">
+            <div class="card border-danger">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Messages non lus</h6>
+                            <h3 class="mb-0" th:text="${unreadMessages != null ? unreadMessages : 0}">0</h3>
+                        </div>
+                        <div class="fs-1 text-danger">
+                            <i class="bi bi-envelope-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Mes Cours -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-book me-2"></i>Mes Cours</h5>
+                <a th:href="@{/student/courses}" class="btn btn-sm btn-primary">Voir tout</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div th:if="${cours == null || #lists.isEmpty(cours)}"
+                         class="list-group-item text-center text-muted py-4">
+                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                        Aucun cours disponible
+                    </div>
+
+                    <a th:each="c : ${cours}"
+                       th:href="@{|/student/courses/${c.id}|}"
+                       class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">
+                                    <span class="badge bg-primary me-2" th:text="${c.code}">CODE</span>
+                                    <span th:text="${c.title}">Titre du cours</span>
+                                </h6>
+                                <p class="mb-1 text-muted small">
+                                    <span th:if="${c.description != null && !#strings.isEmpty(c.description)}"
+                                          th:text="${#strings.abbreviate(c.description, 100)}">
+                                        Description...
+                                    </span>
+                                    <span th:if="${c.description == null || #strings.isEmpty(c.description)}"
+                                          class="fst-italic">
+                                        Aucune description
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="text-end">
+                                <i class="bi bi-chevron-right"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Devoirs à rendre -->
+        <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Devoirs à rendre</h5>
+                <a th:href="@{/student/assignments}" class="btn btn-sm btn-warning">Voir tout</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Cours</th>
+                            <th>Titre</th>
+                            <th>Date limite</th>
+                            <th>Statut</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${devoirs == null || #lists.isEmpty(devoirs)}">
+                            <td colspan="4" class="text-center text-muted py-4">
+                                <i class="bi bi-check-circle fs-3 d-block mb-2"></i>
+                                Aucun devoir en attente
+                            </td>
+                        </tr>
+                        <tr th:each="d : ${devoirs}">
+                            <td>
+                                <span class="badge bg-secondary"
+                                      th:text="${d.course?.code}">CODE</span>
+                            </td>
+                            <td th:text="${d.title}">Titre du devoir</td>
+                            <td>
+                                <span th:text="${#temporals.format(d.dueDate, 'dd/MM/yyyy HH:mm')}">
+                                    01/01/2024 23:59
+                                </span>
+                                <span class="badge bg-danger ms-2"
+                                      th:if="${d.dueDate != null && d.dueDate.isBefore(T(java.time.Instant).now())}">
+                                    En retard
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-warning">À rendre</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar: Messages & Notifications -->
+    <div class="col-lg-4">
+        <!-- Derniers Messages -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-envelope me-2"></i>Messages</h5>
+                <a th:href="@{/messages}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div th:if="${messages == null || #lists.isEmpty(messages)}"
+                         class="list-group-item text-center text-muted py-4">
+                        <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                        Aucun message
+                    </div>
+
+                    <a th:each="m : ${messages}"
+                       th:href="@{/messages}"
+                       class="list-group-item list-group-item-action"
+                       th:classappend="${m.isRead != null && !m.isRead} ? 'fw-bold'">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <h6 class="mb-0">
+                                <span th:if="${m.subject != null && !#strings.isEmpty(m.subject)}"
+                                      th:text="${m.subject}">Sujet</span>
+                                <span th:if="${m.subject == null || #strings.isEmpty(m.subject)}"
+                                      class="fst-italic text-muted">Sans objet</span>
+                            </h6>
+                            <small class="text-muted"
+                                   th:text="${#temporals.format(m.sentAt, 'dd/MM HH:mm')}">
+                                01/01 10:00
+                            </small>
+                        </div>
+                        <p class="mb-0 small text-muted"
+                           th:text="${#strings.abbreviate(m.content, 60)}">
+                            Contenu du message...
+                        </p>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-bell me-2"></i>Notifications</h5>
+                <a th:href="@{/notifications}" class="btn btn-sm btn-outline-info">Voir tout</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div th:if="${notifications == null || #lists.isEmpty(notifications)}"
+                         class="list-group-item text-center text-muted py-4">
+                        <i class="bi bi-check-circle fs-3 d-block mb-2"></i>
+                        Aucune notification
+                    </div>
+
+                    <a th:each="n : ${notifications}"
+                       th:href="@{/notifications}"
+                       class="list-group-item list-group-item-action"
+                       th:classappend="${n.isRead != null && !n.isRead} ? 'bg-light'">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <h6 class="mb-0">
+                                <i class="bi bi-info-circle text-info me-1"></i>
+                                <span th:text="${n.title}">Titre</span>
+                            </h6>
+                            <small class="text-muted"
+                                   th:text="${#temporals.format(n.createdAt, 'dd/MM')}">
+                                01/01
+                            </small>
+                        </div>
+                        <p class="mb-0 small text-muted"
+                           th:text="${#strings.abbreviate(n.content, 80)}">
+                            Contenu de la notification...
+                        </p>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================
+             🎓 MA PROGRESSION — Badge Engine
+             ======================================== -->
+        <div class="card mt-4 border-0 shadow-sm">
+            <div class="card-body text-center py-4"
+                 style="background: linear-gradient(135deg, #667eea22, #764ba222); border-radius: 0.5rem;">
+                <div class="fs-1 mb-2">🎓</div>
+                <h5 class="fw-bold mb-1">Ma Progression</h5>
+                <p class="text-muted small mb-3">Points, niveaux et badges pédagogiques</p>
+                <a th:href="@{/progression/student}" class="btn btn-primary btn-sm px-4">
+                    <i class="bi bi-bar-chart-line me-1"></i>Voir ma progression
+                </a>
+            </div>
+        </div>
+
+        <!-- ========================================
+             🚨 ABSENCES & RETARDS RÉCENTS
+             ======================================== -->
+        <div class="card mt-4 border-0 shadow-sm"
+             th:if="${absencesRetards != null and !#lists.isEmpty(absencesRetards)}">
+            <div class="card-header d-flex justify-content-between align-items-center py-3"
+                 style="background: linear-gradient(135deg, #ff6b6b22, #feca5722);">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-exclamation-triangle me-2 text-warning"></i>
+                    Présences récentes
+                </h5>
+                <div class="d-flex gap-2">
+                    <span th:if="${absencesCount > 0}"
+                          class="badge bg-danger rounded-pill"
+                          th:text="${absencesCount} + ' absence(s)'"></span>
+                    <span th:if="${retardsCount > 0}"
+                          class="badge bg-warning text-dark rounded-pill"
+                          th:text="${retardsCount} + ' retard(s)'"></span>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div th:each="a : ${absencesRetards}"
+                         class="list-group-item px-3 py-2 border-start border-3"
+                         th:classappend="${a.status.name() == 'ABSENT'} ? 'border-danger' : 'border-warning'">
+
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                 th:classappend="${a.status.name() == 'ABSENT'} ? 'bg-danger bg-opacity-10' : 'bg-warning bg-opacity-20'"
+                                 style="width:32px;height:32px;">
+                                <i class="bi"
+                                   th:classappend="${a.status.name() == 'ABSENT'} ? 'bi-person-x text-danger' : 'bi-clock text-warning'"
+                                   style="font-size:0.9rem;"></i>
+                            </div>
+
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge me-1"
+                                              th:classappend="${a.status.name() == 'ABSENT'} ? 'bg-danger' : 'bg-warning text-dark'"
+                                              th:text="${a.status.name() == 'ABSENT'} ? 'Absent(e)' : 'En retard'">Absent</span>
+                                        <span class="badge bg-secondary bg-opacity-75 small"
+                                              th:if="${a.session != null and a.session.course != null}"
+                                              th:text="${a.session.course.code}">CODE</span>
+                                    </div>
+                                    <small class="text-muted"
+                                           th:text="${#temporals.format(a.markedAt, 'dd/MM HH:mm')}">01/01</small>
+                                </div>
+                                <small class="text-muted d-block"
+                                       th:if="${a.session != null}"
+                                       th:text="${a.session.title}">Titre séance</small>
+                                <small class="fst-italic text-muted d-block"
+                                       th:if="${a.note != null and !#strings.isEmpty(a.note)}"
+                                       th:text="${'💬 ' + a.note}">Note...</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-white py-2 text-center">
+                <small class="text-muted fst-italic">
+                    <i class="bi bi-clock-history me-1"></i>30 derniers jours
+                </small>
+            </div>
+        </div>
+
+        <!-- ========================================
+             💬 COMMENTAIRES PÉDAGOGIQUES
+             ======================================== -->
+        <div class="card mt-4"
+             th:if="${pedagogicComments != null && !#lists.isEmpty(pedagogicComments)}">
+            <div class="card-header d-flex justify-content-between align-items-center"
+                 style="background: linear-gradient(135deg, #667eea22, #764ba222);">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-chat-square-quote me-2 text-primary"></i>
+                    Observations de vos enseignants
+                </h5>
+                <span th:if="${newCommentsCount > 0}"
+                      class="badge bg-danger rounded-pill"
+                      th:text="${newCommentsCount} + ' nouveau(x)'"></span>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div th:each="c, iter : ${pedagogicComments}"
+                         th:if="${iter.index < 3}"
+                         class="list-group-item px-3 py-3"
+                         th:classappend="${c.isPinned} ? 'border-start border-3 border-warning' : 'border-start border-3 border-primary'">
+
+                        <div class="d-flex align-items-start gap-2">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                 th:classappend="${c.isPinned} ? 'bg-warning bg-opacity-20' : 'bg-primary bg-opacity-10'"
+                                 style="width:34px;height:34px;">
+                                <i class="bi bi-person-badge"
+                                   th:classappend="${c.isPinned} ? 'text-warning' : 'text-primary'"></i>
+                            </div>
+
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div class="d-flex flex-wrap align-items-center gap-1 mb-1">
+                                    <span class="fw-semibold small"
+                                          th:text="${c.teacher.firstName + ' ' + c.teacher.lastName}">Prof</span>
+                                    <span class="text-muted small">·</span>
+                                    <span class="badge bg-primary bg-opacity-75 rounded-pill"
+                                          style="font-size:0.65rem;"
+                                          th:text="${c.course.code}">CODE</span>
+                                    <span th:if="${c.tag != null}"
+                                          class="badge rounded-pill"
+                                          th:classappend="${#strings.containsIgnoreCase(c.tag,'MANQUE') or #strings.containsIgnoreCase(c.tag,'RETARD') or #strings.containsIgnoreCase(c.tag,'ABSENT') ? 'bg-warning text-dark' : (#strings.containsIgnoreCase(c.tag,'PROGRES') or #strings.containsIgnoreCase(c.tag,'SERIEUX') or #strings.containsIgnoreCase(c.tag,'PARTICIPATION') ? 'bg-success' : 'bg-info')}"
+                                          style="font-size:0.65rem;"
+                                          th:text="${c.tag}">Tag</span>
+                                    <span th:if="${c.isPinned}"
+                                          class="badge bg-warning text-dark"
+                                          style="font-size:0.6rem;">
+                                        <i class="bi bi-pin-fill"></i>
+                                    </span>
+                                    <span th:if="${c.createdAt != null && c.createdAt.isAfter(T(java.time.Instant).now().minus(7, T(java.time.temporal.ChronoUnit).DAYS))}"
+                                          class="badge bg-danger"
+                                          style="font-size:0.6rem;">Nouveau</span>
+                                </div>
+                                <p class="mb-1 small text-dark"
+                                   th:text="${#strings.abbreviate(c.content, 100)}">Observation...</p>
+                                <small class="text-muted fst-italic"
+                                       style="font-size:0.68rem;"
+                                       th:text="${'Le ' + #temporals.format(c.createdAt, 'dd/MM/yyyy')}">date</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${#lists.size(pedagogicComments) > 3}"
+                         class="list-group-item text-center py-2">
+                        <small class="text-muted fst-italic"
+                               th:text="${#lists.size(pedagogicComments) - 3} + ' autre(s) observation(s)'"></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mes Notes (Aperçu) -->
+        <div class="card mt-4" th:if="${notes != null && !#lists.isEmpty(notes)}">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Mes Notes</h5>
+                <a th:href="@{/student/grades}" class="btn btn-sm btn-outline-success">Voir tout</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div th:each="note, iter : ${notes}"
+                         th:if="${iter.index < 5}"
+                         class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-secondary me-2"
+                                      th:text="${note.cours?.code}">CODE</span>
+                                <span th:text="${note.cours?.title}">Cours</span>
+                            </div>
+                            <div>
+                                <span class="badge fs-6"
+                                      th:classappend="${note.noteFinale >= 10} ? 'bg-success' : 'bg-danger'">
+                                    <span th:text="${#numbers.formatDecimal(note.noteFinale, 1, 2)}">0.00</span>/20
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

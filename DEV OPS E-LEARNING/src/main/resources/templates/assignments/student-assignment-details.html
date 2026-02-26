@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/base :: layout(~{::body})}">
+<body>
+
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/student/assignments}">Mes devoirs</a></li>
+        <li class="breadcrumb-item active" th:text="${assignment.title}">Devoir</li>
+    </ol>
+</nav>
+
+<div class="row mb-4">
+    <div class="col">
+        <span class="badge bg-primary mb-2" th:text="${assignment.course?.code}">COURS</span>
+        <h2 class="mb-0" th:text="${assignment.title}">Titre du devoir</h2>
+    </div>
+</div>
+
+<!-- Messages -->
+<div th:if="${success}" class="alert alert-success"><i class="bi bi-check-circle me-2"></i><span th:text="${success}"></span></div>
+<div th:if="${error}" class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i><span th:text="${error}"></span></div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Détails du devoir -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Consignes</h5>
+            </div>
+            <div class="card-body">
+                <p th:text="${assignment.description}">Description</p>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Date limite:</strong>
+                        <p class="mb-0" th:classappend="${isLate} ? 'text-danger' : ''">
+                            <i class="bi bi-clock"></i> <span th:text="${#temporals.format(assignment.dueDate, 'dd/MM/yyyy HH:mm')}">Date</span>
+                            <span th:if="${isLate}" class="badge bg-danger ms-2">RETARD</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Note maximale:</strong>
+                        <p class="mb-0"><span th:text="${assignment.maxGrade}">20</span> points</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulaire de soumission -->
+        <div th:if="${submission == null && canSubmit}" class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-upload me-2"></i>Rendre votre devoir</h5>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/student/assignments/{id}/submit(id=${assignment.id})}" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label">Sélectionnez votre fichier</label>
+                        <input type="file" name="file" class="form-control" required accept=".pdf,.doc,.docx,.zip">
+                        <small class="text-muted">Formats acceptés: PDF, Word, ZIP (Max 10 MB)</small>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="bi bi-upload"></i> Soumettre le devoir
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Soumission existante -->
+        <div th:if="${submission != null}" class="card mb-4">
+            <div class="card-header" th:classappend="${submission.grade != null} ? 'bg-info text-white' : 'bg-warning text-dark'">
+                <h5 class="mb-0">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <span th:if="${submission.grade == null}">Devoir rendu - En attente de correction</span>
+                    <span th:if="${submission.grade != null}">Devoir corrigé</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Date de soumission:</strong> <span th:text="${#temporals.format(submission.submittedAt, 'dd/MM/yyyy HH:mm')}">Date</span></p>
+                <p><strong>Fichier:</strong> <a th:href="@{/student/assignments/submission/{id}/download(id=${submission.id})}" class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i> Télécharger ma soumission</a></p>
+
+                <div th:if="${submission.grade != null}">
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>Note obtenue</h4>
+                            <h2 class="mb-0" th:classappend="${submission.grade.doubleValue() >= (assignment.maxGrade.doubleValue() / 2)} ? 'text-success' : 'text-danger'">
+                                <span th:text="${submission.grade}">0</span>/<span th:text="${assignment.maxGrade}">20</span>
+                            </h2>
+                        </div>
+                    </div>
+                    <div th:if="${submission.feedback != null}" class="mt-3">
+                        <strong>Commentaire de l'enseignant:</strong>
+                        <p class="border-start border-3 border-info ps-3 mt-2" th:text="${submission.feedback}">Feedback</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <div class="card border-info mb-3">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Informations</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Cours:</strong><br><span th:text="${assignment.course?.title}">Cours</span></p>
+                <p><strong>Enseignant:</strong><br><span th:text="${assignment.createdBy?.firstName + ' ' + assignment.createdBy?.lastName}">Enseignant</span></p>
+                <hr>
+                <p class="mb-0"><strong>Statut:</strong><br>
+                    <span th:if="${submission == null}" class="badge bg-warning">À rendre</span>
+                    <span th:if="${submission != null && submission.grade == null}" class="badge bg-info">En attente de correction</span>
+                    <span th:if="${submission != null && submission.grade != null}" class="badge bg-success">Corrigé</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

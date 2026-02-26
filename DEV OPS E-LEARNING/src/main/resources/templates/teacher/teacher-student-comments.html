@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+<body>
+
+<!-- Header -->
+<div class="row mb-4 align-items-center">
+    <div class="col-auto">
+        <a th:href="@{/teacher/students/{id}(id=${student.id})}"
+           class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Retour fiche
+        </a>
+    </div>
+    <div class="col">
+        <h2 class="mb-0 fw-bold">
+            <i class="bi bi-chat-square-text me-2 text-primary"></i>
+            Commentaires pédagogiques
+        </h2>
+        <p class="text-muted mb-0">
+            <span th:text="${student.firstName + ' ' + student.lastName}">Étudiant</span>
+            <span class="badge bg-secondary ms-2"
+                  th:text="${commentCount} + ' commentaire(s)'"></span>
+            <span class="badge bg-warning text-dark ms-1">
+                <i class="bi bi-lock-fill me-1"></i>Visible enseignants + admin
+            </span>
+        </p>
+    </div>
+</div>
+
+<!-- Flash -->
+<div th:if="${success}" class="alert alert-success alert-dismissible fade show border-0 shadow-sm">
+    <i class="bi bi-check-circle-fill me-2"></i><span th:text="${success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<div th:if="${error}" class="alert alert-danger alert-dismissible fade show border-0 shadow-sm">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<div class="row g-4">
+
+    <!-- Colonne gauche : formulaire d'ajout -->
+    <div class="col-md-4">
+
+        <!-- Carte profil étudiant -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body text-center py-4">
+                <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center
+                            justify-content-center mx-auto mb-3"
+                     style="width:64px;height:64px;">
+                    <span class="text-primary fw-bold fs-3"
+                          th:text="${#strings.substring(student.firstName,0,1)
+                                   + #strings.substring(student.lastName,0,1)}"></span>
+                </div>
+                <h5 class="fw-bold mb-1"
+                    th:text="${student.firstName + ' ' + student.lastName}">Nom</h5>
+                <p class="text-muted small mb-0" th:text="${student.email}">email</p>
+            </div>
+        </div>
+
+        <!-- Formulaire nouveau commentaire -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-plus-circle me-2 text-primary"></i>Ajouter un commentaire
+                </h6>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/teacher/students/{id}/comments(id=${student.id})}"
+                      method="post">
+
+                    <!-- Cours -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Cours concerné <span class="text-danger">*</span></label>
+                        <select name="courseId" class="form-select form-select-sm" required>
+                            <option value="">-- Sélectionner --</option>
+                            <option th:each="c : ${teacherCourses}"
+                                    th:value="${c.id}"
+                                    th:text="${c.code + ' — ' + c.title}"
+                                    th:selected="${selectedCourseId != null && selectedCourseId == c.id}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Tag rapide -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Tag rapide</label>
+                        <div class="d-flex flex-wrap gap-1 mb-2" id="tagButtons">
+                            <button th:each="t : ${tags}"
+                                    type="button"
+                                    class="btn btn-xs btn-outline-secondary tag-btn"
+                                    th:data-tag="${t.name()}"
+                                    th:data-label="${t.label}"
+                                    th:classappend="${'btn-outline-' + t.colorClass}"
+                                    th:text="${t.label}"
+                                    onclick="selectTag(this)">Tag</button>
+                        </div>
+                        <input type="hidden" name="tag" id="selectedTag">
+                        <input type="text" class="form-control form-control-sm"
+                               id="customTagInput" placeholder="ou tag libre..."
+                               oninput="document.getElementById('selectedTag').value = this.value">
+                    </div>
+
+                    <!-- Contenu -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">
+                            Observation <span class="text-danger">*</span>
+                        </label>
+                        <textarea name="content" class="form-control form-control-sm"
+                                  rows="4" maxlength="500" required
+                                  placeholder="Ex : Participation très active en TD, pose de bonnes questions..."
+                                  id="commentTextarea"
+                                  oninput="updateCounter(this)"></textarea>
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-muted fst-italic">Max 500 caractères</small>
+                            <small class="text-muted" id="charCounter">0/500</small>
+                        </div>
+                    </div>
+
+                    <!-- Visibilité -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Visibilité</label>
+                        <select name="visibility" class="form-select form-select-sm">
+                            <option value="TEACHER_ADMIN">Enseignants + Administration</option>
+                            <option value="ADMIN_ONLY">Administration uniquement</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 btn-sm">
+                        <i class="bi bi-send me-2"></i>Publier le commentaire
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Filtre par cours -->
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-body py-3">
+                <label class="form-label fw-semibold small mb-2">Filtrer par cours</label>
+                <div class="d-flex flex-column gap-1">
+                    <a th:href="@{/teacher/students/{id}/comments(id=${student.id})}"
+                       class="btn btn-sm"
+                       th:classappend="${selectedCourseId == null} ? 'btn-primary' : 'btn-outline-secondary'">
+                        Tous les cours
+                    </a>
+                    <a th:each="c : ${teacherCourses}"
+                       th:href="@{/teacher/students/{id}/comments(id=${student.id}, courseId=${c.id})}"
+                       class="btn btn-sm text-start"
+                       th:classappend="${selectedCourseId != null && selectedCourseId == c.id} ? 'btn-primary' : 'btn-outline-secondary'">
+                        <span class="badge bg-secondary me-1" th:text="${c.code}">CODE</span>
+                        <span th:text="${c.title}">Titre</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Colonne droite : liste des commentaires -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-chat-left-text me-2 text-primary"></i>Historique des observations
+                </h6>
+                <span th:if="${selectedCourseId != null}"
+                      class="badge bg-primary">Filtre actif</span>
+            </div>
+            <div class="card-body p-0">
+
+                <!-- Vide -->
+                <div th:if="${comments == null || #lists.isEmpty(comments)}"
+                     class="text-center py-5 text-muted">
+                    <i class="bi bi-chat-square fs-1 d-block mb-3"></i>
+                    <p>Aucun commentaire pédagogique pour le moment.</p>
+                    <p class="small">Utilisez le formulaire pour ajouter votre première observation.</p>
+                </div>
+
+                <!-- Liste -->
+                <div th:each="c : ${comments}"
+                     class="p-4 border-bottom position-relative"
+                     th:classappend="${c.isPinned} ? 'bg-warning bg-opacity-10' : ''">
+
+                    <!-- Épingle -->
+                    <div th:if="${c.isPinned}"
+                         class="position-absolute top-0 end-0 p-2">
+                        <span class="badge bg-warning text-dark">
+                            <i class="bi bi-pin-fill me-1"></i>Épinglé
+                        </span>
+                    </div>
+
+                    <!-- En-tête commentaire -->
+                    <div class="d-flex align-items-start gap-3 mb-2">
+                        <!-- Avatar enseignant -->
+                        <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center
+                                    justify-content-center flex-shrink-0"
+                             style="width:36px;height:36px;">
+                            <span class="text-success fw-bold small"
+                                  th:text="${#strings.substring(c.teacher.firstName,0,1)
+                                           + #strings.substring(c.teacher.lastName,0,1)}"></span>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                <span class="fw-semibold small"
+                                      th:text="${c.teacher.firstName + ' ' + c.teacher.lastName}">Prof</span>
+                                <span class="text-muted small">·</span>
+                                <!-- Cours -->
+                                <span class="badge bg-primary bg-opacity-75 small"
+                                      th:text="${c.course.code}">CODE</span>
+                                <!-- Tag -->
+                                <span th:if="${c.tag != null}"
+                                      class="badge rounded-pill"
+                                      th:classappend="${#strings.containsIgnoreCase(c.tag,'MANQUE') or #strings.containsIgnoreCase(c.tag,'RETARD') or #strings.containsIgnoreCase(c.tag,'ABSENT') or #strings.containsIgnoreCase(c.tag,'DIFF') ? 'bg-danger' : (#strings.containsIgnoreCase(c.tag,'PROGRES') or #strings.containsIgnoreCase(c.tag,'SERIEUX') or #strings.containsIgnoreCase(c.tag,'PARTICIPATION') or #strings.containsIgnoreCase(c.tag,'TRAVAIL') or #strings.containsIgnoreCase(c.tag,'EQUIPE') ? 'bg-success' : 'bg-info')}"
+                                      th:text="${c.tag}">Tag</span>
+                                <!-- Visibilité admin only -->
+                                <span th:if="${'ADMIN_ONLY'.equals(c.visibility)}"
+                                      class="badge bg-dark small">
+                                    <i class="bi bi-eye-slash me-1"></i>Admin only
+                                </span>
+                            </div>
+                            <!-- Date -->
+                            <div class="text-muted" style="font-size:0.72rem;">
+                                <i class="bi bi-clock me-1"></i>
+                                <span th:text="${#temporals.format(c.createdAt, 'dd/MM/yyyy à HH:mm')}">date</span>
+                                <span th:if="${c.updatedAt != null}" class="ms-2 fst-italic">
+                                    (modifié le <span th:text="${#temporals.format(c.updatedAt, 'dd/MM/yyyy')}"></span>)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contenu -->
+                    <div class="ms-5 mb-3">
+                        <p class="mb-0" th:text="${c.content}">Contenu</p>
+                    </div>
+
+                    <!-- Actions (seulement l'auteur) -->
+                    <div class="ms-5 d-flex gap-2 flex-wrap" th:if="${c.teacher.id == teacher.id}">
+
+                        <!-- Épingler -->
+                        <form th:action="@{/teacher/comments/{id}/pin(id=${c.id})}" method="post" class="d-inline">
+                            <input type="hidden" name="studentId" th:value="${student.id}">
+                            <input type="hidden" name="courseId" th:value="${selectedCourseId}">
+                            <button type="submit" class="btn btn-xs btn-outline-warning"
+                                    th:title="${c.isPinned} ? 'Désépingler' : 'Épingler'">
+                                <i class="bi me-1"
+                                   th:classappend="${c.isPinned} ? 'bi-pin-angle' : 'bi-pin-fill'"></i>
+                                <span th:text="${c.isPinned} ? 'Désépingler' : 'Épingler'">Pin</span>
+                            </button>
+                        </form>
+
+                        <!-- Modifier (collapse) -->
+                        <button type="button" class="btn btn-xs btn-outline-primary"
+                                data-bs-toggle="collapse"
+                                th:data-bs-target="${'#editForm' + c.id}">
+                            <i class="bi bi-pencil me-1"></i>Modifier
+                        </button>
+
+                        <!-- Supprimer -->
+                        <form th:action="@{/teacher/comments/{id}/delete(id=${c.id})}" method="post"
+                              class="d-inline"
+                              onsubmit="return confirm('Supprimer ce commentaire ?')">
+                            <input type="hidden" name="studentId" th:value="${student.id}">
+                            <input type="hidden" name="courseId" th:value="${selectedCourseId}">
+                            <button type="submit" class="btn btn-xs btn-outline-danger">
+                                <i class="bi bi-trash me-1"></i>Supprimer
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Formulaire d'édition (collapse) -->
+                    <div th:if="${c.teacher.id == teacher.id}"
+                         class="collapse ms-5 mt-3"
+                         th:id="${'editForm' + c.id}">
+                        <div class="card border-primary">
+                            <div class="card-body p-3">
+                                <form th:action="@{/teacher/comments/{id}/edit(id=${c.id})}" method="post">
+                                    <input type="hidden" name="studentId" th:value="${student.id}">
+                                    <input type="hidden" name="courseId" th:value="${selectedCourseId}">
+                                    <div class="mb-2">
+                                        <textarea name="content" class="form-control form-control-sm"
+                                                  rows="3" maxlength="500" required
+                                                  th:text="${c.content}"></textarea>
+                                    </div>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col">
+                                            <input type="text" name="tag" class="form-control form-control-sm"
+                                                   placeholder="Tag" th:value="${c.tag}">
+                                        </div>
+                                        <div class="col">
+                                            <select name="visibility" class="form-select form-select-sm">
+                                                <option value="TEACHER_ADMIN"
+                                                        th:selected="${'TEACHER_ADMIN'.equals(c.visibility)}">
+                                                    Enseignants + Admin
+                                                </option>
+                                                <option value="ADMIN_ONLY"
+                                                        th:selected="${'ADMIN_ONLY'.equals(c.visibility)}">
+                                                    Admin uniquement
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-check-circle me-1"></i>Enregistrer
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-xs { padding: 0.2rem 0.5rem; font-size: 0.75rem; }
+</style>
+
+<script>
+    function selectTag(btn) {
+        document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('selectedTag').value = btn.dataset.tag;
+        document.getElementById('customTagInput').value = btn.dataset.label;
+    }
+    function updateCounter(el) {
+        document.getElementById('charCounter').textContent = el.value.length + '/500';
+    }
+</script>
+
+</body>
+</html>

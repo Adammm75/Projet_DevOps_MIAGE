@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+<body>
+
+<!-- Header -->
+<div class="row mb-4 align-items-center">
+    <div class="col-auto">
+        <a th:href="@{/teacher/attendance}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Mes appels
+        </a>
+    </div>
+    <div class="col">
+        <h2 class="mb-0 fw-bold">
+            <i class="bi bi-clipboard-check me-2 text-primary"></i>Feuille d'appel
+        </h2>
+        <p class="text-muted mb-0">
+            <span class="badge bg-primary me-1" th:text="${session.course != null ? session.course.code : ''}">CODE</span>
+            <span th:text="${session.course != null ? session.course.title : ''}">Cours</span>
+            <span class="text-muted mx-1">·</span>
+            <span th:text="${session.title}">Séance</span>
+            <span class="text-muted mx-1">·</span>
+            <i class="bi bi-calendar me-1"></i>
+            <span th:text="${#temporals.format(session.sessionDate, 'dd/MM/yyyy HH:mm')}">date</span>
+        </p>
+    </div>
+    <div class="col-auto">
+        <span th:if="${alreadyDone}" class="badge bg-success fs-6 py-2 px-3">
+            <i class="bi bi-check-circle me-1"></i>Appel validé
+        </span>
+        <span th:unless="${alreadyDone}" class="badge bg-warning text-dark fs-6 py-2 px-3">
+            <i class="bi bi-clock me-1"></i>En attente
+        </span>
+    </div>
+</div>
+
+<!-- Flash messages -->
+<div th:if="${success}" class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4">
+    <i class="bi bi-check-circle-fill me-2"></i><span th:text="${success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<div th:if="${error}" class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<!-- Rapport précédent + bouton envoi -->
+<div th:if="${report != null}" class="card border-0 shadow-sm mb-4"
+     th:classappend="${report.alertLevel == 'CRITICAL' ? 'border-start border-5 border-danger' : (report.alertLevel == 'WARNING' ? 'border-start border-5 border-warning' : 'border-start border-5 border-success')}">
+    <div class="card-body px-4 py-3">
+        <div class="row align-items-center g-3">
+            <div class="col-auto">
+                <div class="rounded-circle d-flex align-items-center justify-content-center"
+                     th:classappend="${report.alertLevel == 'CRITICAL' ? 'bg-danger bg-opacity-10' : (report.alertLevel == 'WARNING' ? 'bg-warning bg-opacity-10' : 'bg-success bg-opacity-10')}"
+                     style="width:52px;height:52px;">
+                    <i class="bi fs-3"
+                       th:classappend="${report.alertLevel == 'CRITICAL' ? 'bi-exclamation-octagon-fill text-danger' : (report.alertLevel == 'WARNING' ? 'bi-exclamation-triangle-fill text-warning' : 'bi-check-circle-fill text-success')}"></i>
+                </div>
+            </div>
+            <div class="col">
+                <div class="fw-bold fs-5 mb-1">
+                    Taux de présence :
+                    <span th:text="${report.presenceRate + '%'}">0%</span>
+                    <span class="badge ms-2 fs-6"
+                          th:classappend="${report.alertLevel == 'CRITICAL' ? 'bg-danger' : (report.alertLevel == 'WARNING' ? 'bg-warning text-dark' : 'bg-success')}"
+                          th:text="${report.alertLevel}">NORMAL</span>
+                </div>
+                <div class="d-flex flex-wrap gap-3 text-muted small">
+                    <span><i class="bi bi-person-check text-success me-1"></i>Présents : <strong class="text-dark" th:text="${report.presentCount}">0</strong></span>
+                    <span><i class="bi bi-person-x text-danger me-1"></i>Absents : <strong class="text-dark" th:text="${report.absentCount}">0</strong></span>
+                    <span><i class="bi bi-clock text-warning me-1"></i>Retards : <strong class="text-dark" th:text="${report.lateCount}">0</strong></span>
+                    <span th:if="${report.sentToAdmin}" class="text-success">
+                        <i class="bi bi-send-check-fill me-1"></i>Rapport envoyé le
+                        <span th:text="${#temporals.format(report.sentAt, 'dd/MM/yyyy HH:mm')}">date</span>
+                    </span>
+                </div>
+            </div>
+            <!-- Bouton envoi admin -->
+            <div class="col-auto" th:unless="${report.sentToAdmin}">
+                <form th:action="@{/teacher/attendance/{id}/send(id=${sessionId})}" method="post">
+                    <button type="submit" class="btn btn-primary fw-semibold px-4 py-2">
+                        <i class="bi bi-send-fill me-2"></i>Envoyer à l'admin
+                    </button>
+                </form>
+            </div>
+            <div class="col-auto" th:if="${report.sentToAdmin}">
+                <span class="btn btn-success fw-semibold px-4 py-2 disabled">
+                    <i class="bi bi-check2-all me-2"></i>Envoyé ✓
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Feuille d'appel -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="bi bi-people me-2 text-primary"></i>
+                        Liste des étudiants
+                        <span class="badge bg-secondary ms-2" th:text="${totalRows + ' étudiant(s)'}">0</span>
+                    </h6>
+                    <div class="d-flex gap-2" th:unless="${alreadyDone}">
+                        <button type="button" class="btn btn-sm btn-success" onclick="markAll('PRESENT')">
+                            <i class="bi bi-check-all me-1"></i>Tous présents
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="markAll('ABSENT')">
+                            <i class="bi bi-x-circle me-1"></i>Tous absents
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aucun étudiant -->
+            <div th:if="${rows == null || #lists.isEmpty(rows)}"
+                 class="card-body text-center py-5 text-muted">
+                <i class="bi bi-people fs-1 d-block mb-3 opacity-25"></i>
+                <p class="fw-semibold mb-1">Aucun étudiant inscrit à ce cours</p>
+                <p class="small">Inscrivez des classes via <a th:href="@{/admin/courses/{id}/enrollment(id=${session.course != null ? session.course.id : 0})}">la gestion d'inscriptions</a>.</p>
+            </div>
+
+            <!-- Formulaire appel -->
+            <form th:unless="${rows == null || #lists.isEmpty(rows)}"
+                  th:action="@{/teacher/attendance/{id}(id=${sessionId})}"
+                  method="post">
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="attendanceTable">
+                        <thead class="table-light">
+                        <tr>
+                            <th style="width:35%">Étudiant</th>
+                            <th class="text-center" style="width:18%">
+                                <span class="text-success fw-semibold">
+                                    <i class="bi bi-check-circle-fill me-1"></i>Présent
+                                </span>
+                            </th>
+                            <th class="text-center" style="width:18%">
+                                <span class="text-danger fw-semibold">
+                                    <i class="bi bi-x-circle-fill me-1"></i>Absent
+                                </span>
+                            </th>
+                            <th class="text-center" style="width:18%">
+                                <span class="text-warning fw-semibold">
+                                    <i class="bi bi-clock-fill me-1"></i>Retard
+                                </span>
+                            </th>
+                            <th style="width:11%">Note</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="row : ${rows}"
+                            th:id="|row-${row.student.id}|"
+                            th:classappend="${row.absenceAlert == 'CRITICAL' ? 'table-danger' : (row.absenceAlert == 'WARNING' ? 'table-warning' : '')}">
+
+                            <!-- Identité -->
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 fw-bold"
+                                         th:classappend="${row.absenceAlert == 'CRITICAL' ? 'bg-danger text-white' : (row.absenceAlert == 'WARNING' ? 'bg-warning text-dark' : 'bg-primary bg-opacity-10 text-primary')}"
+                                         style="width:36px;height:36px;font-size:0.8rem;"
+                                         th:text="${#strings.substring(row.student.firstName,0,1) + #strings.substring(row.student.lastName,0,1)}">AB</div>
+                                    <div>
+                                        <div class="fw-semibold small"
+                                             th:text="${row.student.firstName + ' ' + row.student.lastName}">Nom</div>
+                                        <div class="d-flex gap-1 align-items-center">
+                                            <small class="text-muted" style="font-size:0.7rem;"
+                                                   th:text="${row.student.email}">email</small>
+                                            <span th:if="${row.absencesInCourse > 0}"
+                                                  class="badge rounded-pill"
+                                                  th:classappend="${row.absenceAlert == 'CRITICAL' ? 'bg-danger' : (row.absenceAlert == 'WARNING' ? 'bg-warning text-dark' : 'bg-secondary')}"
+                                                  style="font-size:0.6rem;"
+                                                  th:text="${row.absencesInCourse + ' abs.'}"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- PRESENT -->
+                            <td class="text-center">
+                                <input class="form-check-input status-radio"
+                                       type="radio"
+                                       th:name="|status_${row.student.id}|"
+                                       value="PRESENT"
+                                       th:checked="${row.currentStatus == null || row.currentStatus == 'PRESENT'}"
+                                       style="width:22px;height:22px;cursor:pointer;accent-color:#198754;">
+                            </td>
+
+                            <!-- ABSENT -->
+                            <td class="text-center">
+                                <input class="form-check-input status-radio"
+                                       type="radio"
+                                       th:name="|status_${row.student.id}|"
+                                       value="ABSENT"
+                                       th:checked="${row.currentStatus == 'ABSENT'}"
+                                       style="width:22px;height:22px;cursor:pointer;accent-color:#dc3545;">
+                            </td>
+
+                            <!-- LATE -->
+                            <td class="text-center">
+                                <input class="form-check-input status-radio"
+                                       type="radio"
+                                       th:name="|status_${row.student.id}|"
+                                       value="LATE"
+                                       th:checked="${row.currentStatus == 'LATE'}"
+                                       style="width:22px;height:22px;cursor:pointer;accent-color:#ffc107;">
+                            </td>
+
+                            <!-- Note -->
+                            <td>
+                                <input type="text"
+                                       class="form-control form-control-sm border-0 bg-light"
+                                       th:name="|note_${row.student.id}|"
+                                       placeholder="Remarque…"
+                                       maxlength="100"
+                                       style="min-width:90px;font-size:0.75rem;">
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Footer avec compteurs + bouton valider -->
+                <div class="card-footer bg-white py-3 px-4">
+                    <div class="row align-items-center g-3">
+                        <div class="col">
+                            <div class="d-flex flex-wrap gap-4 align-items-center">
+                                <span class="fw-semibold text-success small">
+                                    <i class="bi bi-person-check me-1"></i>
+                                    Présents : <strong id="cntPresent" class="fs-6">0</strong>
+                                </span>
+                                <span class="fw-semibold text-danger small">
+                                    <i class="bi bi-person-x me-1"></i>
+                                    Absents : <strong id="cntAbsent" class="fs-6">0</strong>
+                                </span>
+                                <span class="fw-semibold text-warning small">
+                                    <i class="bi bi-clock me-1"></i>
+                                    Retards : <strong id="cntLate" class="fs-6">0</strong>
+                                </span>
+                                <span class="fw-semibold text-primary small">
+                                    Taux : <strong id="rateDisplay" class="fs-6">—</strong>%
+                                </span>
+                                <!-- Alerte taux en temps réel -->
+                                <span id="rateAlert" class="badge" style="display:none;"></span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary btn-lg fw-semibold px-4">
+                                <i class="bi bi-clipboard-check me-2"></i>Valider l'appel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sidebar info -->
+    <div class="col-lg-4">
+
+        <!-- Info séance -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2 text-info"></i>Séance</h6>
+            </div>
+            <div class="card-body py-3 px-4">
+                <table class="table table-borderless table-sm mb-0 small">
+                    <tr>
+                        <td class="text-muted fw-semibold" style="width:90px;">Cours</td>
+                        <td>
+                            <span class="badge bg-primary" th:text="${session.course != null ? session.course.code : ''}">CODE</span>
+                            <span class="ms-1" th:text="${session.course != null ? session.course.title : ''}">Titre</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted fw-semibold">Séance</td>
+                        <td th:text="${session.title}">Titre séance</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted fw-semibold">Date</td>
+                        <td th:text="${#temporals.format(session.sessionDate, 'dd/MM/yyyy HH:mm')}">date</td>
+                    </tr>
+                    <tr th:if="${session.description != null and !#strings.isEmpty(session.description)}">
+                        <td class="text-muted fw-semibold">Note</td>
+                        <td class="fst-italic" th:text="${session.description}">note</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Légende alertes absences -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-shield-exclamation me-2 text-warning"></i>Absences répétées</h6>
+            </div>
+            <div class="card-body py-3 px-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width:28px;height:28px;">
+                        <i class="bi bi-person text-primary" style="font-size:0.8rem;"></i>
+                    </div>
+                    <div>
+                        <span class="fw-semibold small">0-1 abs.</span>
+                        <span class="text-success small ms-1">Normal</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="rounded-circle bg-warning d-flex align-items-center justify-content-center" style="width:28px;height:28px;">
+                        <i class="bi bi-person-exclamation text-dark" style="font-size:0.8rem;"></i>
+                    </div>
+                    <div>
+                        <span class="fw-semibold small">2-3 abs.</span>
+                        <span class="text-warning small ms-1">À surveiller</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-danger d-flex align-items-center justify-content-center" style="width:28px;height:28px;">
+                        <i class="bi bi-person-x text-white" style="font-size:0.8rem;"></i>
+                    </div>
+                    <div>
+                        <span class="fw-semibold small">4+ abs.</span>
+                        <span class="text-danger small ms-1">Critique</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Envoi admin -->
+        <div class="card border-0 shadow-sm border-start border-4 border-primary">
+            <div class="card-body py-3 px-4">
+                <h6 class="fw-bold mb-2">
+                    <i class="bi bi-send me-2 text-primary"></i>Rapport administratif
+                </h6>
+                <p class="small text-muted mb-0">
+                    Après validation de l'appel, cliquez <strong>"Envoyer à l'admin"</strong>
+                    pour transmettre le rapport officiel à l'administration par messagerie interne.
+                    Ce rapport est archivé et consultable à tout moment.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function markAll(status) {
+        document.querySelectorAll('input[type=radio][value=' + status + ']')
+            .forEach(r => r.checked = true);
+        updateCounts();
+    }
+
+    function updateCounts() {
+        let p = 0, a = 0, l = 0;
+        document.querySelectorAll('tbody tr').forEach(row => {
+            const checked = row.querySelector('input[type=radio]:checked');
+            if (!checked) return;
+            if (checked.value === 'PRESENT') p++;
+            else if (checked.value === 'ABSENT') a++;
+            else if (checked.value === 'LATE') l++;
+        });
+        document.getElementById('cntPresent').textContent = p;
+        document.getElementById('cntAbsent').textContent  = a;
+        document.getElementById('cntLate').textContent    = l;
+
+        const total = p + a + l;
+        const rate  = total > 0 ? Math.round((p + l) / total * 100) : 0;
+        document.getElementById('rateDisplay').textContent = rate;
+
+        const alertBadge = document.getElementById('rateAlert');
+        if (total > 0) {
+            alertBadge.style.display = '';
+            if (rate < 50) {
+                alertBadge.className = 'badge bg-danger';
+                alertBadge.textContent = '🔴 CRITIQUE';
+            } else if (rate < 75) {
+                alertBadge.className = 'badge bg-warning text-dark';
+                alertBadge.textContent = '🟡 À SURVEILLER';
+            } else {
+                alertBadge.className = 'badge bg-success';
+                alertBadge.textContent = '🟢 NORMAL';
+            }
+        } else {
+            alertBadge.style.display = 'none';
+        }
+    }
+
+    document.querySelectorAll('.status-radio').forEach(r =>
+        r.addEventListener('change', updateCounts));
+    document.addEventListener('DOMContentLoaded', updateCounts);
+</script>
+
+</body>
+</html>

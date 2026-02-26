@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<div class="row mb-4">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/admin/audit}">Audit</a></li>
+                <li class="breadcrumb-item active">Historique Entité</li>
+            </ol>
+        </nav>
+        <h2 class="mb-0">
+            <i class="bi bi-clock-history me-2"></i>Historique de l'Entité
+        </h2>
+        <p class="text-muted mb-0">
+            <span class="badge bg-primary me-2" th:text="${entityType}">TYPE</span>
+            ID: <span th:text="${entityId}">1</span>
+        </p>
+    </div>
+</div>
+
+<!-- Timeline des actions -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-list-timeline me-2"></i>Chronologie des Modifications</h5>
+    </div>
+    <div class="card-body">
+        <div th:if="${logs == null || #lists.isEmpty(logs)}" class="text-center py-5">
+            <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+            <h5 class="text-muted">Aucun historique pour cette entité</h5>
+        </div>
+
+        <div th:if="${logs != null && !#lists.isEmpty(logs)}" class="timeline">
+            <div th:each="log, iterStat : ${logs}" class="timeline-item mb-4">
+                <div class="row">
+                    <div class="col-auto">
+                        <div class="timeline-badge"
+                             th:classappend="${#strings.contains(log.action, 'CREATE')} ? 'bg-success' :
+                                            ${#strings.contains(log.action, 'UPDATE')} ? 'bg-warning' :
+                                            ${#strings.contains(log.action, 'DELETE')} ? 'bg-danger' : 'bg-info'">
+                            <i class="bi"
+                               th:classappend="${#strings.contains(log.action, 'CREATE')} ? 'bi-plus-lg' :
+                                              ${#strings.contains(log.action, 'UPDATE')} ? 'bi-pencil' :
+                                              ${#strings.contains(log.action, 'DELETE')} ? 'bi-trash' : 'bi-info-circle'"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <span class="badge"
+                                                  th:classappend="${#strings.contains(log.action, 'CREATE')} ? 'bg-success' :
+                                                                 ${#strings.contains(log.action, 'UPDATE')} ? 'bg-warning' :
+                                                                 ${#strings.contains(log.action, 'DELETE')} ? 'bg-danger' : 'bg-info'"
+                                                  th:text="${log.action}">ACTION</span>
+                                        </h6>
+                                        <p class="mb-0 text-muted small">
+                                            Par <strong th:text="${log.actor.firstName + ' ' + log.actor.lastName}">Admin</strong>
+                                            (<span th:text="${log.actor.email}">email</span>)
+                                        </p>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted" th:text="${#temporals.format(log.createdAt, 'dd/MM/yyyy HH:mm:ss')}">01/01/2025</small>
+                                        <br>
+                                        <small class="text-muted">IP: <span th:text="${log.ipAddress}">127.0.0.1</span></small>
+                                    </div>
+                                </div>
+
+                                <div th:if="${log.afterData != null}" class="mt-3">
+                                    <small class="text-muted d-block mb-1">Données:</small>
+                                    <pre class="bg-light p-2 rounded small" th:text="${log.afterData}">-</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <a th:href="@{/admin/audit}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Retour à l'audit
+        </a>
+    </div>
+</div>
+
+<style>
+    .timeline {
+        position: relative;
+        padding-left: 20px;
+    }
+    .timeline:before {
+        content: '';
+        position: absolute;
+        left: 20px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #dee2e6;
+    }
+    .timeline-badge {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 18px;
+        position: relative;
+        z-index: 1;
+    }
+</style>
+
+</body>
+</html>

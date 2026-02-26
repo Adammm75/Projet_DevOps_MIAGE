@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+<body>
+
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2 class="mb-0 fw-bold">
+            <i class="bi bi-chat-square-text me-2 text-warning"></i>
+            Commentaires pédagogiques
+        </h2>
+        <p class="text-muted mb-0">
+            <span th:text="${totalComments}">0</span> observation(s) enregistrée(s) par les enseignants.
+            <span class="badge bg-dark ms-2">
+                <i class="bi bi-eye-slash me-1"></i>Vue administration
+            </span>
+        </p>
+    </div>
+</div>
+
+<!-- Flash -->
+<div th:if="${success}" class="alert alert-success alert-dismissible fade show border-0 shadow-sm">
+    <i class="bi bi-check-circle-fill me-2"></i><span th:text="${success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<div th:if="${error}" class="alert alert-danger alert-dismissible fade show border-0 shadow-sm">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<!-- Vide -->
+<div th:if="${comments == null || #lists.isEmpty(comments)}"
+     class="text-center py-5 text-muted">
+    <i class="bi bi-chat-square fs-1 d-block mb-3"></i>
+    <p>Aucun commentaire pédagogique enregistré pour le moment.</p>
+</div>
+
+<!-- Tableau -->
+<div class="card border-0 shadow-sm"
+     th:if="${comments != null && !#lists.isEmpty(comments)}">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Étudiant</th>
+                    <th>Enseignant</th>
+                    <th>Cours</th>
+                    <th>Tag</th>
+                    <th>Observation</th>
+                    <th class="text-center">Visibilité</th>
+                    <th class="text-center">Épinglé</th>
+                    <th>Date</th>
+                    <th class="text-center">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${comments}"
+                    th:classappend="${c.isPinned} ? 'table-warning' : ''">
+
+                    <!-- Étudiant -->
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-primary bg-opacity-10 d-flex
+                                        align-items-center justify-content-center flex-shrink-0"
+                                 style="width:32px;height:32px;">
+                                <span class="text-primary fw-bold"
+                                      style="font-size:0.75rem;"
+                                      th:text="${#strings.substring(c.student.firstName,0,1)
+                                               + #strings.substring(c.student.lastName,0,1)}"></span>
+                            </div>
+                            <div>
+                                <div class="fw-semibold small"
+                                     th:text="${c.student.firstName + ' ' + c.student.lastName}">Nom</div>
+                                <div class="text-muted" style="font-size:0.7rem;"
+                                     th:text="${c.student.email}">email</div>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Enseignant -->
+                    <td class="small"
+                        th:text="${c.teacher.firstName + ' ' + c.teacher.lastName}">Prof</td>
+
+                    <!-- Cours -->
+                    <td>
+                        <span class="badge bg-primary"
+                              th:text="${c.course.code}">CODE</span>
+                    </td>
+
+                    <!-- Tag -->
+                    <td>
+                        <span th:if="${c.tag != null}"
+                              class="badge rounded-pill bg-secondary"
+                              th:text="${c.tag}">Tag</span>
+                        <span th:unless="${c.tag != null}"
+                              class="text-muted fst-italic small">-</span>
+                    </td>
+
+                    <!-- Contenu tronqué -->
+                    <td>
+                        <span class="small"
+                              th:text="${#strings.abbreviate(c.content, 80)}">Contenu</span>
+                    </td>
+
+                    <!-- Visibilité -->
+                    <td class="text-center">
+                        <span th:if="${'ADMIN_ONLY'.equals(c.visibility)}"
+                              class="badge bg-dark">Admin only</span>
+                        <span th:unless="${'ADMIN_ONLY'.equals(c.visibility)}"
+                              class="badge bg-secondary bg-opacity-50 text-dark">Enseignants</span>
+                    </td>
+
+                    <!-- Épinglé -->
+                    <td class="text-center">
+                        <i th:if="${c.isPinned}" class="bi bi-pin-fill text-warning fs-5"></i>
+                        <i th:unless="${c.isPinned}" class="bi bi-pin text-muted fs-5"></i>
+                    </td>
+
+                    <!-- Date -->
+                    <td class="small text-muted"
+                        th:text="${#temporals.format(c.createdAt, 'dd/MM/yyyy HH:mm')}">date</td>
+
+                    <!-- Supprimer -->
+                    <td class="text-center">
+                        <form th:action="@{/admin/comments/{id}/delete(id=${c.id})}" method="post"
+                              onsubmit="return confirm('Supprimer définitivement ce commentaire ?')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+<body>
+
+<!-- Header -->
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2 class="mb-0 fw-bold">
+            <i class="bi bi-file-earmark-check me-2 text-primary"></i>Justificatifs d'absence
+        </h2>
+        <p class="text-muted mb-0">
+            Traitez les demandes de justificatif soumises par les étudiants
+            <span th:if="${pendingCount > 0}"
+                  class="badge bg-warning text-dark ms-2"
+                  th:text="${pendingCount + ' en attente'}"></span>
+        </p>
+    </div>
+</div>
+
+<!-- Flash -->
+<div th:if="${success}" class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4">
+    <i class="bi bi-check-circle-fill me-2"></i><span th:text="${success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<div th:if="${error}" class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<!-- Liste -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+
+        <div th:if="${justifications == null || #lists.isEmpty(justifications)}"
+             class="text-center py-5 text-muted">
+            <i class="bi bi-inbox fs-1 d-block mb-3 opacity-25"></i>
+            <p>Aucun justificatif soumis pour le moment</p>
+        </div>
+
+        <div th:unless="${justifications == null || #lists.isEmpty(justifications)}">
+            <div th:each="j : ${justifications}"
+                 class="p-4 border-bottom"
+                 th:classappend="${j.status.name() == 'PENDING' ? 'bg-warning bg-opacity-10' : ''}">
+                <div class="row align-items-start g-3">
+
+                    <!-- Infos étudiant + absence -->
+                    <div class="col-md-5">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
+                                 style="width:36px;height:36px;font-size:0.8rem;"
+                                 th:text="${#strings.substring(j.student.firstName,0,1) + #strings.substring(j.student.lastName,0,1)}">
+                            </div>
+                            <div>
+                                <div class="fw-semibold"
+                                     th:text="${j.student.firstName + ' ' + j.student.lastName}"></div>
+                                <div class="text-muted small" th:text="${j.student.email}"></div>
+                            </div>
+                        </div>
+                        <div class="small mt-2">
+                            <span class="badge bg-secondary me-1"
+                                  th:text="${j.attendance.session.course.code}"></span>
+                            <span th:text="${j.attendance.session.title}"></span>
+                        </div>
+                        <div class="small text-muted"
+                             th:text="${'Statut original : ' + j.attendance.status}"></div>
+                        <div class="small text-muted"
+                             th:text="${'Soumis le ' + #temporals.format(j.submittedAt, 'dd/MM/yyyy HH:mm')}"></div>
+                    </div>
+
+                    <!-- Motif -->
+                    <div class="col-md-4">
+                        <div class="small fw-semibold mb-1">Motif :</div>
+                        <div class="small text-muted" th:text="${j.reason}"></div>
+                        <div th:if="${j.fileUrl != null}" class="mt-2">
+                            <a th:href="${j.fileUrl}" target="_blank"
+                               class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-paperclip me-1"></i>Pièce jointe
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="col-md-3">
+
+                        <!-- En attente → formulaire décision -->
+                        <div th:if="${j.status.name() == 'PENDING'}">
+                            <form th:action="@{/admin/justifications/{id}/review(id=${j.id})}"
+                                  method="post">
+                                <textarea name="adminComment" class="form-control form-control-sm mb-2"
+                                          rows="2" placeholder="Commentaire (optionnel)"></textarea>
+                                <div class="d-flex gap-2">
+                                    <button type="submit" name="decision" value="APPROVED"
+                                            class="btn btn-success btn-sm flex-fill fw-semibold">
+                                        <i class="bi bi-check-lg me-1"></i>Approuver
+                                    </button>
+                                    <button type="submit" name="decision" value="REJECTED"
+                                            class="btn btn-danger btn-sm flex-fill fw-semibold">
+                                        <i class="bi bi-x-lg me-1"></i>Refuser
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Déjà traité -->
+                        <div th:unless="${j.status.name() == 'PENDING'}">
+                            <span class="badge fs-6 py-2 px-3"
+                                  th:classappend="${j.status.name() == 'APPROVED' ? 'bg-success' : 'bg-danger'}"
+                                  th:text="${j.status.name() == 'APPROVED' ? '✅ Approuvé' : '❌ Refusé'}">
+                            </span>
+                            <div th:if="${j.reviewedAt != null}"
+                                 class="text-muted small mt-1"
+                                 th:text="${'le ' + #temporals.format(j.reviewedAt, 'dd/MM/yyyy')}">
+                            </div>
+                            <div th:if="${j.adminComment != null and !#strings.isEmpty(j.adminComment)}"
+                                 class="small fst-italic mt-1 text-secondary"
+                                 th:text="${j.adminComment}">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

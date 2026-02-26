@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<div class="row mb-4">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/teacher/courses}">Mes cours</a></li>
+                <li class="breadcrumb-item active">Détails du cours</li>
+            </ol>
+        </nav>
+        <h2 class="mb-0">
+            <i class="bi bi-book me-2"></i><span th:text="${cours.title ?: 'Sans titre'}">Titre du cours</span>
+        </h2>
+        <p class="text-muted mb-0">
+            <span class="badge bg-primary me-2" th:text="${cours.code ?: 'N/A'}">CODE</span>
+        </p>
+    </div>
+    <div class="col-auto">
+        <a th:href="@{/teacher/courses/{id}/edit(id=${cours.id})}" class="btn btn-warning">
+            <i class="bi bi-pencil me-2"></i>Modifier
+        </a>
+    </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0"><i class="bi bi-lightning-fill me-2"></i>Actions rapides</h5>
+    </div>
+    <div class="card-body">
+        <div class="d-flex gap-2 flex-wrap">
+            <a th:href="@{/teacher/assignments(courseId=${cours.id})}" class="btn btn-primary">
+                <i class="bi bi-clipboard-check me-2"></i>Gérer les devoirs
+            </a>
+            <a th:href="@{/teacher/grades/course/{id}(id=${cours.id})}" class="btn btn-success">
+                <i class="bi bi-award-fill me-2"></i>Gérer les notes
+            </a>
+            <a th:href="@{/admin/courses/{id}/enrollment(id=${cours.id})}" class="btn btn-warning">
+                <i class="bi bi-person-plus-fill me-2"></i>Inscrire des classes
+            </a>
+            <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#addResourceModal">
+                <i class="bi bi-file-earmark-plus me-2"></i>Ajouter une ressource
+            </button>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadAudioModal">
+                <i class="bi bi-upload me-2"></i>Upload Audio
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Upload Audio -->
+<div class="modal fade" id="uploadAudioModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-upload me-2"></i>Uploader un fichier audio</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="uploadAudioForm" th:action="@{/api/v1/audio/upload}" method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" name="courseId" th:value="${cours.id}">
+                    <div class="mb-3">
+                        <label for="audioTitle" class="form-label">Titre de l'audio</label>
+                        <input type="text" class="form-control" id="audioTitle" name="title" required placeholder="Ex: Chapitre 1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="audioFile" class="form-label">Fichier audio</label>
+                        <input type="file" class="form-control" id="audioFile" name="file" accept=".mp3" required>
+                        <small class="text-muted">Format accepté : .mp3</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="uploadAudioBtn">
+                        <i class="bi bi-upload me-2"></i>Uploader & Obtenir résumé
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JS pour Upload Audio -->
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        const uploadBtn = document.getElementById('uploadAudioBtn');
+        const uploadForm = document.getElementById('uploadAudioForm');
+
+        uploadBtn.addEventListener('click', function() {
+            const fileInput = document.getElementById('audioFile');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Veuillez sélectionner un fichier avant de continuer.');
+                fileInput.focus();
+                return;
+            }
+
+            const formData = new FormData(uploadForm);
+
+            fetch(uploadForm.getAttribute('action'), {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert('Audio uploadé et résumé généré !');
+                    console.log('Résumé:', data.summary);
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('uploadAudioModal'));
+                    modal.hide();
+                    uploadForm.reset();
+
+                    // Mettre à jour la section résumé si besoin
+                    const summaryContent = document.getElementById('courseSummaryContent');
+                    if (summaryContent) summaryContent.innerHTML = `<p>${data.summary}</p>`;
+                })
+                .catch(err => {
+                    console.error('Erreur upload audio :', err);
+                    alert('Erreur lors de l\'upload audio.');
+                });
+        });
+    });
+</script>
+
+<div class="row">
+    <div class="col-md-4">
+        <!-- Informations générales -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Informations générales</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr>
+                        <th style="width: 120px;">ID</th>
+                        <td><span class="badge bg-secondary" th:text="${cours.id}">#1</span></td>
+                    </tr>
+                    <tr>
+                        <th>Code</th>
+                        <td><span class="badge bg-primary" th:text="${cours.code ?: 'N/A'}">CODE</span></td>
+                    </tr>
+                    <tr>
+                        <th>Titre</th>
+                        <td><strong th:text="${cours.title ?: 'Sans titre'}">Titre</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Créé le</th>
+                        <td><small th:text="${#dates.format(T(java.util.Date).from(cours.createdAt), 'dd/MM/yyyy HH:mm')}">01/01/2024</small></td>
+                    </tr>
+                    <tr th:if="${cours.updatedAt != null}">
+                        <th>Modifié le</th>
+                        <td><small th:text="${#dates.format(T(java.util.Date).from(cours.updatedAt), 'dd/MM/yyyy HH:mm')}">01/01/2024</small></td>
+                    </tr>
+                    <tr>
+                        <th>Statut</th>
+                        <td><span class="badge bg-success">Actif</span></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Section Résumé -->
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-file-text me-2"></i>Résumé du cours</h5>
+            </div>
+            <div class="card-body" id="courseSummaryContent">
+                <p class="text-muted">
+                    <i class="bi bi-info-circle me-2"></i>Chargement du résumé...
+                </p>
+            </div>
+        </div>
+
+        <!-- Statistiques -->
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Statistiques</h5>
+            </div>
+            <div class="card-body">
+                <!-- Ressources, devoirs, étudiants -->
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+
+        <!-- ========================================
+             SEANCES ET FEUILLES D'APPEL
+             ======================================== -->
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-clipboard-check me-2 text-primary"></i>Séances &amp; Appel
+                </h5>
+                <span class="badge bg-secondary"
+                      th:text="${sessions != null ? #lists.size(sessions) : 0} + ' séance(s)'"></span>
+            </div>
+            <div class="card-body p-0">
+                <div th:if="${sessions == null || #lists.isEmpty(sessions)}"
+                     class="text-center py-4 text-muted">
+                    <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
+                    <p class="mb-0 small">Aucune séance créée pour ce cours.</p>
+                </div>
+                <div class="list-group list-group-flush"
+                     th:unless="${sessions == null || #lists.isEmpty(sessions)}">
+                    <div th:each="s : ${sessions}" class="list-group-item px-4 py-3">
+                        <div class="d-flex align-items-center justify-content-between gap-3">
+                            <div class="d-flex align-items-center gap-3 flex-grow-1">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                     th:classappend="${attendanceDoneMap != null && attendanceDoneMap[s.id]} ? 'bg-success bg-opacity-10' : 'bg-primary bg-opacity-10'"
+                                     style="width:40px;height:40px;">
+                                    <i class="bi fs-5"
+                                       th:classappend="${attendanceDoneMap != null && attendanceDoneMap[s.id]} ? 'bi-check-circle-fill text-success' : 'bi-camera-video text-primary'"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold small" th:text="${s.title}">Séance</div>
+                                    <div class="text-muted" style="font-size:0.72rem;">
+                                        <i class="bi bi-calendar me-1"></i>
+                                        <span th:text="${#temporals.format(s.sessionDate, 'dd/MM/yyyy HH:mm')}">date</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span th:if="${attendanceDoneMap != null && attendanceDoneMap[s.id]}"
+                                      class="badge bg-success rounded-pill">
+                                    <i class="bi bi-check me-1"></i>Appel fait
+                                </span>
+                                <span th:unless="${attendanceDoneMap != null && attendanceDoneMap[s.id]}"
+                                      class="badge bg-warning text-dark rounded-pill">
+                                    <i class="bi bi-clock me-1"></i>En attente
+                                </span>
+                                <a th:href="@{/teacher/attendance/{id}(id=${s.id})}"
+                                   class="btn btn-sm fw-semibold"
+                                   th:classappend="${attendanceDoneMap != null && attendanceDoneMap[s.id]} ? 'btn-outline-success' : 'btn-primary'">
+                                    <i class="bi me-1"
+                                       th:classappend="${attendanceDoneMap != null && attendanceDoneMap[s.id]} ? 'bi-eye' : 'bi-clipboard-check'"></i>
+                                    <span th:text="${attendanceDoneMap != null && attendanceDoneMap[s.id]} ? 'Voir' : 'Faire l\'appel'">Faire l'appel</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Retour -->
+<div class="row mt-4">
+    <div class="col">
+        <a th:href="@{/teacher/courses}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Retour à mes cours
+        </a>
+    </div>
+</div>
+
+<!-- JS pour récupérer résumé déjà existant si audio a été uploadé avant -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const summaryContent = document.getElementById('courseSummaryContent');
+
+        // Récupérer le courseId depuis l'URL
+        const urlParts = window.location.pathname.split('/');
+        // Exemple URL: /teacher/courses/8912585819139254770
+        const courseId = urlParts[urlParts.length - 1];
+
+        fetch(`/api/v1/courses/${courseId}/summary`)
+            .then(resp => resp.json())
+            .then(data => {
+                if (data.summary && data.summary.trim() !== "") {
+                    summaryContent.innerHTML = `<p>${data.summary}</p>`;
+                } else {
+                    summaryContent.innerHTML = `
+                <p class="text-muted">
+                    <i class="bi bi-info-circle me-2"></i>Aucun résumé disponible
+                </p>`;
+                }
+            })
+
+            .catch(err => {
+                console.error('Erreur récupération résumé :', err);
+            });
+    });
+</script>
+</body>
+</html>

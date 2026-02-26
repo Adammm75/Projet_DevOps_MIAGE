@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+<body>
+
+<!-- Header -->
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2 class="mb-0 fw-bold">
+            <i class="bi bi-speedometer2 me-2 text-warning"></i>Tableau de bord pédagogique
+        </h2>
+        <p class="text-muted mb-0">Vision globale de l'engagement, des notes et de la progression sur la plateforme.</p>
+    </div>
+    <div class="col-auto">
+        <span class="badge bg-secondary">Vue administrateur</span>
+    </div>
+</div>
+
+<!-- Compteurs principaux -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="card-body p-2">
+                <i class="bi bi-collection text-primary fs-3 d-block mb-1"></i>
+                <div class="fs-3 fw-bold text-primary" th:text="${totalCourses}">0</div>
+                <div class="text-muted small">Cours</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="card-body p-2">
+                <i class="bi bi-people text-info fs-3 d-block mb-1"></i>
+                <div class="fs-3 fw-bold text-info" th:text="${totalStudents}">0</div>
+                <div class="text-muted small">Étudiants</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="card-body p-2">
+                <i class="bi bi-person-badge text-success fs-3 d-block mb-1"></i>
+                <div class="fs-3 fw-bold text-success" th:text="${totalTeachers}">0</div>
+                <div class="text-muted small">Enseignants</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="card-body p-2">
+                <i class="bi bi-upload text-warning fs-3 d-block mb-1"></i>
+                <div class="fs-3 fw-bold text-warning" th:text="${totalSubmissions}">0</div>
+                <div class="text-muted small">Devoirs rendus</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="card-body p-2">
+                <i class="bi bi-question-circle text-danger fs-3 d-block mb-1"></i>
+                <div class="fs-3 fw-bold text-danger" th:text="${totalQcmAttempts}">0</div>
+                <div class="text-muted small">Tentatives QCM</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="card-body p-2">
+                <i class="bi bi-eye text-secondary fs-3 d-block mb-1"></i>
+                <div class="fs-3 fw-bold text-secondary" th:text="${totalConsultations}">0</div>
+                <div class="text-muted small">Consultations</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Taux clés -->
+<div class="row g-3 mb-4">
+
+    <!-- Taux de complétion -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted mb-3">
+                    <i class="bi bi-trophy-fill text-warning me-2"></i>Taux de complétion
+                </h6>
+                <div class="d-flex align-items-end gap-2 mb-2">
+                    <span class="display-5 fw-bold text-success" th:text="${completionRate} + '%'">0%</span>
+                    <span class="text-muted mb-2">des cours terminés</span>
+                </div>
+                <div class="progress rounded-pill" style="height:10px;">
+                    <div class="progress-bar bg-success rounded-pill"
+                         th:style="'width:' + ${completionRate} + '%'"></div>
+                </div>
+                <small class="text-muted mt-2 d-block"
+                       th:text="${totalCompletions} + ' déclarations « cours terminé »'"></small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Taux de soumission -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted mb-3">
+                    <i class="bi bi-file-earmark-check text-primary me-2"></i>Taux de soumission devoirs
+                </h6>
+                <div class="d-flex align-items-end gap-2 mb-2">
+                    <span class="display-5 fw-bold text-primary" th:text="${submissionRate} + '%'">0%</span>
+                    <span class="text-muted mb-2">de devoirs rendus</span>
+                </div>
+                <div class="progress rounded-pill" style="height:10px;">
+                    <div class="progress-bar bg-primary rounded-pill"
+                         th:style="'width:' + ${submissionRate} + '%'"></div>
+                </div>
+                <small class="text-muted mt-2 d-block"
+                       th:text="${totalSubmissions} + ' soumissions / ' + ${totalAssignments} + ' devoirs'"></small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Étudiants actifs -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="text-muted mb-3">
+                    <i class="bi bi-activity text-info me-2"></i>Étudiants actifs
+                </h6>
+                <div class="d-flex align-items-end gap-2 mb-2">
+                    <span class="display-5 fw-bold text-info" th:text="${activeRate} + '%'">0%</span>
+                    <span class="text-muted mb-2">d'étudiants actifs</span>
+                </div>
+                <div class="progress rounded-pill" style="height:10px;">
+                    <div class="progress-bar bg-success rounded-pill"
+                         th:style="'width:' + ${activeRate} + '%'"></div>
+                    <div class="progress-bar bg-danger rounded-pill"
+                         th:style="'width:' + ${100 - activeRate} + '%'"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <small class="text-success">
+                        <i class="bi bi-circle-fill me-1"></i>
+                        <span th:text="${activeStudents}">0</span> actifs
+                    </small>
+                    <small class="text-danger">
+                        <i class="bi bi-circle me-1"></i>
+                        <span th:text="${inactiveStudents}">0</span> inactifs
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tableaux de bord détaillés -->
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-bar-chart me-2 text-primary"></i>Activité globale
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span><i class="bi bi-folder-fill text-primary me-2"></i>Ressources publiées</span>
+                        <span class="badge bg-primary rounded-pill" th:text="${totalResources}">0</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span><i class="bi bi-eye text-info me-2"></i>Consultations ressources</span>
+                        <span class="badge bg-info rounded-pill" th:text="${totalConsultations}">0</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span><i class="bi bi-clipboard2-check text-warning me-2"></i>Devoirs créés</span>
+                        <span class="badge bg-warning rounded-pill" th:text="${totalAssignments}">0</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span><i class="bi bi-upload text-success me-2"></i>Devoirs rendus</span>
+                        <span class="badge bg-success rounded-pill" th:text="${totalSubmissions}">0</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span><i class="bi bi-question-diamond text-danger me-2"></i>Tentatives QCM</span>
+                        <span class="badge bg-danger rounded-pill" th:text="${totalQcmAttempts}">0</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span><i class="bi bi-patch-check text-success me-2"></i>Cours déclarés terminés</span>
+                        <span class="badge bg-success rounded-pill" th:text="${totalCompletions}">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-people me-2 text-info"></i>Répartition des utilisateurs
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="p-3 rounded-3 bg-info bg-opacity-10 text-center">
+                            <div class="fs-2 fw-bold text-info" th:text="${totalStudents}">0</div>
+                            <div class="text-muted small">Étudiants inscrits</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-3 bg-success bg-opacity-10 text-center">
+                            <div class="fs-2 fw-bold text-success" th:text="${totalTeachers}">0</div>
+                            <div class="text-muted small">Enseignants</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-3 bg-success bg-opacity-10 text-center">
+                            <div class="fs-2 fw-bold text-success" th:text="${activeStudents}">0</div>
+                            <div class="text-muted small">Étudiants actifs</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-3 bg-danger bg-opacity-10 text-center">
+                            <div class="fs-2 fw-bold text-danger" th:text="${inactiveStudents}">0</div>
+                            <div class="text-muted small">Étudiants inactifs</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <small class="text-muted d-flex justify-content-between mb-1">
+                        <span>Taux d'activité</span>
+                        <span th:text="${activeRate} + '%'">0%</span>
+                    </small>
+                    <div class="progress rounded-pill" style="height:12px;">
+                        <div class="progress-bar bg-success rounded-pill"
+                             th:style="'width:' + ${activeRate} + '%'"></div>
+                        <div class="progress-bar bg-danger rounded-pill"
+                             th:style="'width:' + ${100 - activeRate} + '%'"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

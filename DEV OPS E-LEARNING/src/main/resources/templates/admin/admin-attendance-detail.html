@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+<body>
+
+<div class="row mb-4 align-items-center">
+    <div class="col-auto">
+        <a th:href="@{/admin/attendance}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Rapports
+        </a>
+    </div>
+    <div class="col">
+        <h2 class="fw-bold mb-0"><i class="bi bi-clipboard-data me-2"></i>Détail du rapport</h2>
+        <p class="text-muted mb-0"
+           th:text="${report.session.course.code + ' — ' + report.session.title}">info</p>
+    </div>
+    <div class="col-auto">
+        <span class="badge fs-6 py-2 px-3"
+              th:classappend="${report.alertLevel == 'CRITICAL' ? 'bg-danger' : (report.alertLevel == 'WARNING' ? 'bg-warning text-dark' : 'bg-success')}"
+              th:text="${report.alertLevel}">NORMAL</span>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="fs-2 fw-bold text-success" th:text="${report.presentCount}">0</div>
+            <div class="text-muted small"><i class="bi bi-person-check me-1"></i>Présents</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="fs-2 fw-bold text-danger" th:text="${report.absentCount}">0</div>
+            <div class="text-muted small"><i class="bi bi-person-x me-1"></i>Absents</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="fs-2 fw-bold text-warning" th:text="${report.lateCount}">0</div>
+            <div class="text-muted small"><i class="bi bi-clock me-1"></i>Retards</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="fs-2 fw-bold text-primary" th:text="${report.presenceRate + '%'}">0%</div>
+            <div class="text-muted small"><i class="bi bi-graph-up me-1"></i>Taux</div>
+        </div>
+    </div>
+</div>
+
+<!-- Info -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body py-3 px-4">
+                <table class="table table-borderless table-sm mb-0 small">
+                    <tr><td class="text-muted fw-semibold" style="width:110px;">Cours</td>
+                        <td><span class="badge bg-primary me-1" th:text="${report.session.course.code}">CODE</span><span th:text="${report.session.course.title}">Titre</span></td></tr>
+                    <tr><td class="text-muted fw-semibold">Séance</td><td th:text="${report.session.title}">titre</td></tr>
+                    <tr><td class="text-muted fw-semibold">Date</td><td th:text="${#temporals.format(report.session.sessionDate,'dd/MM/yyyy HH:mm')}">date</td></tr>
+                    <tr><td class="text-muted fw-semibold">Enseignant</td><td th:text="${report.teacher.firstName + ' ' + report.teacher.lastName}">nom</td></tr>
+                    <tr><td class="text-muted fw-semibold">Notifié</td>
+                        <td>
+                            <span th:if="${report.sentToAdmin}" class="text-success fw-semibold">
+                                <i class="bi bi-check-circle-fill me-1"></i>Oui —
+                                <span th:text="${#temporals.format(report.sentAt,'dd/MM/yyyy HH:mm')}">date</span>
+                            </span>
+                            <span th:unless="${report.sentToAdmin}" class="text-muted">Non envoyé</span>
+                        </td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Liste étudiants -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom py-3">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-people me-2 text-primary"></i>Détail par étudiant</h6>
+    </div>
+    <div th:if="${rows == null || #lists.isEmpty(rows)}" class="card-body text-center py-4 text-muted">
+        <p>Aucun enregistrement de présence trouvé.</p>
+    </div>
+    <div class="card-body p-0" th:unless="${rows == null || #lists.isEmpty(rows)}">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Étudiant</th>
+                    <th class="text-center">Statut</th>
+                    <th class="text-center">Absences (cours)</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="row : ${rows}"
+                    th:classappend="${row.currentStatus == 'ABSENT' ? 'table-danger' : (row.currentStatus == 'LATE' ? 'table-warning' : '')}">
+                    <td>
+                        <div class="fw-semibold small" th:text="${row.student.firstName + ' ' + row.student.lastName}">Nom</div>
+                        <div class="text-muted" style="font-size:0.72rem;" th:text="${row.student.email}">email</div>
+                    </td>
+                    <td class="text-center">
+                        <span th:if="${row.currentStatus == 'PRESENT'}" class="badge bg-success">Présent</span>
+                        <span th:if="${row.currentStatus == 'ABSENT'}" class="badge bg-danger">Absent</span>
+                        <span th:if="${row.currentStatus == 'LATE'}" class="badge bg-warning text-dark">Retard</span>
+                        <span th:if="${row.currentStatus == null}" class="badge bg-secondary">—</span>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge rounded-pill"
+                              th:classappend="${row.absenceAlert == 'CRITICAL' ? 'bg-danger' : (row.absenceAlert == 'WARNING' ? 'bg-warning text-dark' : 'bg-success')}"
+                              th:text="${row.absencesInCourse + ' abs.'}">0</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
