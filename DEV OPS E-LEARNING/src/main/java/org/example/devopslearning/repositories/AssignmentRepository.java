@@ -122,4 +122,5 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
             "WHERE a.course.id = :courseId AND s.grade IS NOT NULL")
     long countGradedAssignmentsByCourse(@Param("courseId") Long courseId);
 
+
 }

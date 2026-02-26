@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/base :: layout(~{::body})}">
+<body>
+
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Mes Devoirs</h2>
+        <p class="text-muted mb-0">Gestion de tous vos devoirs</p>
+    </div>
+</div>
+
+<!-- Messages -->
+<div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+    <i class="bi bi-check-circle me-2"></i><span th:text="${success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<!-- Statistiques -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body">
+                <h6 class="text-muted mb-1">À rendre</h6>
+                <h3 class="mb-0 text-warning" th:text="${toSubmit != null ? #lists.size(toSubmit) : 0}">0</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-info">
+            <div class="card-body">
+                <h6 class="text-muted mb-1">Rendus</h6>
+                <h3 class="mb-0 text-info" th:text="${submitted != null ? #lists.size(submitted) : 0}">0</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body">
+                <h6 class="text-muted mb-1">Corrigés</h6>
+                <h3 class="mb-0 text-success" th:text="${graded != null ? #lists.size(graded) : 0}">0</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-danger">
+            <div class="card-body">
+                <h6 class="text-muted mb-1">En retard</h6>
+                <h3 class="mb-0 text-danger" th:text="${late != null ? #lists.size(late) : 0}">0</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Onglets -->
+<ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#toSubmit">
+            À rendre <span class="badge bg-warning" th:text="${toSubmit != null ? #lists.size(toSubmit) : 0}">0</span>
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#submitted">
+            Rendus <span class="badge bg-info" th:text="${submitted != null ? #lists.size(submitted) : 0}">0</span>
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#graded">
+            Corrigés <span class="badge bg-success" th:text="${graded != null ? #lists.size(graded) : 0}">0</span>
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#late">
+            En retard <span class="badge bg-danger" th:text="${late != null ? #lists.size(late) : 0}">0</span>
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <!-- À RENDRE -->
+    <div class="tab-pane fade show active" id="toSubmit">
+        <div th:if="${toSubmit == null || #lists.isEmpty(toSubmit)}" class="text-center py-5">
+            <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+            <p class="text-muted mt-3">Aucun devoir à rendre</p>
+        </div>
+        <div th:each="a : ${toSubmit}" class="card mb-3">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <span class="badge bg-primary mb-2" th:text="${a.course?.code}">COURS</span>
+                        <h5 th:text="${a.title}">Titre</h5>
+                        <p class="text-muted small mb-2" th:text="${a.description}">Description</p>
+                        <small class="text-danger">
+                            <i class="bi bi-clock"></i> Date limite:
+                            <span th:text="${#temporals.format(a.dueDate, 'dd/MM/yyyy HH:mm')}">Date</span>
+                        </small>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a th:href="@{/student/assignments/{id}(id=${a.id})}" class="btn btn-primary">
+                            <i class="bi bi-upload"></i> Rendre le devoir
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RENDUS -->
+    <div class="tab-pane fade" id="submitted">
+        <div th:if="${submitted == null || #lists.isEmpty(submitted)}" class="text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+            <p class="text-muted mt-3">Aucun devoir rendu en attente de correction</p>
+        </div>
+        <div th:each="a : ${submitted}" class="card mb-3">
+            <div class="card-body">
+                <span class="badge bg-primary mb-2" th:text="${a.course?.code}">COURS</span>
+                <h5 th:text="${a.title}">Titre</h5>
+                <span class="badge bg-info">En attente de correction</span>
+                <div class="mt-2">
+                    <small class="text-muted">
+                        Rendu le: <span th:text="${submissionMap.get(a.id) != null ? #temporals.format(submissionMap.get(a.id).submittedAt, 'dd/MM/yyyy HH:mm') : 'N/A'}">Date</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CORRIGÉS -->
+    <div class="tab-pane fade" id="graded">
+        <div th:if="${graded == null || #lists.isEmpty(graded)}" class="text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+            <p class="text-muted mt-3">Aucun devoir corrigé</p>
+        </div>
+        <div th:each="a : ${graded}" class="card mb-3">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <span class="badge bg-primary mb-2" th:text="${a.course?.code}">COURS</span>
+                        <h5 th:text="${a.title}">Titre</h5>
+                        <div th:with="submission=${submissionMap.get(a.id)}">
+                            <span class="badge fs-6"
+                                  th:classappend="${submission.grade.doubleValue() >= (a.maxGrade.doubleValue() / 2)} ? 'bg-success' : 'bg-danger'">
+                                Note: <span th:text="${submission.grade}">0</span>/<span th:text="${a.maxGrade}">20</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a th:href="@{/student/assignments/{id}(id=${a.id})}" class="btn btn-outline-primary">
+                            <i class="bi bi-eye"></i> Voir détails
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EN RETARD -->
+    <div class="tab-pane fade" id="late">
+        <div th:if="${late == null || #lists.isEmpty(late)}" class="text-center py-5">
+            <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+            <p class="text-muted mt-3">Aucun devoir en retard</p>
+        </div>
+        <div th:each="a : ${late}" class="card mb-3 border-danger">
+            <div class="card-body">
+                <span class="badge bg-primary mb-2" th:text="${a.course?.code}">COURS</span>
+                <span class="badge bg-danger mb-2">EN RETARD</span>
+                <h5 th:text="${a.title}">Titre</h5>
+                <small class="text-danger">
+                    Date limite dépassée: <span th:text="${#temporals.format(a.dueDate, 'dd/MM/yyyy HH:mm')}">Date</span>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

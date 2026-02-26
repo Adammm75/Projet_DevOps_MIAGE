@@ -3,6 +3,7 @@
       th:replace="~{layout/base :: layout(~{::body})}">
 
 <body>
+<<<<<<< HEAD
 <div class="row mb-4">
     <div class="col">
         <h2 class="mb-0">
@@ -84,11 +85,66 @@
                 <button type="submit" class="btn btn-primary w-100">
                     <i class="bi bi-funnel me-2"></i>Filtrer
                 </button>
+=======
+
+<!-- HEADER -->
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-2">
+            <i class="bi bi-file-earmark-text me-2"></i>Gestion des Devoirs
+        </h2>
+        <p class="text-muted mb-0">Créez, gérez et corrigez les devoirs de vos étudiants</p>
+    </div>
+    <div class="col-auto">
+        <button type="button"
+                class="btn btn-success px-4 py-2 fw-semibold"
+                data-bs-toggle="modal"
+                data-bs-target="#selectCourseModal">
+            <i class="bi bi-plus-circle me-2"></i>
+            Créer un devoir
+        </button>
+    </div>
+</div>
+
+<!-- FILTRES -->
+<div class="card mb-4 shadow-sm border-0">
+    <div class="card-body">
+        <form method="get" th:action="@{/teacher/assignments}" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Filtrer par cours</label>
+                <select name="courseId" class="form-select" onchange="this.form.submit()">
+                    <option value="">Tous les cours</option>
+                    <option th:each="c : ${courses}"
+                            th:value="${c.id}"
+                            th:text="${c.code + ' - ' + c.title}"
+                            th:selected="${course != null and course.id == c.id}">
+                        CODE - Titre
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-8">
+                <label class="form-label fw-semibold">Statistiques globales</label>
+                <div class="d-flex gap-3">
+                    <div class="px-3 py-2 bg-warning bg-opacity-10 rounded-3 flex-fill text-center">
+                        <div class="fs-5 fw-bold text-warning" th:text="${pendingGradingCount}">0</div>
+                        <small class="text-muted">À corriger</small>
+                    </div>
+                    <div class="px-3 py-2 bg-primary bg-opacity-10 rounded-3 flex-fill text-center">
+                        <div class="fs-5 fw-bold text-primary" th:text="${activeCount}">0</div>
+                        <small class="text-muted">En cours</small>
+                    </div>
+                    <div class="px-3 py-2 bg-secondary bg-opacity-10 rounded-3 flex-fill text-center">
+                        <div class="fs-5 fw-bold text-secondary" th:text="${completedCount}">0</div>
+                        <small class="text-muted">Terminés</small>
+                    </div>
+                </div>
+>>>>>>> origin/base_du_projet_4
             </div>
         </form>
     </div>
 </div>
 
+<<<<<<< HEAD
 <!-- Stats rapides -->
 <div class="row g-3 mb-4">
     <div class="col-md-3">
@@ -229,10 +285,145 @@
                 </tr>
                 </tbody>
             </table>
+=======
+<!-- ALERT si aucun devoir -->
+<div th:if="${assignments == null or #lists.isEmpty(assignments)}"
+     class="alert alert-info border-0 d-flex align-items-center">
+    <i class="bi bi-info-circle fs-3 me-3"></i>
+    <div>
+        <strong>Aucun devoir trouvé</strong>
+        <p class="mb-0">Commencez par créer un devoir pour vos étudiants.</p>
+    </div>
+</div>
+
+<!-- LISTE DES DEVOIRS -->
+<div class="row g-4" th:if="${assignments != null and not #lists.isEmpty(assignments)}">
+    <div class="col-12" th:each="assignment : ${assignments}">
+        <div class="card shadow-sm border-0 hover-card">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+
+                    <!-- Info du devoir -->
+                    <div class="col-lg-5">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="mb-0 fw-bold" th:text="${assignment.title}">Titre du devoir</h5>
+                            <span th:if="${assignment.dueDate.isBefore(T(java.time.Instant).now())}"
+                                  class="badge bg-secondary">Terminé</span>
+                            <span th:unless="${assignment.dueDate.isBefore(T(java.time.Instant).now())}"
+                                  class="badge bg-success">En cours</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+                                <i class="bi bi-book me-1"></i>
+                                <span th:text="${assignment.course.code}">CODE</span>
+                            </span>
+                            <span class="badge bg-info bg-opacity-10 text-info px-3 py-2 ms-2">
+                                <i class="bi bi-calendar-event me-1"></i>
+                                <span th:text="${#temporals.format(assignment.dueDate, 'dd/MM/yyyy HH:mm')}">01/01/2024</span>
+                            </span>
+                            <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 ms-2">
+                                <i class="bi bi-trophy me-1"></i>
+                                <span th:text="${assignment.maxGrade} + ' pts'">20 pts</span>
+                            </span>
+                        </div>
+                        <p class="text-muted mb-0 small"
+                           th:text="${assignment.description != null ? (assignment.description.length() gt 120 ? assignment.description.substring(0, 120) + '...' : assignment.description) : 'Aucune description'}">
+                            Description du devoir...
+                        </p>
+                    </div>
+
+                    <!-- Statistiques -->
+                    <div class="col-lg-4">
+                        <div class="row g-2">
+                            <div class="col-4 text-center">
+                                <div class="bg-primary bg-opacity-10 rounded-3 p-3">
+                                    <div class="fs-4 fw-bold text-primary">
+                                        <span th:text="${#lists.size(assignment.submissions)}">0</span>
+                                    </div>
+                                    <small class="text-muted">Soumis</small>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div class="bg-success bg-opacity-10 rounded-3 p-3">
+                                    <div class="fs-4 fw-bold text-success">
+                                        <th:block th:with="gradedCount=${#lists.size(assignment.submissions.?[grade != null])}">
+                                            <span th:text="${gradedCount}">0</span>
+                                        </th:block>
+                                    </div>
+                                    <small class="text-muted">Corrigés</small>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div class="bg-warning bg-opacity-10 rounded-3 p-3">
+                                    <div class="fs-4 fw-bold text-warning">
+                                        <th:block th:with="pendingCount=${#lists.size(assignment.submissions.?[grade == null and submittedAt != null])}">
+                                            <span th:text="${pendingCount}">0</span>
+                                        </th:block>
+                                    </div>
+                                    <small class="text-muted">En attente</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="col-lg-3">
+                        <div class="d-flex flex-column gap-2">
+                            <a th:href="@{/teacher/assignments/{id}/submissions(id=${assignment.id})}"
+                               class="btn btn-primary w-100 py-2 fw-semibold">
+                                <i class="bi bi-pencil-square me-2"></i>
+                                Voir les soumissions
+                            </a>
+                            <div class="btn-group w-100" role="group">
+                                <a th:href="@{/teacher/assignments/{id}/edit(id=${assignment.id})}"
+                                   class="btn btn-outline-secondary">
+                                    <i class="bi bi-pencil"></i> Modifier
+                                </a>
+                                <button type="button"
+                                        class="btn btn-outline-danger"
+                                        data-bs-toggle="modal"
+                                        th:data-bs-target="'#deleteModal' + ${assignment.id}">
+                                    <i class="bi bi-trash"></i> Supprimer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de confirmation de suppression -->
+        <div class="modal fade" th:id="'deleteModal' + ${assignment.id}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title">Confirmer la suppression</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-0">Voulez-vous vraiment supprimer le devoir "<strong th:text="${assignment.title}">Titre</strong>" ?</p>
+                        <div class="alert alert-warning border-0 mt-3 mb-0">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Cette action supprimera également toutes les soumissions associées.
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <form th:action="@{/teacher/assignments/{id}/delete(id=${assignment.id})}"
+                              method="post" class="d-inline">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-1"></i>Supprimer
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+>>>>>>> origin/base_du_projet_4
         </div>
     </div>
 </div>
 
+<<<<<<< HEAD
 <!-- ✅ Script de confirmation de suppression -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -250,3 +441,45 @@
 
 </body>
 </html>
+=======
+<!-- Modal de sélection de cours pour créer un devoir -->
+<div class="modal fade" id="selectCourseModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Sélectionner un cours</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Choisissez le cours pour lequel créer un devoir :</p>
+                <div class="list-group">
+                    <a th:each="c : ${courses}"
+                       th:href="@{/teacher/assignments/new(courseId=${c.id})}"
+                       class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-primary me-2" th:text="${c.code}">CODE</span>
+                                <strong th:text="${c.title}">Titre du cours</strong>
+                            </div>
+                            <i class="bi bi-arrow-right-circle"></i>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-card {
+        transition: all 0.3s ease;
+    }
+    .hover-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+</style>
+
+</body>
+</html>
+>>>>>>> origin/base_du_projet_4

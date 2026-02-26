@@ -1,5 +1,6 @@
 package org.example.devopslearning.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -15,8 +16,11 @@ import java.time.Instant;
 @Setter
 @Entity
 @Table(name = "qcm_tentatives")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class QcmTentative {
+
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)  // ✅ AUTO_INCREMENT
     @Column(name = "id", nullable = false)
     private Long id;
 
@@ -24,12 +28,14 @@ public class QcmTentative {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "qcm_id", nullable = false)
+    @JsonIgnoreProperties({"questions", "cours", "creeePar"})
     private Qcm qcm;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "etudiant_id", nullable = false)
+    @JsonIgnoreProperties({"password", "roles"})
     private User etudiant;
 
     @NotNull
@@ -52,4 +58,47 @@ public class QcmTentative {
     @Column(name = "score_max", precision = 5, scale = 2)
     private BigDecimal scoreMax;
 
+    // ========================================
+    // MÉTHODES UTILITAIRES
+    // ========================================
+
+    @PrePersist
+    protected void onCreate() {
+        if (dateDebut == null) {
+            dateDebut = Instant.now();
+        }
+        if (statut == null) {
+            statut = "EN_COURS";
+        }
+    }
+
+    /**
+     * Calcule la durée de la tentative en minutes
+     */
+    public Long getDureeMinutes() {
+        if (dateDebut == null || dateFin == null) {
+            return null;
+        }
+        return java.time.Duration.between(dateDebut, dateFin).toMinutes();
+    }
+
+    /**
+     * Calcule le pourcentage de réussite
+     */
+    public Double getPourcentage() {
+        if (score == null || scoreMax == null || scoreMax.compareTo(BigDecimal.ZERO) == 0) {
+            return null;
+        }
+        return score.divide(scoreMax, 4, java.math.RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100))
+                .doubleValue();
+    }
+
+    /**
+     * Vérifie si la tentative est réussie (>= 50%)
+     */
+    public Boolean isReussie() {
+        Double pourcentage = getPourcentage();
+        return pourcentage != null && pourcentage >= 50.0;
+    }
 }

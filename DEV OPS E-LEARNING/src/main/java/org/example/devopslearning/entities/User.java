@@ -55,6 +55,11 @@ public class User {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+
+    @Size(max = 20)
+    @Column(name = "phone", length = 20)
+    private String phone;
+    
     // 🔥 MÉTHODES HELPER RECOMMANDÉES
 
     /**

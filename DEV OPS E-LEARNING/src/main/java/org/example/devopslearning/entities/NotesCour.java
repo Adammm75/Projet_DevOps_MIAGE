@@ -56,6 +56,10 @@ public class NotesCour {
     @Column(name = "date_calcul")
     private Instant dateCalcul;
 
+    // ✅ AJOUTÉ - Date de création
+    @Column(name = "created_at")
+    private Instant createdAt;
+
     // ✅ MÉTHODE HELPER
     @PrePersist
     public void prePersist() {

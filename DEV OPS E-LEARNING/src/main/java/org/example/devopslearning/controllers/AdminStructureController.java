@@ -2,11 +2,8 @@ package org.example.devopslearning.controllers;
 
 import lombok.RequiredArgsConstructor;
 import org.example.devopslearning.entities.*;
-import org.example.devopslearning.repositories.AcademicClassRepository;
-import org.example.devopslearning.repositories.FiliereRepository;
-import org.example.devopslearning.repositories.NiveauxEtudeRepository;
-import org.example.devopslearning.repositories.ParcourRepository;
-import org.example.devopslearning.services.ClasseStudentService;
+import org.example.devopslearning.repositories.*;
+import org.example.devopslearning.services.AdminStructureService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,315 +12,304 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 @Controller
-@RequiredArgsConstructor
 @RequestMapping("/admin/structure")
+@RequiredArgsConstructor
 public class AdminStructureController {
 
+    private final AdminStructureService structureService;
+    private final AcademicClassRepository classRepo;
+    private final InscriptionsClassRepository inscriptionsRepo;
+    private final UserRepository userRepository;
+    private final CoursRepository coursRepository;
     private final FiliereRepository filiereRepository;
-    private final NiveauxEtudeRepository niveauxEtudeRepository;
     private final ParcourRepository parcourRepository;
-    private final AcademicClassRepository classRepository;
-    private final ClasseStudentService classeStudentService;
+
+    // ========================================
+    // PAGE PRINCIPALE
+    // ========================================
 
     @GetMapping
-    public String page(Model model) {
-        // Charger toutes les listes
-        List<Filiere> filieres = filiereRepository.findAll();
-        List<NiveauxEtude> niveaux = niveauxEtudeRepository.findAll();
-        List<Parcour> parcours = parcourRepository.findAll();
-        List<AcademicClass> classes = classRepository.findAll();
-
-        // ✅ Créer une map avec le comptage des parcours par filière
-        java.util.Map<Long, Long> parcoursCounts = new java.util.HashMap<>();
-        for (Filiere filiere : filieres) {
-            long count = parcourRepository.countByFiliereId(filiere.getId());
-            parcoursCounts.put(filiere.getId(), count);
-        }
-
-        // ✅ Créer une map avec le comptage des classes par parcours
-        java.util.Map<Long, Long> classesCounts = new java.util.HashMap<>();
-        for (Parcour parcour : parcours) {
-            long count = classRepository.countByParcoursId(parcour.getId());
-            classesCounts.put(parcour.getId(), count);
-        }
-
-        // ✅ Créer une map avec le comptage des étudiants par classe
-        java.util.Map<Long, Long> studentCounts = new java.util.HashMap<>();
-        for (AcademicClass classe : classes) {
-            long count = classeStudentService.countActiveStudentsInClass(classe.getId());
-            studentCounts.put(classe.getId(), count);
-        }
+    public String structureHome(Model model) {
+        List<Filiere> filieres = structureService.getAllFilieres();
+        List<Parcour> parcours = structureService.getAllParcours();
+        List<AcademicClass> classes = structureService.getAllClasses();
 
         model.addAttribute("filieres", filieres);
-        model.addAttribute("niveaux", niveaux);
-        model.addAttribute("parcoursList", parcours);
+        model.addAttribute("parcours", parcours);
         model.addAttribute("classes", classes);
-        model.addAttribute("parcoursCounts", parcoursCounts);    // ✅ NOUVEAU
-        model.addAttribute("classesCounts", classesCounts);      // ✅ NOUVEAU
-        model.addAttribute("studentCounts", studentCounts);
 
-        // Form objects vides
-        model.addAttribute("filiere", new Filiere());
-        model.addAttribute("parcour", new Parcour());
+        return "admin/structure/index";
+    }
+
+    // ========================================
+    // CRUD CLASSES ⭐ NOUVEAU
+    // ========================================
+
+    /**
+     * Formulaire de création de classe
+     */
+    @GetMapping("/classes/create")
+    public String createClasseForm(Model model) {
         model.addAttribute("classe", new AcademicClass());
-
-        return "admin/structure";
+        model.addAttribute("parcoursList", parcourRepository.findAll());
+        return "admin/structure/classe-create";
     }
 
-    // ========== FILIÈRES ==========
-
-    @PostMapping("/filieres")
-    public String createFiliere(@ModelAttribute Filiere f, RedirectAttributes ra) {
+    /**
+     * Créer une nouvelle classe
+     */
+    @PostMapping("/classes/create")
+    public String createClasse(
+            @RequestParam String nom,
+            @RequestParam(required = false) String code,
+            @RequestParam Long parcoursId,
+            @RequestParam String anneeUniversitaire,
+            RedirectAttributes ra
+    ) {
         try {
-            filiereRepository.save(f);
-            ra.addFlashAttribute("success", "Filière créée avec succès");
-        } catch (Exception e) {
-            ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
-        }
-        return "redirect:/admin/structure";
-    }
-
-    @GetMapping("/filieres/{id}")
-    public String viewFiliere(@PathVariable Long id, Model model) {
-        Filiere filiere = filiereRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Filière non trouvée"));
-
-        // Compter les parcours associés
-        long nbParcours = parcourRepository.countByFiliereId(id);
-
-        model.addAttribute("filiere", filiere);
-        model.addAttribute("nbParcours", nbParcours);
-
-        return "admin/filiere-detail";
-    }
-
-    @GetMapping("/filieres/{id}/edit")
-    public String editFiliereForm(@PathVariable Long id, Model model) {
-        Filiere filiere = filiereRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Filière non trouvée"));
-        model.addAttribute("filiere", filiere);
-        return "admin/filiere-edit";
-    }
-
-    @PostMapping("/filieres/{id}/edit")
-    public String updateFiliere(@PathVariable Long id,
-                                @ModelAttribute Filiere f,
-                                RedirectAttributes ra) {
-        try {
-            Filiere existing = filiereRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Filière non trouvée"));
-
-            existing.setNom(f.getNom());
-            existing.setDescription(f.getDescription());
-            filiereRepository.save(existing);
-
-            ra.addFlashAttribute("success", "Filière modifiée avec succès");
-        } catch (Exception e) {
-            ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
-        }
-        return "redirect:/admin/structure";
-    }
-
-    @PostMapping("/filieres/{id}/delete")
-    public String deleteFiliere(@PathVariable Long id, RedirectAttributes ra) {
-        try {
-            // Vérifier s'il y a des parcours associés
-            long nbParcours = parcourRepository.countByFiliereId(id);
-            if (nbParcours > 0) {
-                ra.addFlashAttribute("error", "Impossible de supprimer : " + nbParcours + " parcours associé(s)");
-                return "redirect:/admin/structure";
-            }
-
-            filiereRepository.deleteById(id);
-            ra.addFlashAttribute("success", "Filière supprimée avec succès");
-        } catch (Exception e) {
-            ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
-        }
-        return "redirect:/admin/structure";
-    }
-
-    // ========== PARCOURS ==========
-
-    @PostMapping("/parcours")
-    public String createParcours(@ModelAttribute Parcour p, RedirectAttributes ra) {
-        try {
-            parcourRepository.save(p);
-            ra.addFlashAttribute("success", "Parcours créé avec succès");
-        } catch (Exception e) {
-            ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
-        }
-        return "redirect:/admin/structure";
-    }
-
-    @GetMapping("/parcours/{id}")
-    public String viewParcours(@PathVariable Long id, Model model) {
-        Parcour parcours = parcourRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Parcours non trouvé"));
-
-        // Compter les classes associées
-        long nbClasses = classRepository.countByParcoursId(id);
-
-        model.addAttribute("parcours", parcours);
-        model.addAttribute("nbClasses", nbClasses);
-
-        return "admin/parcours-detail";
-    }
-
-    @GetMapping("/parcours/{id}/edit")
-    public String editParcoursForm(@PathVariable Long id, Model model) {
-        Parcour parcours = parcourRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Parcours non trouvé"));
-
-        List<Filiere> filieres = filiereRepository.findAll();
-        List<NiveauxEtude> niveaux = niveauxEtudeRepository.findAll();
-
-        model.addAttribute("parcours", parcours);
-        model.addAttribute("filieres", filieres);
-        model.addAttribute("niveaux", niveaux);
-
-        return "admin/parcours-edit";
-    }
-
-    @PostMapping("/parcours/{id}/edit")
-    public String updateParcours(@PathVariable Long id,
-                                 @ModelAttribute Parcour p,
-                                 RedirectAttributes ra) {
-        try {
-            Parcour existing = parcourRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Parcours non trouvé"));
-
-            existing.setNom(p.getNom());
-            existing.setDescription(p.getDescription());
-            existing.setFiliere(p.getFiliere());
-            existing.setNiveau(p.getNiveau());
-            parcourRepository.save(existing);
-
-            ra.addFlashAttribute("success", "Parcours modifié avec succès");
-        } catch (Exception e) {
-            ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
-        }
-        return "redirect:/admin/structure";
-    }
-
-    @PostMapping("/parcours/{id}/delete")
-    public String deleteParcours(@PathVariable Long id, RedirectAttributes ra) {
-        try {
-            // Vérifier s'il y a des classes associées
-            long nbClasses = classRepository.countByParcoursId(id);
-            if (nbClasses > 0) {
-                ra.addFlashAttribute("error", "Impossible de supprimer : " + nbClasses + " classe(s) associée(s)");
-                return "redirect:/admin/structure";
-            }
-
-            parcourRepository.deleteById(id);
-            ra.addFlashAttribute("success", "Parcours supprimé avec succès");
-        } catch (Exception e) {
-            ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
-        }
-        return "redirect:/admin/structure";
-    }
-
-    // ========== CLASSES ==========
-
-    @PostMapping("/classes")
-    public String createClasse(@ModelAttribute AcademicClass c, RedirectAttributes ra) {
-        try {
-            classRepository.save(c);
+            structureService.createClasse(nom, code, parcoursId, anneeUniversitaire);
             ra.addFlashAttribute("success", "Classe créée avec succès");
+            return "redirect:/admin/structure";
         } catch (Exception e) {
             ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
+            return "redirect:/admin/structure/classes/create";
         }
-        return "redirect:/admin/structure";
     }
 
-    // ✅ MÉTHODE UNIQUE viewClasse AVEC GESTION DES ÉTUDIANTS
+    /**
+     * Formulaire d'édition de classe
+     */
+    @GetMapping("/classes/{id}/edit")
+    public String editClasseForm(@PathVariable Long id, Model model, RedirectAttributes ra) {
+        try {
+            AcademicClass classe = structureService.getClasseById(id);
+            model.addAttribute("classe", classe);
+            model.addAttribute("parcoursList", parcourRepository.findAll());
+            return "admin/structure/classe-edit";
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Classe introuvable");
+            return "redirect:/admin/structure";
+        }
+    }
+
+    /**
+     * Mettre à jour une classe
+     */
+    @PostMapping("/classes/{id}/edit")
+    public String updateClasse(
+            @PathVariable Long id,
+            @RequestParam String nom,
+            @RequestParam(required = false) String code,
+            @RequestParam Long parcoursId,
+            @RequestParam String anneeUniversitaire,
+            RedirectAttributes ra
+    ) {
+        try {
+            AcademicClass classe = structureService.getClasseById(id);
+            Parcour parcours = parcourRepository.findById(parcoursId)
+                    .orElseThrow(() -> new RuntimeException("Parcours introuvable"));
+
+            classe.setNom(nom);
+            classe.setCode(code);
+            classe.setParcours(parcours);
+            classe.setAnneeUniversitaire(anneeUniversitaire);
+
+            classRepo.save(classe);
+
+            ra.addFlashAttribute("success", "Classe modifiée avec succès");
+            return "redirect:/admin/structure/classes/" + id;
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
+            return "redirect:/admin/structure/classes/" + id + "/edit";
+        }
+    }
+
+    // ========================================
+    // DÉTAILS CLASSE
+    // ========================================
+
     @GetMapping("/classes/{id}")
-    public String viewClasse(@PathVariable Long id, Model model) {
-        AcademicClass classe = classRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Classe non trouvée"));
+    public String viewClasseDetails(@PathVariable Long id, Model model) {
+        AcademicClass classe = structureService.getClasseById(id);
 
-        // ✅ Récupérer les inscriptions avec détails
-        List<InscriptionsClass> inscriptions = classeStudentService.getInscriptionsForClass(id);
-        long nbEtudiants = classeStudentService.countActiveStudentsInClass(id);
+        // Étudiants
+        List<InscriptionsClass> inscriptions = inscriptionsRepo.findByClasseId(id);
+        long nbEtudiants = inscriptions.stream()
+                .filter(i -> "ACTIF".equals(i.getStatut()))
+                .count();
 
-        // ✅ Récupérer les étudiants disponibles (non inscrits)
-        List<User> availableStudents = classeStudentService.getAvailableStudents(id);
+        List<Long> inscritIds = inscriptions.stream()
+                .map(i -> i.getEtudiant().getId())
+                .toList();
+        List<User> availableStudents = userRepository.findAll().stream()
+                .filter(u -> u.hasRole("ROLE_STUDENT"))
+                .filter(u -> !inscritIds.contains(u.getId()))
+                .toList();
+
+        // Enseignants
+        List<TeacherClass> enseignantsClasse = structureService.getEnseignantsClasse(id);
+        List<User> enseignantsDisponibles = structureService.getEnseignantsDisponibles(id);
+
+        // Cours
+        List<CoursClass> coursClasse = structureService.getCoursClasse(id);
+        List<Cours> coursDisponibles = structureService.getCoursDisponibles(id);
 
         model.addAttribute("classe", classe);
         model.addAttribute("inscriptions", inscriptions);
         model.addAttribute("nbEtudiants", nbEtudiants);
         model.addAttribute("availableStudents", availableStudents);
+        model.addAttribute("enseignantsClasse", enseignantsClasse);
+        model.addAttribute("enseignantsDisponibles", enseignantsDisponibles);
+        model.addAttribute("coursClasse", coursClasse);
+        model.addAttribute("coursDisponibles", coursDisponibles);
 
-        return "admin/classe-detail";
-    }
-
-    @GetMapping("/classes/{id}/edit")
-    public String editClasseForm(@PathVariable Long id, Model model) {
-        AcademicClass classe = classRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Classe non trouvée"));
-
-        List<Parcour> parcours = parcourRepository.findAll();
-
-        model.addAttribute("classe", classe);
-        model.addAttribute("parcoursList", parcours);
-
-        return "admin/classe-edit";
-    }
-
-    @PostMapping("/classes/{id}/edit")
-    public String updateClasse(@PathVariable Long id,
-                               @ModelAttribute AcademicClass c,
-                               RedirectAttributes ra) {
-        try {
-            AcademicClass existing = classRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Classe non trouvée"));
-
-            existing.setNom(c.getNom());
-            existing.setCode(c.getCode());
-            existing.setAnneeUniversitaire(c.getAnneeUniversitaire());
-            existing.setParcours(c.getParcours());
-            classRepository.save(existing);
-
-            ra.addFlashAttribute("success", "Classe modifiée avec succès");
-        } catch (Exception e) {
-            ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
-        }
-        return "redirect:/admin/structure";
+        return "admin/structure/classe-detail";
     }
 
     @PostMapping("/classes/{id}/delete")
     public String deleteClasse(@PathVariable Long id, RedirectAttributes ra) {
         try {
-            classRepository.deleteById(id);
+            classRepo.deleteById(id);
             ra.addFlashAttribute("success", "Classe supprimée avec succès");
+            return "redirect:/admin/structure";
         } catch (Exception e) {
             ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
+            return "redirect:/admin/structure/classes/" + id;
         }
-        return "redirect:/admin/structure";
     }
 
-    // ========== GESTION DES ÉTUDIANTS ==========
+    // ========================================
+    // GESTION ENSEIGNANTS
+    // ========================================
 
-    @PostMapping("/classes/{classeId}/students/enroll")
-    public String enrollStudent(@PathVariable Long classeId,
-                                @RequestParam Long etudiantId,
-                                RedirectAttributes ra) {
+    @PostMapping("/classes/{classeId}/teachers/assign")
+    public String assignTeacher(@PathVariable Long classeId, @RequestParam Long teacherId, RedirectAttributes ra) {
         try {
-            classeStudentService.enrollStudent(classeId, etudiantId);
-            ra.addFlashAttribute("success", "Étudiant inscrit avec succès");
+            structureService.affecterEnseignant(classeId, teacherId);
+            ra.addFlashAttribute("success", "Enseignant affecté avec succès");
         } catch (Exception e) {
             ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
         }
         return "redirect:/admin/structure/classes/" + classeId;
     }
 
-    @PostMapping("/classes/{classeId}/students/{etudiantId}/unenroll")
-    public String unenrollStudent(@PathVariable Long classeId,
-                                  @PathVariable Long etudiantId,
-                                  RedirectAttributes ra) {
+    @PostMapping("/classes/{classeId}/teachers/assign-multiple")
+    public String assignMultipleTeachers(@PathVariable Long classeId, @RequestParam(required = false) List<Long> teacherIds, RedirectAttributes ra) {
         try {
-            classeStudentService.unenrollStudent(classeId, etudiantId);
-            ra.addFlashAttribute("success", "Étudiant retiré de la classe");
+            if (teacherIds == null || teacherIds.isEmpty()) {
+                ra.addFlashAttribute("error", "Veuillez sélectionner au moins un enseignant");
+            } else {
+                structureService.affecterEnseignants(classeId, teacherIds);
+                ra.addFlashAttribute("success", teacherIds.size() + " enseignant(s) affecté(s)");
+            }
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
+        }
+        return "redirect:/admin/structure/classes/" + classeId;
+    }
+
+    @PostMapping("/classes/{classeId}/teachers/{teacherId}/remove")
+    public String removeTeacher(@PathVariable Long classeId, @PathVariable Long teacherId, RedirectAttributes ra) {
+        try {
+            structureService.retirerEnseignant(classeId, teacherId);
+            ra.addFlashAttribute("success", "Enseignant retiré");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
+        }
+        return "redirect:/admin/structure/classes/" + classeId;
+    }
+
+    // ========================================
+    // GESTION COURS
+    // ========================================
+
+    @PostMapping("/classes/{classeId}/courses/assign")
+    public String assignCourse(@PathVariable Long classeId, @RequestParam Long coursId, RedirectAttributes ra) {
+        try {
+            structureService.affecterCours(classeId, coursId);
+            ra.addFlashAttribute("success", "Cours affecté avec succès");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
+        }
+        return "redirect:/admin/structure/classes/" + classeId;
+    }
+
+    @PostMapping("/classes/{classeId}/courses/assign-multiple")
+    public String assignMultipleCourses(@PathVariable Long classeId, @RequestParam(required = false) List<Long> coursIds, RedirectAttributes ra) {
+        try {
+            if (coursIds == null || coursIds.isEmpty()) {
+                ra.addFlashAttribute("error", "Veuillez sélectionner au moins un cours");
+            } else {
+                structureService.affecterCours(classeId, coursIds);
+                ra.addFlashAttribute("success", coursIds.size() + " cours affecté(s)");
+            }
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
+        }
+        return "redirect:/admin/structure/classes/" + classeId;
+    }
+
+    @PostMapping("/classes/{classeId}/courses/{coursId}/remove")
+    public String removeCourse(@PathVariable Long classeId, @PathVariable Long coursId, RedirectAttributes ra) {
+        try {
+            structureService.retirerCours(classeId, coursId);
+            ra.addFlashAttribute("success", "Cours retiré");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
+        }
+        return "redirect:/admin/structure/classes/" + classeId;
+    }
+
+    // ========================================
+    // GESTION ÉTUDIANTS
+    // ========================================
+
+    @PostMapping("/classes/{id}/students/enroll")
+    public String enrollStudent(@PathVariable Long id, @RequestParam Long etudiantId, RedirectAttributes ra) {
+        try {
+            User student = userRepository.findById(etudiantId)
+                    .orElseThrow(() -> new RuntimeException("Étudiant non trouvé"));
+            structureService.inscrireEtudiant(id, student);
+            ra.addFlashAttribute("success", "Étudiant inscrit avec succès");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
+        }
+        return "redirect:/admin/structure/classes/" + id;
+    }
+
+    @PostMapping("/classes/{id}/students/enroll-multiple")
+    public String enrollMultipleStudents(@PathVariable Long id, @RequestParam(required = false) List<Long> etudiantIds, RedirectAttributes ra) {
+        try {
+            if (etudiantIds == null || etudiantIds.isEmpty()) {
+                ra.addFlashAttribute("error", "Veuillez sélectionner au moins un étudiant");
+            } else {
+                int count = 0;
+                for (Long etudiantId : etudiantIds) {
+                    try {
+                        User student = userRepository.findById(etudiantId)
+                                .orElseThrow(() -> new RuntimeException("Étudiant non trouvé"));
+                        structureService.inscrireEtudiant(id, student);
+                        count++;
+                    } catch (Exception e) {
+                        // Continue
+                    }
+                }
+                ra.addFlashAttribute("success", count + " étudiant(s) inscrit(s)");
+            }
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
+        }
+        return "redirect:/admin/structure/classes/" + id;
+    }
+
+    @PostMapping("/classes/{classeId}/students/{etudiantId}/unenroll")
+    public String unenrollStudent(@PathVariable Long classeId, @PathVariable Long etudiantId, RedirectAttributes ra) {
+        try {
+            InscriptionsClass inscription = inscriptionsRepo.findByClasseIdAndEtudiantId(classeId, etudiantId)
+                    .orElseThrow(() -> new RuntimeException("Inscription non trouvée"));
+            inscription.setStatut("INACTIF");
+            inscriptionsRepo.save(inscription);
+            ra.addFlashAttribute("success", "Étudiant retiré");
         } catch (Exception e) {
             ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
         }
@@ -331,11 +317,12 @@ public class AdminStructureController {
     }
 
     @PostMapping("/classes/{classeId}/students/{etudiantId}/reactivate")
-    public String reactivateStudent(@PathVariable Long classeId,
-                                    @PathVariable Long etudiantId,
-                                    RedirectAttributes ra) {
+    public String reactivateStudent(@PathVariable Long classeId, @PathVariable Long etudiantId, RedirectAttributes ra) {
         try {
-            classeStudentService.reactivateStudent(classeId, etudiantId);
+            InscriptionsClass inscription = inscriptionsRepo.findByClasseIdAndEtudiantId(classeId, etudiantId)
+                    .orElseThrow(() -> new RuntimeException("Inscription non trouvée"));
+            inscription.setStatut("ACTIF");
+            inscriptionsRepo.save(inscription);
             ra.addFlashAttribute("success", "Étudiant réactivé");
         } catch (Exception e) {
             ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
@@ -344,25 +331,12 @@ public class AdminStructureController {
     }
 
     @PostMapping("/classes/{classeId}/students/{etudiantId}/delete")
-    public String deleteEnrollment(@PathVariable Long classeId,
-                                   @PathVariable Long etudiantId,
-                                   RedirectAttributes ra) {
+    public String deleteStudentEnrollment(@PathVariable Long classeId, @PathVariable Long etudiantId, RedirectAttributes ra) {
         try {
-            classeStudentService.deleteEnrollment(classeId, etudiantId);
+            InscriptionsClass inscription = inscriptionsRepo.findByClasseIdAndEtudiantId(classeId, etudiantId)
+                    .orElseThrow(() -> new RuntimeException("Inscription non trouvée"));
+            inscriptionsRepo.delete(inscription);
             ra.addFlashAttribute("success", "Inscription supprimée");
-        } catch (Exception e) {
-            ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
-        }
-        return "redirect:/admin/structure/classes/" + classeId;
-    }
-
-    @PostMapping("/classes/{classeId}/students/enroll-multiple")
-    public String enrollMultipleStudents(@PathVariable Long classeId,
-                                         @RequestParam("etudiantIds") List<Long> etudiantIds,
-                                         RedirectAttributes ra) {
-        try {
-            classeStudentService.enrollMultipleStudents(classeId, etudiantIds);
-            ra.addFlashAttribute("success", etudiantIds.size() + " étudiant(s) inscrit(s)");
         } catch (Exception e) {
             ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
         }

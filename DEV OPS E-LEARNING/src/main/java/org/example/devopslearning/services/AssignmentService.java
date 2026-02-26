@@ -1,11 +1,9 @@
 package org.example.devopslearning.services;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.example.devopslearning.entities.Assignment;
-import org.example.devopslearning.entities.AssignmentSubmission;
-import org.example.devopslearning.entities.User;
-import org.example.devopslearning.repositories.AssignmentRepository;
-import org.example.devopslearning.repositories.AssignmentSubmissionRepository;
+import org.example.devopslearning.entities.*;
+import org.example.devopslearning.repositories.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,6 +18,8 @@ public class AssignmentService {
     private final AssignmentRepository assignmentRepository;
     private final AssignmentSubmissionRepository submissionRepository;
     private final S3StorageService s3StorageService;
+    private final AssignmentClassRepository assignmentClassRepository;
+    private final AcademicClassRepository academicClassRepository;
 
     /**
      * Liste tous les devoirs d'un cours
@@ -77,4 +77,98 @@ public class AssignmentService {
 
         return assignment.getCourse().getId();
     }
+
+    public AssignmentClass affecterDevoirAClasse(Long assignmentId, Long classeId) {
+        Assignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new RuntimeException("Devoir introuvable"));
+
+        AcademicClass classe = academicClassRepository.findById(classeId)
+                .orElseThrow(() -> new RuntimeException("Classe introuvable"));
+
+        // Vérifier si déjà affecté
+        if (assignmentClassRepository.existsByAssignmentIdAndClasseId(assignmentId, classeId)) {
+            throw new RuntimeException("Ce devoir est déjà affecté à cette classe");
+        }
+
+        AssignmentClass assignmentClass = new AssignmentClass();
+        assignmentClass.setAssignment(assignment);
+        assignmentClass.setClasse(classe);
+        assignmentClass.setDateAffectation(Instant.now());
+
+        return assignmentClassRepository.save(assignmentClass);
+    }
+
+    /**
+     * Affecte un devoir à plusieurs classes
+     */
+    public void affecterDevoirAClasses(Long assignmentId, List<Long> classeIds) {
+        if (classeIds == null || classeIds.isEmpty()) {
+            return;
+        }
+
+        for (Long classeId : classeIds) {
+            try {
+                affecterDevoirAClasse(assignmentId, classeId);
+            } catch (RuntimeException e) {
+                // Si déjà affecté, continuer
+                if (!e.getMessage().contains("déjà affecté")) {
+                    throw e;
+                }
+            }
+        }
+    }
+
+    /**
+     * Retire un devoir d'une classe
+     */
+    @Transactional
+    public void retirerDevoirDeClasse(Long assignmentId, Long classeId) {
+        assignmentClassRepository.deleteByAssignmentIdAndClasseId(assignmentId, classeId);
+    }
+
+    /**
+     * Récupère les classes auxquelles un devoir est affecté
+     */
+    public List<AssignmentClass> getClassesByAssignment(Long assignmentId) {
+        return assignmentClassRepository.findByAssignmentId(assignmentId);
+    }
+
+    /**
+     * Récupère les classes disponibles (non affectées) pour un devoir
+     */
+    public List<AcademicClass> getClassesDisponibles(Long assignmentId, Long teacherId) {
+        List<Long> assignedClasseIds = assignmentClassRepository.findClasseIdsByAssignmentId(assignmentId);
+
+        // Récupérer uniquement les classes de l'enseignant
+        List<TeacherClass> teacherClasses = teacherClassRepository.findByTeacherId(teacherId);
+
+        return teacherClasses.stream()
+                .map(TeacherClass::getClasse)
+                .filter(c -> !assignedClasseIds.contains(c.getId()))
+                .toList();
+    }
+
+    /**
+     * Met à jour les affectations de classes pour un devoir
+     */
+    @Transactional
+    public void updateClassesForAssignment(Long assignmentId, List<Long> newClasseIds) {
+        // Récupérer les IDs actuels
+        List<Long> currentIds = assignmentClassRepository.findClasseIdsByAssignmentId(assignmentId);
+
+        // Retirer ceux qui ne sont plus sélectionnés
+        for (Long currentId : currentIds) {
+            if (newClasseIds == null || !newClasseIds.contains(currentId)) {
+                retirerDevoirDeClasse(assignmentId, currentId);
+            }
+        }
+
+        // Ajouter les nouveaux
+        if (newClasseIds != null) {
+            affecterDevoirAClasses(assignmentId, newClasseIds);
+        }
+    }
+
+    // ⭐ AJOUTER AUSSI cette injection si pas déjà présente :
+    private final TeacherClassRepository teacherClassRepository;
 }

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/base :: layout(~{::body})}">
+<body>
+
+<div class="row mb-4">
+    <div class="col text-center">
+        <h2 th:text="${qcm.titre}">Titre QCM</h2>
+        <p class="text-muted">Résultats de votre tentative</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6 offset-md-3">
+        <div class="card text-center">
+            <div class="card-body py-5">
+                <h1 class="display-1" th:classappend="${tentative.score.compareTo(T(java.math.BigDecimal).valueOf(10))} >= 0 ? 'text-success' : 'text-danger'">
+                    <span th:text="${tentative.score}">0</span>/20
+                </h1>
+                <p class="lead">Score obtenu</p>
+                <div th:if="${tentative.score.compareTo(T(java.math.BigDecimal).valueOf(10))} >= 0">
+                    <span class="badge bg-success fs-5">QCM Réussi ✓</span>
+                </div>
+                <div th:if="${tentative.score.compareTo(T(java.math.BigDecimal).valueOf(10))} < 0">
+                    <span class="badge bg-danger fs-5">QCM Non réussi ✗</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Détails des réponses</h5>
+    </div>
+    <div class="card-body">
+        <div th:each="reponse, iterStat : ${reponses}" class="mb-4">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                    <strong>Question <span th:text="${iterStat.index + 1}">1</span>:</strong>
+                    <p th:text="${reponse.question.texteQuestion}">Question</p>
+
+                    <div th:if="${reponse.optionChoisie.estCorrecte}" class="alert alert-success">
+                        <i class="bi bi-check-circle"></i> Bonne réponse: <span th:text="${reponse.optionChoisie.texteOption}">Réponse</span>
+                    </div>
+                    <div th:if="${!reponse.optionChoisie.estCorrecte}" class="alert alert-danger">
+                        <i class="bi bi-x-circle"></i> Mauvaise réponse: <span th:text="${reponse.optionChoisie.texteOption}">Réponse</span>
+                    </div>
+                </div>
+                <span class="badge" th:classappend="${reponse.optionChoisie.estCorrecte} ? 'bg-success' : 'bg-danger'">
+                    <span th:if="${reponse.optionChoisie.estCorrecte}" th:text="${reponse.question.points} + ' pts'">1 pts</span>
+                    <span th:if="${!reponse.optionChoisie.estCorrecte}">0 pts</span>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="text-center">
+    <a th:href="@{/student/qcm}" class="btn btn-primary">
+        <i class="bi bi-arrow-left"></i> Retour aux QCM
+    </a>
+</div>
+
+</body>
+</html>

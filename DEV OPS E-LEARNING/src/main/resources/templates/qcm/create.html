@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: layout(~{::body})}">
+<<<<<<< HEAD
 
 <body>
 <!-- Breadcrumb -->
@@ -137,6 +138,226 @@
                             <i class="bi bi-list-ol me-2"></i>Questions
                         </h5>
                         <button type="button" class="btn btn-success" onclick="addQuestion()">
+=======
+<head>
+    <title>Créer un QCM</title>
+</head>
+<body>
+
+<style>
+    :root {
+        --primary: #667eea;
+        --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --shadow-md: 0 4px 16px rgba(102, 126, 234, 0.15);
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+    }
+
+    .form-card-header {
+        background: var(--gradient-primary);
+        color: white;
+        padding: 1.5rem 2rem;
+        border-radius: 16px 16px 0 0;
+        margin: -2.5rem -2.5rem 2rem -2.5rem;
+    }
+
+    .sidebar-card {
+        position: sticky;
+        top: 100px;
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: var(--shadow-md);
+    }
+
+    .classe-checkbox {
+        padding: 0.75rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+
+    .classe-checkbox:hover {
+        border-color: var(--primary);
+        background: #f9fafb;
+    }
+
+    .classe-checkbox input:checked ~ label {
+        color: var(--primary);
+        font-weight: 600;
+    }
+
+    .question-card {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s;
+    }
+
+    .question-card:hover {
+        border-color: var(--primary);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+    }
+
+    .option-item {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .option-item.correct {
+        background: #d1fae5;
+        border: 2px solid #10b981;
+    }
+</style>
+
+<div class="container-fluid p-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/teacher/qcm}">Mes QCM</a></li>
+            <li class="breadcrumb-item active">Créer un QCM</li>
+        </ol>
+    </nav>
+
+    <div class="mb-4">
+        <h1 class="page-title mb-2">
+            <i class="bi bi-plus-circle-fill me-3"></i>Créer un QCM
+        </h1>
+        <p class="text-muted mb-0">Créez un quiz pour évaluer vos étudiants</p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <form th:action="@{/teacher/qcm/create-with-questions}" method="post" id="qcmForm">
+
+                <!-- INFORMATIONS GÉNÉRALES -->
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <h5 class="mb-0"><i class="bi bi-info-circle-fill me-2"></i>Informations du QCM</h5>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-book-fill me-2 text-primary"></i>Cours *
+                        </label>
+                        <select class="form-select form-select-lg" name="courseId" required>
+                            <option value="">-- Sélectionnez un cours --</option>
+                            <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.code + ' - ' + c.title}"></option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-tag-fill me-2 text-primary"></i>Titre du QCM *
+                        </label>
+                        <input type="text" class="form-control form-control-lg" name="titre"
+                               placeholder="Ex: QCM Chapitre 1 - Introduction au DevOps" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-text-paragraph me-2 text-primary"></i>Description / Consignes
+                        </label>
+                        <textarea class="form-control" name="description" rows="4"
+                                  placeholder="Décrivez le contenu et les objectifs du QCM..."></textarea>
+                    </div>
+                </div>
+
+                <!-- AFFECTATION AUX CLASSES -->
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i>Affectation aux classes</h5>
+                    </div>
+
+                    <div th:if="${classes == null || #lists.isEmpty(classes)}" class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>Aucune classe disponible
+                    </div>
+
+                    <div th:if="${classes != null && !#lists.isEmpty(classes)}">
+                        <p class="text-muted mb-3">Sélectionnez les classes qui pourront accéder à ce QCM</p>
+
+                        <div class="row g-3">
+                            <div th:each="classe : ${classes}" class="col-md-6">
+                                <div class="classe-checkbox">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="classeIds"
+                                               th:value="${classe.id}"
+                                               th:id="'classe-' + ${classe.id}">
+                                        <label class="form-check-label" th:for="'classe-' + ${classe.id}">
+                                            <strong th:text="${classe.nom}">Nom classe</strong>
+                                            <div class="small text-muted">
+                                                <span th:if="${classe.code != null}" th:text="${classe.code}">Code</span>
+                                                <span th:if="${classe.anneeUniversitaire != null}"> - </span>
+                                                <span th:if="${classe.anneeUniversitaire != null}" th:text="${classe.anneeUniversitaire}">2024-2025</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PARAMÈTRES -->
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <h5 class="mb-0"><i class="bi bi-gear-fill me-2"></i>Paramètres</h5>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-clock-fill me-2 text-primary"></i>Limite de temps (minutes)
+                            </label>
+                            <input type="number" class="form-control" name="limiteTempsMinutes" min="1" placeholder="Ex: 30">
+                            <div class="form-text">Laissez vide pour un temps illimité</div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-repeat me-2 text-primary"></i>Nombre de tentatives max
+                            </label>
+                            <input type="number" class="form-control" name="tentativesMax" min="1" placeholder="Ex: 3">
+                            <div class="form-text">Laissez vide pour tentatives illimitées</div>
+                        </div>
+                    </div>
+
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" name="publie" id="publie" value="true">
+                        <label class="form-check-label fw-bold" for="publie">
+                            <i class="bi bi-eye-fill me-2 text-primary"></i>Publier immédiatement
+                        </label>
+                        <div class="form-text">Les étudiants des classes sélectionnées pourront accéder au QCM</div>
+                    </div>
+                </div>
+
+                <!-- ⭐ QUESTIONS -->
+                <div class="form-card">
+                    <div class="form-card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-question-circle-fill me-2"></i>Questions</h5>
+                        <button type="button" class="btn btn-light" onclick="showAddQuestionModal()">
+>>>>>>> origin/base_du_projet_4
                             <i class="bi bi-plus-circle me-2"></i>Ajouter une question
                         </button>
                     </div>
@@ -144,6 +365,7 @@
                     <div id="questionsContainer">
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle me-2"></i>
+<<<<<<< HEAD
                             Cliquez sur "Ajouter une question" pour commencer
                         </div>
                     </div>
@@ -177,6 +399,35 @@
             </div>
             <div class="card-body">
                 <h6 class="mb-3">Bonnes pratiques</h6>
+=======
+                            Aucune question pour le moment. Cliquez sur "Ajouter une question" pour commencer.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Champ caché pour les questions JSON -->
+                <input type="hidden" name="questionsJson" id="questionsJson">
+
+                <!-- BOUTONS -->
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn btn-success btn-lg" onclick="return validateAndSubmit()">
+                        <i class="bi bi-check-circle me-2"></i>Créer le QCM
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-lg" onclick="saveDraft()">
+                        <i class="bi bi-save me-2"></i>Sauvegarder comme brouillon
+                    </button>
+                    <a th:href="@{/teacher/qcm}" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-x-circle me-2"></i>Annuler
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="col-lg-4">
+            <div class="sidebar-card">
+                <h6 class="mb-3"><i class="bi bi-lightbulb-fill me-2 text-warning"></i>Conseils</h6>
+>>>>>>> origin/base_du_projet_4
 
                 <div class="mb-3">
                     <strong>Titre :</strong>
@@ -184,12 +435,25 @@
                 </div>
 
                 <div class="mb-3">
+<<<<<<< HEAD
                     <strong>Questions :</strong>
                     <ul class="small">
                         <li>Rédigez des questions claires et sans ambiguïté</li>
                         <li>Proposez 3 à 5 options de réponse</li>
                         <li>Une seule réponse correcte par question</li>
                         <li>Variez la difficulté des questions</li>
+=======
+                    <strong>Classes :</strong>
+                    <p class="small mb-0">Sélectionnez les classes concernées par ce QCM</p>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Questions :</strong>
+                    <ul class="small">
+                        <li>Vous pouvez ajouter les questions maintenant</li>
+                        <li>Rédigez des questions claires</li>
+                        <li>Variez la difficulté</li>
+>>>>>>> origin/base_du_projet_4
                     </ul>
                 </div>
 
@@ -199,14 +463,20 @@
                 </div>
 
                 <div>
+<<<<<<< HEAD
                     <strong>Tentatives :</strong>
                     <p class="small mb-0">Limitez les tentatives pour éviter la mémorisation des réponses</p>
+=======
+                    <strong>Publication :</strong>
+                    <p class="small mb-0">Publiez uniquement quand toutes les questions sont prêtes</p>
+>>>>>>> origin/base_du_projet_4
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<<<<<<< HEAD
 <!-- Template de question (caché) -->
 <template id="questionTemplate">
     <div class="card mb-3 question-card">
@@ -376,6 +646,199 @@
             e.preventDefault();
         }
     });
+=======
+<!-- Modal Ajouter Question -->
+<div class="modal fade" id="addQuestionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Ajouter une question</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Texte de la question *</label>
+                    <textarea class="form-control" id="questionText" rows="3" required></textarea>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Type de question</label>
+                        <select class="form-select" id="questionType">
+                            <option value="CHOIX_SIMPLE">Choix simple (une réponse)</option>
+                            <option value="CHOIX_MULTIPLE">Choix multiple (plusieurs réponses)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Points</label>
+                        <input type="number" class="form-control" id="questionPoints" value="1" min="0.5" step="0.5">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Options de réponse</label>
+                    <div id="optionsContainer"></div>
+                    <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addOption()">
+                        <i class="bi bi-plus"></i> Ajouter une option
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-success" onclick="saveQuestion()">
+                    <i class="bi bi-check-circle me-2"></i>Ajouter la question
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let questions = [];
+    let optionCounter = 0;
+
+    function saveDraft() {
+        document.getElementById('publie').checked = false;
+        validateAndSubmit();
+    }
+
+    function showAddQuestionModal() {
+        document.getElementById('questionText').value = '';
+        document.getElementById('questionPoints').value = 1;
+        document.getElementById('questionType').value = 'CHOIX_SIMPLE';
+        document.getElementById('optionsContainer').innerHTML = '';
+        optionCounter = 0;
+
+        // Ajouter 4 options par défaut
+        for (let i = 0; i < 4; i++) {
+            addOption();
+        }
+
+        new bootstrap.Modal(document.getElementById('addQuestionModal')).show();
+    }
+
+    function addOption() {
+        optionCounter++;
+        const optionsContainer = document.getElementById('optionsContainer');
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'input-group mb-2';
+        optionDiv.innerHTML = `
+            <div class="input-group-text">
+                <input class="form-check-input mt-0 option-correct" type="checkbox" data-option="${optionCounter}">
+            </div>
+            <input type="text" class="form-control option-text" placeholder="Texte de l'option" required>
+            <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+                <i class="bi bi-x"></i>
+            </button>
+        `;
+        optionsContainer.appendChild(optionDiv);
+    }
+
+    function saveQuestion() {
+        const questionText = document.getElementById('questionText').value.trim();
+        const questionType = document.getElementById('questionType').value;
+        const questionPoints = parseFloat(document.getElementById('questionPoints').value);
+
+        if (!questionText) {
+            alert('Veuillez saisir le texte de la question');
+            return;
+        }
+
+        const optionInputs = document.querySelectorAll('.option-text');
+        if (optionInputs.length < 2) {
+            alert('Veuillez ajouter au moins 2 options');
+            return;
+        }
+
+        const correctCheckboxes = document.querySelectorAll('.option-correct:checked');
+        if (correctCheckboxes.length === 0) {
+            alert('Veuillez sélectionner au moins une bonne réponse');
+            return;
+        }
+
+        // Créer l'objet question
+        const options = [];
+        optionInputs.forEach((input, index) => {
+            if (input.value.trim()) {
+                const checkbox = input.closest('.input-group').querySelector('.option-correct');
+                options.push({
+                    texte: input.value.trim(),
+                    estCorrecte: checkbox.checked
+                });
+            }
+        });
+
+        const question = {
+            texte: questionText,
+            type: questionType,
+            points: questionPoints,
+            options: options
+        };
+
+        questions.push(question);
+        displayQuestions();
+        bootstrap.Modal.getInstance(document.getElementById('addQuestionModal')).hide();
+    }
+
+    function displayQuestions() {
+        const container = document.getElementById('questionsContainer');
+
+        if (questions.length === 0) {
+            container.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Aucune question pour le moment. Cliquez sur "Ajouter une question" pour commencer.
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = '';
+        questions.forEach((q, index) => {
+            const questionCard = document.createElement('div');
+            questionCard.className = 'question-card';
+            questionCard.innerHTML = `
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">Question ${index + 1} <span class="badge bg-primary">${q.points} pts</span></h6>
+                        <p class="mb-2">${q.texte}</p>
+                        <small class="text-muted">${q.type === 'CHOIX_SIMPLE' ? 'Choix simple' : 'Choix multiple'}</small>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteQuestion(${index})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+                <div>
+                    ${q.options.map(opt => `
+                        <div class="option-item ${opt.estCorrecte ? 'correct' : ''}">
+                            ${opt.estCorrecte ? '<i class="bi bi-check-circle-fill text-success"></i>' : '<i class="bi bi-circle"></i>'}
+                            ${opt.texte}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            container.appendChild(questionCard);
+        });
+    }
+
+    function deleteQuestion(index) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer cette question ?')) {
+            questions.splice(index, 1);
+            displayQuestions();
+        }
+    }
+
+    function validateAndSubmit() {
+        // Sérialiser les questions en JSON
+        document.getElementById('questionsJson').value = JSON.stringify(questions);
+
+        if (questions.length === 0) {
+            return confirm('Aucune question ajoutée. Voulez-vous créer un QCM vide ?');
+        }
+
+        return true;
+    }
+>>>>>>> origin/base_du_projet_4
 </script>
 
 </body>

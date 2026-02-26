@@ -3,6 +3,10 @@
       th:replace="~{layout/base :: layout(~{::body})}">
 
 <body>
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/base_du_projet_4
 <div class="row mb-4">
     <div class="col">
         <h2 class="mb-0">
@@ -12,6 +16,7 @@
     </div>
 </div>
 
+<<<<<<< HEAD
 <!-- Filtres -->
 <div class="card mb-4">
     <div class="card-body">
@@ -27,6 +32,20 @@
                 </select>
             </div>
             <div class="col-md-2">
+=======
+<!-- Barre de recherche -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form id="searchForm" class="row g-3">
+            <div class="col-md-8">
+                <input type="text"
+                       id="searchInput"
+                       class="form-control"
+                       name="search"
+                       placeholder="Rechercher par mot clé ">
+            </div>
+            <div class="col-md-4">
+>>>>>>> origin/base_du_projet_4
                 <button type="submit" class="btn btn-primary w-100">
                     <i class="bi bi-search me-2"></i>Rechercher
                 </button>
@@ -35,8 +54,18 @@
     </div>
 </div>
 
+<<<<<<< HEAD
 <!-- Liste des cours -->
 <div class="row">
+=======
+<!-- Résultats de recherche dynamiques -->
+<div id="searchResults" class="row mb-4"></div>
+
+<!-- Liste normale des cours -->
+<div id="courseList" class="row">
+
+    <!-- Aucun cours -->
+>>>>>>> origin/base_du_projet_4
     <div th:if="${courses == null || #lists.isEmpty(courses)}" class="col-12">
         <div class="card">
             <div class="card-body text-center py-5">
@@ -47,6 +76,7 @@
         </div>
     </div>
 
+<<<<<<< HEAD
     <div th:each="c : ${courses}" class="col-lg-6 mb-4">
         <div class="card h-100 hover-shadow">
             <div class="card-body">
@@ -56,11 +86,30 @@
                 </div>
 
                 <h5 class="card-title mb-3" th:text="${c.title}">Titre du cours</h5>
+=======
+    <!-- Boucle cours -->
+    <div th:each="c : ${courses}" class="col-lg-6 mb-4">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="badge bg-primary fs-6"
+                          th:text="${c.code}">CODE</span>
+                    <span class="badge bg-success">Actif</span>
+                </div>
+
+                <h5 class="card-title mb-3"
+                    th:text="${c.title}">Titre du cours</h5>
+>>>>>>> origin/base_du_projet_4
 
                 <p class="card-text text-muted">
                     <span th:if="${c.description != null && !#strings.isEmpty(c.description)}"
                           th:text="${#strings.abbreviate(c.description, 150)}">
+<<<<<<< HEAD
                         Description du cours...
+=======
+                        Description...
+>>>>>>> origin/base_du_projet_4
                     </span>
                     <span th:if="${c.description == null || #strings.isEmpty(c.description)}"
                           class="fst-italic">
@@ -73,6 +122,7 @@
                 <div class="row text-center mb-3">
                     <div class="col-4">
                         <div class="text-muted small">Devoirs</div>
+<<<<<<< HEAD
                         <div class="fs-5 fw-bold" th:text="${c.assignmentsCount != null ? c.assignmentsCount : 0}">0</div>
                     </div>
                     <div class="col-4">
@@ -82,14 +132,35 @@
                     <div class="col-4">
                         <div class="text-muted small">Ressources</div>
                         <div class="fs-5 fw-bold" th:text="${c.resourcesCount != null ? c.resourcesCount : 0}">0</div>
+=======
+                        <div class="fs-5 fw-bold">-</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-muted small">QCM</div>
+                        <div class="fs-5 fw-bold">-</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-muted small">Ressources</div>
+                        <div class="fs-5 fw-bold">-</div>
+>>>>>>> origin/base_du_projet_4
                     </div>
                 </div>
 
                 <div class="d-grid gap-2">
+<<<<<<< HEAD
                     <a th:href="@{|/student/courses/${c.id}|}" class="btn btn-primary">
                         <i class="bi bi-box-arrow-in-right me-2"></i>Accéder au cours
                     </a>
                 </div>
+=======
+                    <a th:href="@{|/student/courses/${c.id}|}"
+                       class="btn btn-primary">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>
+                        Accéder au cours
+                    </a>
+                </div>
+
+>>>>>>> origin/base_du_projet_4
             </div>
 
             <div class="card-footer bg-light">
@@ -103,6 +174,7 @@
                     </small>
                     <small class="text-muted">
                         <i class="bi bi-calendar me-1"></i>
+<<<<<<< HEAD
                         <span th:text="${#temporals.format(c.createdAt, 'dd/MM/yyyy')}">01/01/2024</span>
                     </small>
                 </div>
@@ -121,5 +193,87 @@
     }
 </style>
 
+=======
+                        <span th:text="${#temporals.format(c.createdAt, 'dd/MM/yyyy')}">
+                            01/01/2024
+                        </span>
+                    </small>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<style>
+.hover-shadow {
+    transition: all 0.3s ease;
+}
+.hover-shadow:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    transform: translateY(-2px);
+}
+</style>
+
+<!-- Script Recherche Dynamique -->
+<script>
+document.getElementById('searchForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const query = document.getElementById('searchInput').value.trim();
+    const resultsContainer = document.getElementById('searchResults');
+    const courseList = document.getElementById('courseList');
+
+    courseList.style.display = query ? 'none' : 'flex';
+    resultsContainer.innerHTML = '';
+
+    if (!query) return;
+
+    fetch(`/api/v1/resources/search?q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(data => {
+
+            if (!data || data.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body text-center py-3">
+                                <i class="bi bi-inbox fs-1 text-muted mb-2"></i>
+                                <p class="text-muted mb-0">Aucun résultat trouvé</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            data.forEach(course => {
+                const courseCard = document.createElement('div');
+                courseCard.className = 'col-lg-6 mb-4';
+
+                courseCard.innerHTML = `
+                    <div class="card h-100 hover-shadow">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">${course.title}</h5>
+                            <div class="d-grid gap-2">
+                                <a href="/student/courses/${course.link.split('/').pop()}" 
+                                   class="btn btn-primary">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>
+                                    Accéder au cours
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                resultsContainer.appendChild(courseCard);
+            });
+        })
+        .catch(err => console.error('Erreur lors de la recherche :', err));
+});
+</script>
+
+>>>>>>> origin/base_du_projet_4
 </body>
 </html>

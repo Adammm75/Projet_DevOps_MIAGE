@@ -27,7 +27,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         // ✅ Récupérer les rôles directement depuis user.getUserRoles()
         Set<GrantedAuthority> authorities = user.getUserRoles().stream()
-                .map(userRole -> new SimpleGrantedAuthority(userRole.getRole().getName()))
+                .map(userRole -> new SimpleGrantedAuthority("ROLE_" + userRole.getRole().getName()))
                 .collect(Collectors.toSet());
 
         // ✅ Retourner le UserDetails

@@ -1,7 +1,7 @@
 package org.example.devopslearning.services;
 
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.example.devopslearning.entities.*;
 import org.example.devopslearning.repositories.*;
 import org.springframework.stereotype.Service;
@@ -21,59 +21,84 @@ public class TeacherGradeService {
     private final AssignmentRepository assignmentRepository;
     private final AssignmentSubmissionRepository submissionRepository;
     private final CoursRepository coursRepository;
+    private final QcmTentativeRepository qcmTentativeRepository;
+    private final QcmRepository qcmRepository;
+    private final CoursClassRepository coursClassRepository;        // lien cours <-> classe
+    private final InscriptionsClassRepository inscriptionsClassRepository; // étudiants d'une classe
 
     // ========================================
-    // 1. VUE D'ENSEMBLE DES COURS
+    // 1. VUE D'ENSEMBLE : COURS PAR CLASSE
     // ========================================
 
     /**
-     * ✅ Récupère tous les cours d'un enseignant avec statistiques
+     * Retourne tous les cours du prof regroupés par classe académique.
+     * Clé = AcademicClass (null = cours sans classe affectée).
      */
-    public List<CourseGradeStats> getAllCoursesWithStats(User teacher) {
+    public Map<AcademicClass, List<CourseGradeStats>> getCoursesGroupedByClass(User teacher) {
         List<Cours> courses = coursRepository.findByCreatedBy(teacher);
 
-        return courses.stream()
+        Map<AcademicClass, List<CourseGradeStats>> result = new LinkedHashMap<>();
+
+        for (Cours cours : courses) {
+            CourseGradeStats stats = getCourseStats(cours);
+
+            // Récupère les classes liées à ce cours via cours_classes
+            List<CoursClass> coursClasses = coursClassRepository.findByClasseId(cours.getId());
+
+            if (coursClasses.isEmpty()) {
+                // Cours sans classe
+                result.computeIfAbsent(null, k -> new ArrayList<>()).add(stats);
+            } else {
+                for (CoursClass cc : coursClasses) {
+                    result.computeIfAbsent(cc.getClasse(), k -> new ArrayList<>()).add(stats);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Vue plate : tous les cours avec stats (pour affichage liste simple)
+     */
+    public List<CourseGradeStats> getAllCoursesWithStats(User teacher) {
+        return coursRepository.findByCreatedBy(teacher).stream()
                 .map(this::getCourseStats)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * ✅ Statistiques d'un cours
-     */
+    // ========================================
+    // 2. STATS D'UN COURS (devoirs + QCM)
+    // ========================================
+
     public CourseGradeStats getCourseStats(Cours cours) {
-        // Récupérer toutes les notes du cours
         List<NotesCour> notes = notesCoursRepository.findByCours(cours);
 
-        // Compter les devoirs
         long totalAssignments = assignmentRepository.countByCourse(cours);
         long gradedAssignments = assignmentRepository.countGradedAssignmentsByCourse(cours.getId());
 
-        // Calculer moyenne générale
+        // QCM du cours
+        List<Qcm> qcms = qcmRepository.findByCoursId(cours.getId());
+        long totalQcm = qcms.size();
+        long totalQcmTentatives = qcms.stream()
+                .mapToLong(q -> qcmTentativeRepository.countByQcmId(q.getId()))
+                .sum();
+
         BigDecimal moyenneGenerale = BigDecimal.ZERO;
         if (!notes.isEmpty()) {
             List<BigDecimal> validNotes = notes.stream()
                     .filter(n -> n.getNoteFinale() != null)
                     .map(NotesCour::getNoteFinale)
                     .collect(Collectors.toList());
-
             if (!validNotes.isEmpty()) {
-                BigDecimal sum = validNotes.stream()
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
-                moyenneGenerale = sum.divide(
-                        BigDecimal.valueOf(validNotes.size()),
-                        2,
-                        RoundingMode.HALF_UP
-                );
+                BigDecimal sum = validNotes.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+                moyenneGenerale = sum.divide(BigDecimal.valueOf(validNotes.size()), 2, RoundingMode.HALF_UP);
             }
         }
 
-        // Compter étudiants
         long totalStudents = notes.size();
-        long studentsWithGrades = notes.stream()
-                .filter(n -> n.getNoteFinale() != null)
-                .count();
+        long studentsWithGrades = notes.stream().filter(n -> n.getNoteFinale() != null).count();
 
-        // Répartition des mentions
         Map<String, Long> mentionDistribution = notes.stream()
                 .filter(n -> n.getMention() != null)
                 .collect(Collectors.groupingBy(NotesCour::getMention, Collectors.counting()));
@@ -84,17 +109,20 @@ public class TeacherGradeService {
                 .studentsWithGrades(studentsWithGrades)
                 .totalAssignments(totalAssignments)
                 .gradedAssignments(gradedAssignments)
+                .totalQcm(totalQcm)
+                .totalQcmTentatives(totalQcmTentatives)
                 .moyenneGenerale(moyenneGenerale)
                 .mentionDistribution(mentionDistribution)
                 .build();
     }
 
     // ========================================
-    // 2. DÉTAILS DES NOTES D'UN COURS
+    // 3. DÉTAILS D'UN COURS : DEVOIRS + QCM PAR ÉTUDIANT
     // ========================================
 
     /**
-     * ✅ Récupère toutes les notes d'un cours avec détails (CORRIGÉ LIGNE 112)
+     * Retourne le détail complet des notes d'un cours par étudiant
+     * (devoirs corrigés + résultats QCM)
      */
     public List<StudentGradeDetail> getCourseGradeDetails(Long coursId) {
         Cours cours = coursRepository.findById(coursId)
@@ -102,124 +130,191 @@ public class TeacherGradeService {
 
         List<NotesCour> notes = notesCoursRepository.findByCoursId(coursId);
         List<Assignment> assignments = assignmentRepository.findByCourseId(coursId);
+        List<Qcm> qcms = qcmRepository.findByCoursId(coursId);
 
-        return notes.stream()
-                .map(note -> {
-                    // ✅ CORRIGÉ LIGNE 112 : findByAssignmentAndStudent retourne une List
-                    List<AssignmentSubmission> submissions = new ArrayList<>();
-                    for (Assignment assignment : assignments) {
-                        List<AssignmentSubmission> studentSubmissions =
-                                submissionRepository.findByAssignmentAndStudent(assignment, note.getEtudiant());
-                        submissions.addAll(studentSubmissions);
-                    }
+        return notes.stream().map(note -> {
+            User student = note.getEtudiant();
 
-                    return StudentGradeDetail.builder()
-                            .notesCour(note)
-                            .student(note.getEtudiant())
-                            .noteFinale(note.getNoteFinale())
-                            .mention(note.getMention())
-                            .statut(note.getStatut())
-                            .submissions(submissions)
-                            .totalAssignments(assignments.size())
-                            .submittedAssignments(submissions.size())
-                            .gradedAssignments((int) submissions.stream()
-                                    .filter(s -> s.getGrade() != null)
-                                    .count())
-                            .build();
-                })
-                .collect(Collectors.toList());
+            // Soumissions devoirs
+            List<AssignmentSubmission> submissions = new ArrayList<>();
+            for (Assignment a : assignments) {
+                submissions.addAll(submissionRepository.findByAssignmentAndStudent(a, student));
+            }
+
+            // Tentatives QCM (seulement TERMINE)
+            List<QcmTentative> tentatives = new ArrayList<>();
+            for (Qcm q : qcms) {
+                tentatives.addAll(
+                        qcmTentativeRepository.findByQcmIdAndStatut(q.getId(), "TERMINE")
+                                .stream()
+                                .filter(t -> t.getEtudiant().getId().equals(student.getId()))
+                                .collect(Collectors.toList())
+                );
+            }
+
+            // Moyenne QCM de l'étudiant (meilleure tentative par QCM)
+            BigDecimal moyenneQcm = calculerMoyenneQcm(tentatives, qcms);
+
+            return StudentGradeDetail.builder()
+                    .notesCour(note)
+                    .student(student)
+                    .noteFinale(note.getNoteFinale())
+                    .mention(note.getMention())
+                    .statut(note.getStatut())
+                    .submissions(submissions)
+                    .tentativesQcm(tentatives)
+                    .totalAssignments(assignments.size())
+                    .submittedAssignments(submissions.size())
+                    .gradedAssignments((int) submissions.stream().filter(s -> s.getGrade() != null).count())
+                    .totalQcm(qcms.size())
+                    .tentativesQcmCount(tentatives.size())
+                    .moyenneQcm(moyenneQcm)
+                    .build();
+        }).collect(Collectors.toList());
     }
 
     /**
-     * ✅ Récupère les notes d'un étudiant pour un cours
+     * Détails des devoirs d'un cours (vue onglet Devoirs)
      */
-    public Optional<NotesCour> getStudentGradeForCourse(Long coursId, Long studentId) {
-        return notesCoursRepository.findByCoursIdAndEtudiantId(coursId, studentId);
+    public List<AssignmentGradeDetail> getAssignmentDetails(Long coursId) {
+        List<Assignment> assignments = assignmentRepository.findByCourseId(coursId);
+
+        return assignments.stream().map(a -> {
+            List<AssignmentSubmission> allSubs = submissionRepository.findByAssignmentId(a.getId());
+            List<AssignmentSubmission> graded = allSubs.stream()
+                    .filter(s -> s.getGrade() != null).collect(Collectors.toList());
+
+            BigDecimal moyenne = BigDecimal.ZERO;
+            if (!graded.isEmpty()) {
+                BigDecimal sum = graded.stream().map(AssignmentSubmission::getGrade)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                moyenne = sum.divide(BigDecimal.valueOf(graded.size()), 2, RoundingMode.HALF_UP);
+            }
+
+            return AssignmentGradeDetail.builder()
+                    .assignment(a)
+                    .totalSubmissions(allSubs.size())
+                    .gradedSubmissions(graded.size())
+                    .pendingSubmissions(allSubs.size() - graded.size())
+                    .moyenne(moyenne)
+                    .submissions(allSubs)
+                    .build();
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * Détails des QCM d'un cours (vue onglet QCM)
+     */
+    public List<QcmGradeDetail> getQcmDetails(Long coursId) {
+        List<Qcm> qcms = qcmRepository.findByCoursId(coursId);
+
+        return qcms.stream().map(q -> {
+            List<QcmTentative> tentatives = qcmTentativeRepository.findByQcmId(q.getId());
+            List<QcmTentative> terminees = tentatives.stream()
+                    .filter(t -> "TERMINE".equals(t.getStatut())).collect(Collectors.toList());
+
+            BigDecimal moyennePct = BigDecimal.ZERO;
+            if (!terminees.isEmpty()) {
+                OptionalDouble avg = terminees.stream()
+                        .filter(t -> t.getPourcentage() != null)
+                        .mapToDouble(QcmTentative::getPourcentage)
+                        .average();
+                if (avg.isPresent()) {
+                    moyennePct = BigDecimal.valueOf(avg.getAsDouble()).setScale(2, RoundingMode.HALF_UP);
+                }
+            }
+
+            long reussies = terminees.stream().filter(t -> Boolean.TRUE.equals(t.isReussie())).count();
+
+            return QcmGradeDetail.builder()
+                    .qcm(q)
+                    .totalTentatives(tentatives.size())
+                    .tentativesTerminees(terminees.size())
+                    .moyennePourcentage(moyennePct)
+                    .tentativesReussies(reussies)
+                    .tentativesEchouees(terminees.size() - reussies)
+                    .build();
+        }).collect(Collectors.toList());
     }
 
     // ========================================
-    // 3. CALCUL ET RECALCUL DES NOTES
+    // 4. CALCUL DES NOTES (devoirs + QCM)
     // ========================================
 
-    /**
-     * ✅ Calcule ou recalcule toutes les notes d'un cours
-     */
     @Transactional
     public void calculateAllGradesForCourse(Long coursId) {
         Cours cours = coursRepository.findById(coursId)
                 .orElseThrow(() -> new RuntimeException("Cours introuvable"));
 
         List<Assignment> assignments = assignmentRepository.findByCourseId(coursId);
+        List<Qcm> qcms = qcmRepository.findByCoursId(coursId);
 
-        if (assignments.isEmpty()) {
-            throw new RuntimeException("Aucun devoir trouvé pour ce cours");
-        }
-
-        // Récupérer tous les étudiants qui ont soumis au moins un devoir
         Set<User> students = new HashSet<>();
-        for (Assignment assignment : assignments) {
-            List<AssignmentSubmission> submissions = submissionRepository.findByAssignmentId(assignment.getId());
-            submissions.forEach(s -> students.add(s.getStudent()));
+        for (Assignment a : assignments) {
+            submissionRepository.findByAssignmentId(a.getId())
+                    .forEach(s -> students.add(s.getStudent()));
+        }
+        for (Qcm q : qcms) {
+            qcmTentativeRepository.findByQcmId(q.getId())
+                    .forEach(t -> students.add(t.getEtudiant()));
         }
 
-        // Calculer la note pour chaque étudiant
         for (User student : students) {
-            calculateStudentGrade(cours, student, assignments);
+            calculateStudentGrade(cours, student, assignments, qcms);
         }
     }
 
-    /**
-     * ✅ Calcule la note d'un étudiant pour un cours (CORRIGÉ LIGNE 180)
-     */
     @Transactional
-    public void calculateStudentGrade(Cours cours, User student, List<Assignment> assignments) {
-        // Récupérer toutes les notes des devoirs de l'étudiant
+    public void calculateStudentGrade(Cours cours, User student,
+                                      List<Assignment> assignments, List<Qcm> qcms) {
         List<BigDecimal> grades = new ArrayList<>();
 
-        for (Assignment assignment : assignments) {
-            // ✅ CORRIGÉ LIGNE 180 : findByAssignmentAndStudent retourne une List
-            List<AssignmentSubmission> submissions =
-                    submissionRepository.findByAssignmentAndStudent(assignment, student);
-
-            // Prendre la première soumission si elle existe et a une note
-            if (!submissions.isEmpty() && submissions.get(0).getGrade() != null) {
-                AssignmentSubmission submission = submissions.get(0);
-
-                // Normaliser la note sur 20
-                BigDecimal grade = submission.getGrade();
-                BigDecimal maxGrade = assignment.getMaxGrade();
-                BigDecimal normalizedGrade = grade.divide(maxGrade, 4, RoundingMode.HALF_UP)
+        // Notes des devoirs (normalisées sur 20)
+        for (Assignment a : assignments) {
+            List<AssignmentSubmission> subs = submissionRepository.findByAssignmentAndStudent(a, student);
+            if (!subs.isEmpty() && subs.get(0).getGrade() != null) {
+                BigDecimal grade = subs.get(0).getGrade();
+                BigDecimal normalized = grade.divide(a.getMaxGrade(), 4, RoundingMode.HALF_UP)
                         .multiply(BigDecimal.valueOf(20));
-                grades.add(normalizedGrade);
+                grades.add(normalized);
             }
         }
 
-        if (grades.isEmpty()) {
-            return; // Pas de notes à calculer
+        // Notes des QCM (meilleure tentative, normalisée sur 20)
+        for (Qcm q : qcms) {
+            List<QcmTentative> tentatives = qcmTentativeRepository
+                    .findByQcmIdAndStatut(q.getId(), "TERMINE")
+                    .stream()
+                    .filter(t -> t.getEtudiant().getId().equals(student.getId()))
+                    .collect(Collectors.toList());
+
+            tentatives.stream()
+                    .filter(t -> t.getScore() != null && t.getScoreMax() != null
+                            && t.getScoreMax().compareTo(BigDecimal.ZERO) > 0)
+                    .max(Comparator.comparing(QcmTentative::getScore))
+                    .ifPresent(best -> {
+                        BigDecimal normalized = best.getScore()
+                                .divide(best.getScoreMax(), 4, RoundingMode.HALF_UP)
+                                .multiply(BigDecimal.valueOf(20));
+                        grades.add(normalized);
+                    });
         }
 
-        // Calculer la moyenne
-        BigDecimal moyenne = grades.stream()
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
+        if (grades.isEmpty()) return;
+
+        BigDecimal moyenne = grades.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
                 .divide(BigDecimal.valueOf(grades.size()), 2, RoundingMode.HALF_UP);
 
-        // Déterminer la mention
         String mention = determineMention(moyenne);
-
-        // Déterminer le statut
         String statut = moyenne.compareTo(BigDecimal.valueOf(10)) >= 0 ? "VALIDE" : "PROVISOIRE";
 
-        // Créer ou mettre à jour la note du cours
-        Optional<NotesCour> existingNote = notesCoursRepository.findByCoursAndEtudiant(cours, student);
-
-        NotesCour notesCour;
-        if (existingNote.isPresent()) {
-            notesCour = existingNote.get();
-        } else {
-            notesCour = new NotesCour();
-            notesCour.setCours(cours);
-            notesCour.setEtudiant(student);
-        }
+        Optional<NotesCour> existing = notesCoursRepository.findByCoursAndEtudiant(cours, student);
+        NotesCour notesCour = existing.orElseGet(() -> {
+            NotesCour n = new NotesCour();
+            n.setCours(cours);
+            n.setEtudiant(student);
+            return n;
+        });
 
         notesCour.setNoteFinale(moyenne);
         notesCour.setNoteMax(BigDecimal.valueOf(20));
@@ -230,44 +325,69 @@ public class TeacherGradeService {
         notesCoursRepository.save(notesCour);
     }
 
-    /**
-     * ✅ Détermine la mention selon la note
-     */
-    private String determineMention(BigDecimal note) {
-        if (note.compareTo(BigDecimal.valueOf(16)) >= 0) {
-            return "TB"; // Très Bien
-        } else if (note.compareTo(BigDecimal.valueOf(14)) >= 0) {
-            return "B";  // Bien
-        } else if (note.compareTo(BigDecimal.valueOf(12)) >= 0) {
-            return "AB"; // Assez Bien
-        } else if (note.compareTo(BigDecimal.valueOf(10)) >= 0) {
-            return "P";  // Passable
-        } else {
-            return null; // Pas de mention si < 10
-        }
-    }
-
     // ========================================
-    // 4. STATISTIQUES AVANCÉES
+    // 5. STATISTIQUES AVANCÉES
     // ========================================
 
-    /**
-     * ✅ Répartition des notes d'un cours
-     */
     public Map<String, Long> getGradeDistribution(Long coursId) {
-        List<NotesCour> notes = notesCoursRepository.findByCoursId(coursId);
-
-        return notes.stream()
+        return notesCoursRepository.findByCoursId(coursId).stream()
                 .filter(n -> n.getNoteFinale() != null)
                 .collect(Collectors.groupingBy(
-                        n -> getGradeRange(n.getNoteFinale()),
-                        Collectors.counting()
-                ));
+                        n -> getGradeRange(n.getNoteFinale()), Collectors.counting()));
     }
 
-    /**
-     * ✅ Détermine la tranche de note
-     */
+    public BigDecimal getSuccessRate(Long coursId) {
+        List<NotesCour> notes = notesCoursRepository.findByCoursId(coursId);
+        if (notes.isEmpty()) return BigDecimal.ZERO;
+        long passed = notes.stream().filter(n -> n.getNoteFinale() != null
+                && n.getNoteFinale().compareTo(BigDecimal.valueOf(10)) >= 0).count();
+        return BigDecimal.valueOf(passed * 100L)
+                .divide(BigDecimal.valueOf(notes.size()), 2, RoundingMode.HALF_UP);
+    }
+
+    public List<NotesCour> getStudentsAtRisk(Long coursId) {
+        return notesCoursRepository.findByCoursId(coursId).stream()
+                .filter(n -> n.getNoteFinale() != null
+                        && n.getNoteFinale().compareTo(BigDecimal.valueOf(10)) < 0)
+                .collect(Collectors.toList());
+    }
+
+    public List<NotesCour> getTopStudents(Long coursId, int limit) {
+        return notesCoursRepository.findByCoursId(coursId).stream()
+                .filter(n -> n.getNoteFinale() != null)
+                .sorted((a, b) -> b.getNoteFinale().compareTo(a.getNoteFinale()))
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
+    public Optional<NotesCour> getStudentGradeForCourse(Long coursId, Long studentId) {
+        return notesCoursRepository.findByCoursIdAndEtudiantId(coursId, studentId);
+    }
+
+    // ========================================
+    // 6. HELPERS PRIVÉS
+    // ========================================
+
+    private BigDecimal calculerMoyenneQcm(List<QcmTentative> tentatives, List<Qcm> qcms) {
+        if (tentatives.isEmpty() || qcms.isEmpty()) return BigDecimal.ZERO;
+        List<BigDecimal> scores = tentatives.stream()
+                .filter(t -> t.getPourcentage() != null)
+                .map(t -> BigDecimal.valueOf(t.getPourcentage())
+                        .divide(BigDecimal.valueOf(5), 2, RoundingMode.HALF_UP)) // % → /20
+                .collect(Collectors.toList());
+        if (scores.isEmpty()) return BigDecimal.ZERO;
+        return scores.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
+                .divide(BigDecimal.valueOf(scores.size()), 2, RoundingMode.HALF_UP);
+    }
+
+    private String determineMention(BigDecimal note) {
+        if (note.compareTo(BigDecimal.valueOf(16)) >= 0) return "TB";
+        if (note.compareTo(BigDecimal.valueOf(14)) >= 0) return "B";
+        if (note.compareTo(BigDecimal.valueOf(12)) >= 0) return "AB";
+        if (note.compareTo(BigDecimal.valueOf(10)) >= 0) return "P";
+        return null;
+    }
+
     private String getGradeRange(BigDecimal note) {
         if (note.compareTo(BigDecimal.valueOf(16)) >= 0) return "16-20";
         if (note.compareTo(BigDecimal.valueOf(14)) >= 0) return "14-16";
@@ -277,90 +397,34 @@ public class TeacherGradeService {
         return "0-8";
     }
 
-    /**
-     * ✅ Taux de réussite d'un cours
-     */
-    public BigDecimal getSuccessRate(Long coursId) {
-        List<NotesCour> notes = notesCoursRepository.findByCoursId(coursId);
-
-        long total = notes.size();
-        if (total == 0) return BigDecimal.ZERO;
-
-        long passed = notes.stream()
-                .filter(n -> n.getNoteFinale() != null &&
-                        n.getNoteFinale().compareTo(BigDecimal.valueOf(10)) >= 0)
-                .count();
-
-        return BigDecimal.valueOf(passed)
-                .multiply(BigDecimal.valueOf(100))
-                .divide(BigDecimal.valueOf(total), 2, RoundingMode.HALF_UP);
-    }
-
-    /**
-     * ✅ Étudiants en difficulté (note < 10)
-     */
-    public List<NotesCour> getStudentsAtRisk(Long coursId) {
-        return notesCoursRepository.findByCoursId(coursId).stream()
-                .filter(n -> n.getNoteFinale() != null &&
-                        n.getNoteFinale().compareTo(BigDecimal.valueOf(10)) < 0)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * ✅ Meilleurs étudiants (top N)
-     */
-    public List<NotesCour> getTopStudents(Long coursId, int limit) {
-        return notesCoursRepository.findByCoursId(coursId).stream()
-                .filter(n -> n.getNoteFinale() != null)
-                .sorted((n1, n2) -> n2.getNoteFinale().compareTo(n1.getNoteFinale()))
-                .limit(limit)
-                .collect(Collectors.toList());
-    }
-
     // ========================================
-    // 5. CLASSES DTO (DATA TRANSFER OBJECTS)
+    // 7. DTOs
     // ========================================
 
-    /**
-     * ✅ DTO pour les statistiques d'un cours
-     */
-    @lombok.Data
-    @lombok.Builder
-    @lombok.NoArgsConstructor
-    @lombok.AllArgsConstructor
+    @Data @Builder @NoArgsConstructor @AllArgsConstructor
     public static class CourseGradeStats {
         private Cours cours;
         private long totalStudents;
         private long studentsWithGrades;
         private long totalAssignments;
         private long gradedAssignments;
+        private long totalQcm;
+        private long totalQcmTentatives;
         private BigDecimal moyenneGenerale;
         private Map<String, Long> mentionDistribution;
 
-        /**
-         * Calcule le pourcentage d'étudiants notés
-         */
         public double getGradedPercentage() {
             if (totalStudents == 0) return 0.0;
             return (double) studentsWithGrades / totalStudents * 100;
         }
 
-        /**
-         * Calcule le pourcentage de devoirs corrigés
-         */
         public double getAssignmentGradedPercentage() {
             if (totalAssignments == 0) return 0.0;
             return (double) gradedAssignments / totalAssignments * 100;
         }
     }
 
-    /**
-     * ✅ DTO pour les détails des notes d'un étudiant
-     */
-    @lombok.Data
-    @lombok.Builder
-    @lombok.NoArgsConstructor
-    @lombok.AllArgsConstructor
+    @Data @Builder @NoArgsConstructor @AllArgsConstructor
     public static class StudentGradeDetail {
         private NotesCour notesCour;
         private User student;
@@ -368,32 +432,46 @@ public class TeacherGradeService {
         private String mention;
         private String statut;
         private List<AssignmentSubmission> submissions;
+        private List<QcmTentative> tentativesQcm;
         private int totalAssignments;
         private int submittedAssignments;
         private int gradedAssignments;
+        private int totalQcm;
+        private int tentativesQcmCount;
+        private BigDecimal moyenneQcm;
 
-        /**
-         * Calcule le taux de soumission
-         */
         public double getSubmissionRate() {
             if (totalAssignments == 0) return 0.0;
             return (double) submittedAssignments / totalAssignments * 100;
         }
 
-        /**
-         * Calcule le taux de correction
-         */
-        public double getGradedRate() {
-            if (submittedAssignments == 0) return 0.0;
-            return (double) gradedAssignments / submittedAssignments * 100;
-        }
-
-        /**
-         * Vérifie si l'étudiant est en difficulté
-         */
         public boolean isAtRisk() {
-            return noteFinale != null &&
-                    noteFinale.compareTo(BigDecimal.valueOf(10)) < 0;
+            return noteFinale != null && noteFinale.compareTo(BigDecimal.valueOf(10)) < 0;
+        }
+    }
+
+    @Data @Builder @NoArgsConstructor @AllArgsConstructor
+    public static class AssignmentGradeDetail {
+        private Assignment assignment;
+        private int totalSubmissions;
+        private int gradedSubmissions;
+        private int pendingSubmissions;
+        private BigDecimal moyenne;
+        private List<AssignmentSubmission> submissions;
+    }
+
+    @Data @Builder @NoArgsConstructor @AllArgsConstructor
+    public static class QcmGradeDetail {
+        private Qcm qcm;
+        private long totalTentatives;
+        private long tentativesTerminees;
+        private BigDecimal moyennePourcentage;
+        private long tentativesReussies;
+        private long tentativesEchouees;
+
+        public double getTauxReussite() {
+            if (tentativesTerminees == 0) return 0.0;
+            return (double) tentativesReussies / tentativesTerminees * 100;
         }
     }
 }

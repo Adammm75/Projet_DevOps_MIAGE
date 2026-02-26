@@ -1,6 +1,5 @@
 package org.example.devopslearning.services;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.devopslearning.entities.Assignment;
 import org.example.devopslearning.entities.AssignmentSubmission;
@@ -10,105 +9,134 @@ import org.example.devopslearning.repositories.AssignmentRepository;
 import org.example.devopslearning.repositories.AssignmentSubmissionRepository;
 import org.example.devopslearning.repositories.CoursRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class TeacherAssignmentService {
 
-    private final AssignmentSubmissionRepository submissionRepository;
     private final AssignmentRepository assignmentRepository;
+    private final AssignmentSubmissionRepository submissionRepository;
     private final CoursRepository coursRepository;
 
     // ========================================
-    // GESTION DES DEVOIRS
+    // MÉTHODES DE BASE - CRUD
     // ========================================
 
     /**
-     * ✅ Liste tous les devoirs d'un enseignant
+     * Liste tous les devoirs d'un cours
+     */
+    public List<Assignment> listByCourse(Long courseId) {
+        return assignmentRepository.findByCourseIdOrderByDueDateDesc(courseId);
+    }
+
+    /**
+     * Liste tous les devoirs d'un enseignant
      */
     public List<Assignment> listByTeacher(User teacher) {
         return assignmentRepository.findByCreatedBy(teacher);
     }
 
     /**
-     * ✅ Liste tous les devoirs d'un cours
+     * Récupère un devoir par son ID
      */
-    public List<Assignment> listByCourse(Long courseId) {
-        return assignmentRepository.findByCourseId(courseId);
+    public Assignment getById(Long assignmentId) {
+        return assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new RuntimeException("Devoir introuvable"));
     }
 
     /**
-     * ✅ Récupère un devoir par son ID
+     * Récupère un devoir par son ID (alias)
      */
     public Assignment getAssignmentById(Long assignmentId) {
-        return assignmentRepository.findById(assignmentId)
-                .orElseThrow(() -> new RuntimeException("Devoir introuvable avec l'ID: " + assignmentId));
+        return getById(assignmentId);
     }
 
     /**
-     * ✅ Crée un nouveau devoir AVEC createdBy
+     * Crée un nouveau devoir
      */
+    @Transactional
+    public Assignment create(Assignment assignment) {
+        return assignmentRepository.save(assignment);
+    }
+
+    /**
+     * Crée un nouveau devoir avec paramètres
+     */
+    @Transactional
     public Assignment createAssignment(Long courseId, String title, String description,
                                        LocalDateTime dueDate, BigDecimal maxGrade, User teacher) {
         Cours course = coursRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Cours introuvable avec l'ID: " + courseId));
+                .orElseThrow(() -> new RuntimeException("Cours introuvable"));
 
         Assignment assignment = new Assignment();
         assignment.setCourse(course);
         assignment.setTitle(title);
         assignment.setDescription(description);
-        assignment.setCreatedBy(teacher);
-
-        // Convertir LocalDateTime en Instant
-        if (dueDate != null) {
-            assignment.setDueDate(dueDate.atZone(ZoneId.systemDefault()).toInstant());
-        }
-
-        assignment.setMaxGrade(maxGrade != null ? maxGrade : BigDecimal.valueOf(20.00));
+        assignment.setDueDate(dueDate.atZone(ZoneId.systemDefault()).toInstant());
+        assignment.setMaxGrade(maxGrade != null ? maxGrade : BigDecimal.valueOf(20));
+        assignment.setCreatedBy(teacher);  // ✅ AJOUTÉ
         assignment.setCreatedAt(Instant.now());
 
         return assignmentRepository.save(assignment);
     }
 
     /**
-     * ✅ Met à jour un devoir existant
-     */
-    /**
-     * ✅ Met à jour un devoir existant
+     * Met à jour un devoir
      */
     @Transactional
-    public Assignment updateAssignment(Long assignmentId, String title, String description,
-                                       LocalDateTime dueDate, BigDecimal maxGrade) {
-        Assignment assignment = getAssignmentById(assignmentId);
+    public Assignment update(Long id, Assignment updatedAssignment) {
+        Assignment assignment = assignmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Devoir introuvable"));
 
-        assignment.setTitle(title);
-        assignment.setDescription(description);
-
-        if (dueDate != null) {
-            assignment.setDueDate(dueDate.atZone(ZoneId.systemDefault()).toInstant());
-        }
-
-        assignment.setMaxGrade(maxGrade != null ? maxGrade : BigDecimal.valueOf(20.00));
-
+        assignment.setTitle(updatedAssignment.getTitle());
+        assignment.setDescription(updatedAssignment.getDescription());
+        assignment.setDueDate(updatedAssignment.getDueDate());
+        assignment.setMaxGrade(updatedAssignment.getMaxGrade());
 
         return assignmentRepository.save(assignment);
     }
 
+    /**
+     * Met à jour un devoir avec paramètres
+     */
+    @Transactional
+    public Assignment updateAssignment(Long assignmentId, String title, String description,
+                                       LocalDateTime dueDate, BigDecimal maxGrade) {
+        Assignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new RuntimeException("Devoir introuvable"));
 
+        assignment.setTitle(title);
+        assignment.setDescription(description);
+        assignment.setDueDate(dueDate.atZone(ZoneId.systemDefault()).toInstant());
+        assignment.setMaxGrade(maxGrade);
+
+        return assignmentRepository.save(assignment);
+    }
 
     /**
-     * ✅ Supprime un devoir (et ses soumissions en cascade)
+     * Supprime un devoir
      */
+    @Transactional
+    public void delete(Long assignmentId) {
+        assignmentRepository.deleteById(assignmentId);
+    }
+
+    /**
+     * Supprime un devoir (alias)
+     */
+    @Transactional
     public void deleteAssignment(Long assignmentId) {
-        Assignment assignment = getAssignmentById(assignmentId);
-        assignmentRepository.delete(assignment);
+        delete(assignmentId);
     }
 
     // ========================================
@@ -116,67 +144,101 @@ public class TeacherAssignmentService {
     // ========================================
 
     /**
-     * ✅ Liste toutes les soumissions d'un devoir
+     * Récupère toutes les soumissions d'un devoir
      */
-    public List<AssignmentSubmission> listSubmissions(Long assignmentId) {
+    public List<AssignmentSubmission> getSubmissionsByAssignment(Long assignmentId) {
         return submissionRepository.findByAssignmentId(assignmentId);
     }
 
     /**
-     * ✅ Récupère les soumissions d'un devoir (alias)
+     * Liste les soumissions d'un devoir (alias)
      */
-    public List<AssignmentSubmission> getSubmissions(Long assignmentId) {
-        return listSubmissions(assignmentId);
+    public List<AssignmentSubmission> listSubmissions(Long assignmentId) {
+        return getSubmissionsByAssignment(assignmentId);
     }
 
     /**
-     * ✅ Récupère une soumission par son ID
+     * Récupère une soumission par son ID
      */
     public AssignmentSubmission getSubmissionById(Long submissionId) {
         return submissionRepository.findById(submissionId)
-                .orElseThrow(() -> new RuntimeException("Soumission introuvable avec l'ID: " + submissionId));
+                .orElseThrow(() -> new RuntimeException("Soumission introuvable"));
     }
 
     /**
-     * ✅ Note une soumission AVEC l'enseignant qui corrige
+     * Compte le nombre de soumissions d'un devoir
      */
-    public void gradeSubmission(Long submissionId, BigDecimal grade, String feedback, User teacher) {
-        AssignmentSubmission sub = getSubmissionById(submissionId);
-
-        sub.setGrade(grade);
-        sub.setFeedback(feedback);
-        sub.setGradedAt(Instant.now());
-        sub.setGradedBy(teacher);
-
-        submissionRepository.save(sub);
+    public long countSubmissions(Long assignmentId) {
+        return submissionRepository.countByAssignmentId(assignmentId);
     }
 
     /**
-     * ✅ Note une soumission avec BigDecimal SANS enseignant (pour compatibilité)
+     * Compte le nombre de soumissions corrigées d'un devoir
      */
-    public void gradeSubmission(Long submissionId, BigDecimal grade, String feedback) {
-        AssignmentSubmission sub = getSubmissionById(submissionId);
-
-        sub.setGrade(grade);
-        sub.setFeedback(feedback);
-        sub.setGradedAt(Instant.now());
-
-        submissionRepository.save(sub);
+    public long countGradedSubmissions(Long assignmentId) {
+        return submissionRepository.countGradedByAssignmentId(assignmentId);
     }
 
     /**
-     * ✅ Note une soumission avec Double (pour compatibilité)
+     * Compte le nombre de soumissions en attente de correction pour un enseignant
      */
-    public void gradeSubmission(Long submissionId, Double grade, String feedback) {
-        gradeSubmission(submissionId, BigDecimal.valueOf(grade), feedback);
+    public long countPendingSubmissionsByTeacher(User teacher) {
+        List<Assignment> assignments = assignmentRepository.findByCreatedBy(teacher);
+
+        return assignments.stream()
+                .flatMap(a -> submissionRepository.findPendingGradesByAssignmentId(a.getId()).stream())
+                .count();
+    }
+
+    // ========================================
+    // CORRECTION DES DEVOIRS
+    // ========================================
+
+    /**
+     * Enregistre la note d'une soumission
+     */
+    @Transactional
+    public void gradeSubmission(Long submissionId, BigDecimal grade, String feedback, User gradedBy) {
+        AssignmentSubmission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new RuntimeException("Soumission introuvable"));
+
+        submission.setGrade(grade);
+        submission.setFeedback(feedback);
+        submission.setGradedAt(Instant.now());
+        submission.setGradedBy(gradedBy);
+
+        submissionRepository.save(submission);
     }
 
     /**
-     * ✅ Récupère l'ID du devoir associé à une soumission
+     * Met à jour une note existante
      */
-    public Long getAssignmentId(Long submissionId) {
-        AssignmentSubmission submission = getSubmissionById(submissionId);
-        return submission.getAssignment().getId();
+    @Transactional
+    public void updateGrade(Long submissionId, BigDecimal grade, String feedback) {
+        AssignmentSubmission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new RuntimeException("Soumission introuvable"));
+
+        submission.setGrade(grade);
+        submission.setFeedback(feedback);
+        submission.setGradedAt(Instant.now());
+
+        submissionRepository.save(submission);
+    }
+
+    /**
+     * Supprime une note (remet à null)
+     */
+    @Transactional
+    public void deleteGrade(Long submissionId) {
+        AssignmentSubmission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new RuntimeException("Soumission introuvable"));
+
+        submission.setGrade(null);
+        submission.setFeedback(null);
+        submission.setGradedAt(null);
+        submission.setGradedBy(null);
+
+        submissionRepository.save(submission);
     }
 
     // ========================================
@@ -184,45 +246,115 @@ public class TeacherAssignmentService {
     // ========================================
 
     /**
-     * ✅ Compte le nombre de soumissions non notées pour un enseignant
+     * Récupère les statistiques de tous les devoirs d'un cours
      */
-    public long countPendingSubmissionsByTeacher(User teacher) {
-        List<Assignment> assignments = listByTeacher(teacher);
+    public List<AssignmentStats> getAssignmentsStatsForCourse(Long courseId) {
+        List<Assignment> assignments = assignmentRepository.findByCourseIdOrderByDueDateDesc(courseId);
+
         return assignments.stream()
-                .flatMap(a -> listSubmissions(a.getId()).stream())
-                .filter(s -> s.getGrade() == null && s.getSubmittedAt() != null)
-                .count();
+                .map(this::getAssignmentStats)
+                .collect(Collectors.toList());
     }
 
     /**
-     * ✅ Compte le nombre de soumissions d'un devoir
+     * Calcule les statistiques d'un devoir
      */
-    public int getSubmissionCount(Long assignmentId) {
-        return listSubmissions(assignmentId).size();
-    }
+    public AssignmentStats getAssignmentStats(Assignment assignment) {
+        List<AssignmentSubmission> submissions = submissionRepository.findByAssignmentId(assignment.getId());
 
-    /**
-     * ✅ Compte le nombre de soumissions corrigées
-     */
-    public int getGradedCount(Long assignmentId) {
-        return (int) listSubmissions(assignmentId).stream()
+        long totalSubmissions = submissions.size();
+        long gradedSubmissions = submissions.stream()
                 .filter(s -> s.getGrade() != null)
                 .count();
+        long pendingSubmissions = totalSubmissions - gradedSubmissions;
+
+        // Calculer la moyenne des notes
+        BigDecimal averageGrade = BigDecimal.ZERO;
+        if (gradedSubmissions > 0) {
+            List<BigDecimal> grades = submissions.stream()
+                    .filter(s -> s.getGrade() != null)
+                    .map(AssignmentSubmission::getGrade)
+                    .collect(Collectors.toList());
+
+            BigDecimal sum = grades.stream()
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            averageGrade = sum.divide(BigDecimal.valueOf(gradedSubmissions), 2, RoundingMode.HALF_UP);
+        }
+
+        // Normaliser la moyenne sur 20
+        BigDecimal normalizedAverage = BigDecimal.ZERO;
+        if (averageGrade.compareTo(BigDecimal.ZERO) > 0 && assignment.getMaxGrade().compareTo(BigDecimal.ZERO) > 0) {
+            normalizedAverage = averageGrade
+                    .divide(assignment.getMaxGrade(), 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(20));
+        }
+
+        return AssignmentStats.builder()
+                .assignment(assignment)
+                .totalSubmissions(totalSubmissions)
+                .gradedSubmissions(gradedSubmissions)
+                .pendingSubmissions(pendingSubmissions)
+                .averageGrade(averageGrade)
+                .normalizedAverage(normalizedAverage)
+                .build();
     }
 
     /**
-     * ✅ Calcule la moyenne des notes d'un devoir
+     * Récupère toutes les soumissions non corrigées d'un enseignant
      */
-    public double getAverageGrade(Long assignmentId) {
-        List<AssignmentSubmission> graded = listSubmissions(assignmentId).stream()
-                .filter(s -> s.getGrade() != null)
-                .toList();
+    public List<AssignmentSubmission> getPendingSubmissionsForTeacher(User teacher) {
+        List<Assignment> assignments = assignmentRepository.findByCreatedBy(teacher);
 
-        if (graded.isEmpty()) return 0.0;
+        return assignments.stream()
+                .flatMap(a -> submissionRepository.findPendingGradesByAssignmentId(a.getId()).stream())
+                .collect(Collectors.toList());
+    }
 
-        return graded.stream()
-                .mapToDouble(s -> s.getGrade().doubleValue())
-                .average()
-                .orElse(0.0);
+    /**
+     * Calcule le pourcentage de devoirs corrigés pour un cours
+     */
+    public double getGradingProgressForCourse(Long courseId) {
+        List<Assignment> assignments = assignmentRepository.findByCourseId(courseId);
+
+        long totalSubmissions = 0;
+        long gradedSubmissions = 0;
+
+        for (Assignment assignment : assignments) {
+            totalSubmissions += submissionRepository.countByAssignmentId(assignment.getId());
+            gradedSubmissions += submissionRepository.countGradedByAssignmentId(assignment.getId());
+        }
+
+        if (totalSubmissions == 0) return 0.0;
+
+        return (double) gradedSubmissions / totalSubmissions * 100;
+    }
+
+    // ========================================
+    // DTO - CLASSES INTERNES
+    // ========================================
+
+    /**
+     * DTO pour les statistiques d'un devoir
+     */
+    @lombok.Data
+    @lombok.Builder
+    @lombok.NoArgsConstructor
+    @lombok.AllArgsConstructor
+    public static class AssignmentStats {
+        private Assignment assignment;
+        private long totalSubmissions;
+        private long gradedSubmissions;
+        private long pendingSubmissions;
+        private BigDecimal averageGrade;
+        private BigDecimal normalizedAverage;
+
+        public double getGradingPercentage() {
+            if (totalSubmissions == 0) return 0.0;
+            return (double) gradedSubmissions / totalSubmissions * 100;
+        }
+
+        public boolean isFullyGraded() {
+            return totalSubmissions > 0 && pendingSubmissions == 0;
+        }
     }
 }

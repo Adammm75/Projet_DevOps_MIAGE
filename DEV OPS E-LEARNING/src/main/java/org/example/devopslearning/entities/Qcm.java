@@ -1,5 +1,6 @@
 package org.example.devopslearning.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -10,14 +11,18 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "qcm")
+@Table(name = "qcms")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Qcm {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)  // ✅ AJOUTÉ
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
@@ -25,6 +30,7 @@ public class Qcm {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "cours_id", nullable = false)
+    @JsonIgnoreProperties({"resources", "students", "createdBy"})
     private Cours cours;
 
     @Size(max = 255)
@@ -41,7 +47,7 @@ public class Qcm {
     @Column(name = "publie", nullable = false)
     private Boolean publie = false;
 
-    @Column(name = "limite_temps_minutes")
+    @Column(name = "duree_minutes")
     private Integer limiteTempsMinutes;
 
     @Column(name = "tentatives_max")
@@ -49,15 +55,49 @@ public class Qcm {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "cree_par", nullable = false)
-    private User creePar;
+    @JoinColumn(name = "created_by", nullable = false)
+    @JsonIgnoreProperties({"password", "roles"})
+    private User creeePar;
 
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "date_creation", nullable = false)
+    @Column(name = "created_at", nullable = false)
     private Instant dateCreation;
 
-    @Column(name = "date_mise_a_jour")
-    private Instant dateMiseAJour;
+    @OneToMany(mappedBy = "qcm", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("position ASC")
+    @JsonIgnoreProperties("qcm")
+    private List<QcmQuestion> questions = new ArrayList<>();
 
+    @PrePersist
+    protected void onCreate() {
+        if (dateCreation == null) {
+            dateCreation = Instant.now();
+        }
+        if (publie == null) {
+            publie = false;
+        }
+    }
+
+    public void addQuestion(QcmQuestion question) {
+        questions.add(question);
+        question.setQcm(this);
+    }
+
+    public void removeQuestion(QcmQuestion question) {
+        questions.remove(question);
+        question.setQcm(null);
+    }
+
+    public int getNombreQuestions() {
+        return questions != null ? questions.size() : 0;
+    }
+
+    public boolean hasTimeLimit() {
+        return limiteTempsMinutes != null && limiteTempsMinutes > 0;
+    }
+
+    public boolean hasAttemptLimit() {
+        return tentativesMax != null && tentativesMax > 0;
+    }
 }

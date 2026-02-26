@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+<body>
+
+<div class="row mb-4">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/admin/structure}">Structure Pédagogique</a></li>
+                <li class="breadcrumb-item active">Créer une classe</li>
+            </ol>
+        </nav>
+        <h2 class="mb-0">
+            <i class="bi bi-plus-circle me-2"></i>Créer une classe
+        </h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Informations de la classe</h5>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/admin/structure/classes/create}" method="post">
+                    <div class="mb-3">
+                        <label for="nom" class="form-label">Nom de la classe *</label>
+                        <input type="text" class="form-control" id="nom" name="nom"
+                               placeholder="Ex: M1 MIAGE Groupe A" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="code" class="form-label">Code</label>
+                        <input type="text" class="form-control" id="code" name="code"
+                               placeholder="Ex: M1MIAGE-A">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="parcoursId" class="form-label">Parcours *</label>
+                        <select class="form-select" id="parcoursId" name="parcoursId" required>
+                            <option value="">-- Sélectionnez --</option>
+                            <option th:each="p : ${parcoursList}"
+                                    th:value="${p.id}"
+                                    th:text="${p.nom}">Parcours</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="anneeUniversitaire" class="form-label">Année universitaire *</label>
+                        <input type="text" class="form-control" id="anneeUniversitaire"
+                               name="anneeUniversitaire" placeholder="Ex: 2024-2025"
+                               pattern="\d{4}-\d{4}" title="Format: YYYY-YYYY" required>
+                        <div class="form-text">Format: YYYY-YYYY (ex: 2024-2025)</div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle me-2"></i>Créer la classe
+                        </button>
+                        <a th:href="@{/admin/structure}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle me-2"></i>Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="card-title"><i class="bi bi-info-circle me-2"></i>Informations</h6>
+                <ul class="mb-0">
+                    <li>Le nom et le parcours sont obligatoires</li>
+                    <li>Le code est optionnel mais recommandé</li>
+                    <li>L'année universitaire doit suivre le format YYYY-YYYY</li>
+                    <li>Vous pourrez ajouter des étudiants et enseignants après création</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
