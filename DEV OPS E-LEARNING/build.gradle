@@ -78,18 +78,15 @@ dependencies {
     // --- OpenAI Java Client ---
     implementation 'com.theokanning.openai-gpt3-java:client:0.10.0'
 
-<<<<<<< HEAD
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-hibernate6'
 
     implementation 'com.itextpdf:itextpdf:5.5.13.3'
 
-=======
     // Pour l'export PDF
     implementation 'com.itextpdf:itextpdf:5.5.13.3'
 
     // Pour l'export Excel
     implementation 'org.apache.poi:poi-ooxml:5.2.3'
->>>>>>> origin/base_du_projet_8
 }
 
 tasks.named('test') {
