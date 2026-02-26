@@ -32,6 +32,14 @@
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 </div>
 
+<<<<<<< HEAD
+=======
+<div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+    <i class="bi bi-check-circle me-2"></i><span th:text="${success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+>>>>>>> origin/base_du_projet_8
 <!-- Formulaire -->
 <div class="row">
     <div class="col-lg-8">
@@ -80,6 +88,72 @@
 
                     <hr class="my-4">
 
+<<<<<<< HEAD
+=======
+                    <!-- ⭐ CLASSES AFFECTÉES -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <strong><i class="bi bi-people me-2"></i>Classes affectées</strong>
+                        </label>
+
+                        <div th:if="${classesAffectees != null && !#lists.isEmpty(classesAffectees)}" class="mb-3">
+                            <div th:each="ac : ${classesAffectees}"
+                                 class="d-flex justify-content-between align-items-center p-3 mb-2 border rounded bg-light">
+                                <div>
+                                    <strong th:text="${ac.classe.nom}">Nom classe</strong>
+                                    <span class="text-muted small" th:if="${ac.classe.code}"> - </span>
+                                    <span class="text-muted small" th:text="${ac.classe.code}">CODE</span>
+                                    <span class="text-muted small" th:if="${ac.classe.anneeUniversitaire}"> - </span>
+                                    <span class="text-muted small" th:text="${ac.classe.anneeUniversitaire}">2024-2025</span>
+                                </div>
+                                <form th:action="@{/teacher/assignments/{aid}/classes/{cid}/remove(aid=${assignment.id}, cid=${ac.classe.id})}"
+                                      method="post" style="display:inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Retirer ce devoir de cette classe ?')">
+                                        <i class="bi bi-x"></i> Retirer
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div th:if="${classesAffectees == null || #lists.isEmpty(classesAffectees)}"
+                             class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>Aucune classe affectée. Ajoutez des classes ci-dessous.
+                        </div>
+                    </div>
+
+                    <!-- ⭐ AJOUTER DES CLASSES -->
+                    <div th:if="${classesDisponibles != null && !#lists.isEmpty(classesDisponibles)}" class="mb-4">
+                        <label class="form-label">
+                            <strong>Ajouter des classes</strong>
+                        </label>
+                        <p class="text-muted small">Sélectionnez les classes auxquelles vous souhaitez affecter ce devoir</p>
+
+                        <div class="row g-2">
+                            <div th:each="classe : ${classesDisponibles}" class="col-md-6">
+                                <div class="form-check p-2 border rounded">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="classeIds"
+                                           th:value="${classe.id}"
+                                           th:id="'classe-' + ${classe.id}">
+                                    <label class="form-check-label" th:for="'classe-' + ${classe.id}">
+                                        <span th:text="${classe.nom}">Classe</span>
+                                        <span class="text-muted small" th:if="${classe.code}" th:text="' - ' + ${classe.code}"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${classesDisponibles == null || #lists.isEmpty(classesDisponibles)}" class="mb-4">
+                        <div class="alert alert-secondary">
+                            <i class="bi bi-check-circle me-2"></i>Toutes vos classes ont déjà été affectées à ce devoir.
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+>>>>>>> origin/base_du_projet_8
                     <!-- Date limite et Note max -->
                     <div class="row">
                         <div class="col-md-6 mb-4">
@@ -128,7 +202,11 @@
 
     <!-- Sidebar -->
     <div class="col-lg-4">
+<<<<<<< HEAD
         <!-- ✅ Informations CORRIGÉES (sans updatedAt) -->
+=======
+        <!-- Informations -->
+>>>>>>> origin/base_du_projet_8
         <div class="card border-primary mb-3">
             <div class="card-header bg-primary text-white">
                 <h6 class="mb-0">
@@ -140,10 +218,23 @@
                     <strong>Date de création :</strong><br>
                     <span th:text="${#temporals.format(assignment.createdAt, 'dd/MM/yyyy HH:mm')}">--</span>
                 </p>
+<<<<<<< HEAD
                 <p class="small mb-0" th:if="${assignment.createdBy != null}">
                     <strong>Créé par :</strong><br>
                     <span th:text="${assignment.createdBy.firstName + ' ' + assignment.createdBy.lastName}">--</span>
                 </p>
+=======
+                <p class="small mb-2" th:if="${assignment.createdBy != null}">
+                    <strong>Créé par :</strong><br>
+                    <span th:text="${assignment.createdBy.firstName + ' ' + assignment.createdBy.lastName}">--</span>
+                </p>
+                <hr>
+                <p class="small mb-0">
+                    <strong>Classes affectées :</strong><br>
+                    <span class="badge bg-info" th:text="${classesAffectees != null ? #lists.size(classesAffectees) : 0}">0</span>
+                    classe(s)
+                </p>
+>>>>>>> origin/base_du_projet_8
             </div>
         </div>
 
@@ -156,11 +247,24 @@
             </div>
             <div class="card-body">
                 <h6 class="mb-3">Modifications</h6>
+<<<<<<< HEAD
                 <ul class="small mb-0">
+=======
+                <ul class="small mb-3">
+>>>>>>> origin/base_du_projet_8
                     <li>Vérifiez que la nouvelle date limite est cohérente</li>
                     <li>Informez les étudiants des changements importants</li>
                     <li>Ne modifiez pas le barème si des notes ont déjà été attribuées</li>
                 </ul>
+<<<<<<< HEAD
+=======
+
+                <h6 class="mb-3">Classes</h6>
+                <ul class="small mb-0">
+                    <li>Vous pouvez ajouter ou retirer des classes à tout moment</li>
+                    <li>Les étudiants verront/ne verront plus le devoir immédiatement</li>
+                </ul>
+>>>>>>> origin/base_du_projet_8
             </div>
         </div>
 
@@ -171,7 +275,11 @@
                     <i class="bi bi-exclamation-triangle me-2"></i>Attention
                 </h6>
                 <p class="small mb-0">
+<<<<<<< HEAD
                     Les modifications sont immédiatement visibles par les étudiants.
+=======
+                    Les modifications sont immédiatement visibles par les étudiants des classes affectées.
+>>>>>>> origin/base_du_projet_8
                 </p>
             </div>
         </div>
@@ -202,4 +310,8 @@
 </script>
 
 </body>
+<<<<<<< HEAD
 </html>
+=======
+</html>
+>>>>>>> origin/base_du_projet_8

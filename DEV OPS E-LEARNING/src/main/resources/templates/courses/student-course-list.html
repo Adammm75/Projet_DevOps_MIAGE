@@ -4,9 +4,12 @@
 
 <body>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
 <div class="row mb-4">
     <div class="col">
         <h2 class="mb-0">
@@ -17,6 +20,9 @@
 </div>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/base_du_projet_8
 <!-- Filtres -->
 <div class="card mb-4">
     <div class="card-body">
@@ -32,6 +38,7 @@
                 </select>
             </div>
             <div class="col-md-2">
+<<<<<<< HEAD
 =======
 <!-- Barre de recherche -->
 <div class="card mb-4">
@@ -46,6 +53,8 @@
             </div>
             <div class="col-md-4">
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
                 <button type="submit" class="btn btn-primary w-100">
                     <i class="bi bi-search me-2"></i>Rechercher
                 </button>
@@ -54,6 +63,7 @@
     </div>
 </div>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <!-- Liste des cours -->
 <div class="row">
@@ -66,6 +76,10 @@
 
     <!-- Aucun cours -->
 >>>>>>> origin/base_du_projet_4
+=======
+<!-- Liste des cours -->
+<div class="row">
+>>>>>>> origin/base_du_projet_8
     <div th:if="${courses == null || #lists.isEmpty(courses)}" class="col-12">
         <div class="card">
             <div class="card-body text-center py-5">
@@ -77,6 +91,9 @@
     </div>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/base_du_projet_8
     <div th:each="c : ${courses}" class="col-lg-6 mb-4">
         <div class="card h-100 hover-shadow">
             <div class="card-body">
@@ -86,6 +103,7 @@
                 </div>
 
                 <h5 class="card-title mb-3" th:text="${c.title}">Titre du cours</h5>
+<<<<<<< HEAD
 =======
     <!-- Boucle cours -->
     <div th:each="c : ${courses}" class="col-lg-6 mb-4">
@@ -101,15 +119,21 @@
                 <h5 class="card-title mb-3"
                     th:text="${c.title}">Titre du cours</h5>
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
 
                 <p class="card-text text-muted">
                     <span th:if="${c.description != null && !#strings.isEmpty(c.description)}"
                           th:text="${#strings.abbreviate(c.description, 150)}">
 <<<<<<< HEAD
+<<<<<<< HEAD
                         Description du cours...
 =======
                         Description...
 >>>>>>> origin/base_du_projet_4
+=======
+                        Description du cours...
+>>>>>>> origin/base_du_projet_8
                     </span>
                     <span th:if="${c.description == null || #strings.isEmpty(c.description)}"
                           class="fst-italic">
@@ -119,6 +143,7 @@
 
                 <hr>
 
+<<<<<<< HEAD
                 <div class="row text-center mb-3">
                     <div class="col-4">
                         <div class="text-muted small">Devoirs</div>
@@ -133,6 +158,12 @@
                         <div class="text-muted small">Ressources</div>
                         <div class="fs-5 fw-bold" th:text="${c.resourcesCount != null ? c.resourcesCount : 0}">0</div>
 =======
+=======
+                <!-- ✅ CORRIGÉ - Utilise les collections directement -->
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <div class="text-muted small">Devoirs</div>
+>>>>>>> origin/base_du_projet_8
                         <div class="fs-5 fw-bold">-</div>
                     </div>
                     <div class="col-4">
@@ -142,16 +173,23 @@
                     <div class="col-4">
                         <div class="text-muted small">Ressources</div>
                         <div class="fs-5 fw-bold">-</div>
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
                     </div>
                 </div>
 
                 <div class="d-grid gap-2">
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/base_du_projet_8
                     <a th:href="@{|/student/courses/${c.id}|}" class="btn btn-primary">
                         <i class="bi bi-box-arrow-in-right me-2"></i>Accéder au cours
                     </a>
                 </div>
+<<<<<<< HEAD
 =======
                     <a th:href="@{|/student/courses/${c.id}|}"
                        class="btn btn-primary">
@@ -161,6 +199,8 @@
                 </div>
 
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
             </div>
 
             <div class="card-footer bg-light">
@@ -175,6 +215,9 @@
                     <small class="text-muted">
                         <i class="bi bi-calendar me-1"></i>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/base_du_projet_8
                         <span th:text="${#temporals.format(c.createdAt, 'dd/MM/yyyy')}">01/01/2024</span>
                     </small>
                 </div>
@@ -193,6 +236,7 @@
     }
 </style>
 
+<<<<<<< HEAD
 =======
                         <span th:text="${#temporals.format(c.createdAt, 'dd/MM/yyyy')}">
                             01/01/2024
@@ -275,5 +319,7 @@ document.getElementById('searchForm').addEventListener('submit', function(e) {
 </script>
 
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
 </body>
 </html>

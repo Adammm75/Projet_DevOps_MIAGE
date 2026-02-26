@@ -43,7 +43,7 @@ public class TeacherGradeService {
             CourseGradeStats stats = getCourseStats(cours);
 
             // Récupère les classes liées à ce cours via cours_classes
-            List<CoursClass> coursClasses = coursClassRepository.findByClasseId(cours.getId());
+            List<CoursClass> coursClasses = coursClassRepository.findByCoursId(cours.getId());
 
             if (coursClasses.isEmpty()) {
                 // Cours sans classe

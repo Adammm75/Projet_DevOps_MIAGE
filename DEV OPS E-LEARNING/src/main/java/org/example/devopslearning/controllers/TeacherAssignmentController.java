@@ -15,6 +15,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.example.devopslearning.entities.AcademicClass;
+import org.example.devopslearning.entities.AssignmentClass;
+import org.example.devopslearning.entities.TeacherClass;
+import org.example.devopslearning.repositories.AssignmentClassRepository;
+import org.example.devopslearning.repositories.TeacherClassRepository;
+import java.util.stream.Collectors;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -29,6 +35,8 @@ public class TeacherAssignmentController {
     private final TeacherAssignmentService teacherAssignmentService;
     private final CoursService coursService;
     private final UserService userService;
+    private final AssignmentClassRepository assignmentClassRepository;  // ⭐ AJOUTÉ
+    private final TeacherClassRepository teacherClassRepository;        // ⭐ AJOUTÉ
 
     // ========================================
     // 1️⃣ LISTE GLOBALE DES DEVOIRS (tous cours)
@@ -118,19 +126,29 @@ public class TeacherAssignmentController {
                                 Model model,
                                 RedirectAttributes ra) {
 
-        // ✅ Si courseId n'est pas fourni, rediriger vers la liste avec erreur
+        // Si courseId n'est pas fourni, rediriger vers la liste avec erreur
         if (courseId == null) {
             ra.addFlashAttribute("error", "Veuillez sélectionner un cours avant de créer un devoir");
             return "redirect:/teacher/assignments";
         }
 
         try {
+            User teacher = userService.findByUsername(userDetails.getUsername());
             Cours course = coursService.getById(courseId);
+
+            // ⭐ RÉCUPÉRER LES CLASSES DE L'ENSEIGNANT
+            List<TeacherClass> teacherClasses = teacherClassRepository.findByTeacherId(teacher.getId());
+            List<AcademicClass> classes = teacherClasses.stream()
+                    .map(TeacherClass::getClasse)
+                    .collect(Collectors.toList());
+
             Assignment assignment = new Assignment();
             assignment.setCourse(course);
 
             model.addAttribute("assignment", assignment);
             model.addAttribute("course", course);
+            model.addAttribute("classes", classes);  // ⭐ AJOUTÉ
+
             return "assignments/create";
         } catch (Exception e) {
             ra.addFlashAttribute("error", "Cours introuvable: " + e.getMessage());
@@ -138,33 +156,42 @@ public class TeacherAssignmentController {
         }
     }
 
-    // ========================================
-    // 4️⃣ CRÉER UN NOUVEAU DEVOIR
-    // ========================================
+    // 4️⃣ MODIFIER LA MÉTHODE createAssignment (ligne 144-170)
+// Ajouter le paramètre classeIds et l'affectation
     @PostMapping
     public String createAssignment(@RequestParam Long courseId,
                                    @RequestParam String title,
                                    @RequestParam(required = false) String description,
                                    @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dueDate,
                                    @RequestParam(required = false) BigDecimal maxGrade,
+                                   @RequestParam(required = false) List<Long> classeIds,  // ⭐ AJOUTÉ
                                    @AuthenticationPrincipal UserDetails userDetails,
-                                   RedirectAttributes ra) {
+                                   RedirectAttributes redirectAttributes) {
         try {
             User teacher = userService.findByUsername(userDetails.getUsername());
 
             Assignment assignment = teacherAssignmentService.createAssignment(
-                    courseId,
-                    title,
-                    description,
-                    dueDate,
-                    maxGrade,
-                    teacher
+                    courseId, title, description, dueDate, maxGrade, teacher
             );
 
-            ra.addFlashAttribute("success", "Devoir '" + assignment.getTitle() + "' créé avec succès");
+            // ⭐ AFFECTER AUX CLASSES
+            if (classeIds != null && !classeIds.isEmpty()) {
+                for (Long classeId : classeIds) {
+                    AssignmentClass ac = new AssignmentClass();
+                    ac.setAssignment(assignment);
+                    ac.setClasse(new AcademicClass());
+                    ac.getClasse().setId(classeId);
+                    assignmentClassRepository.save(ac);
+                }
+                redirectAttributes.addFlashAttribute("success",
+                        "Devoir créé et affecté à " + classeIds.size() + " classe(s) avec succès !");
+            } else {
+                redirectAttributes.addFlashAttribute("success", "Devoir créé avec succès !");
+            }
+
             return "redirect:/teacher/assignments/course/" + courseId;
         } catch (Exception e) {
-            ra.addFlashAttribute("error", "Erreur lors de la création: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Erreur : " + e.getMessage());
             return "redirect:/teacher/assignments/new?courseId=" + courseId;
         }
     }

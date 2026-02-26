@@ -3,6 +3,7 @@ package org.example.devopslearning.controllers;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.devopslearning.dto.MessageCreateRequest;
+import org.example.devopslearning.entities.Cours;
 import org.example.devopslearning.entities.User;
 import org.example.devopslearning.services.MessagingService;
 import org.example.devopslearning.services.UserService;
@@ -31,10 +32,8 @@ public class MessagingController {
         model.addAttribute("sent", messagingService.sent(current.getId()));
         model.addAttribute("messageForm", new MessageCreateRequest());
 
-        // ✅ AJOUTÉ : Liste des enseignants et étudiants
         List<User> allUsers = userService.getAllUsers();
 
-        // Séparer enseignants et étudiants
         List<User> teachers = allUsers.stream()
                 .filter(u -> u.getUserRoles().stream()
                         .anyMatch(ur -> ur.getRole().getName().equals("ROLE_TEACHER")))
@@ -49,6 +48,37 @@ public class MessagingController {
         model.addAttribute("students", students);
 
         return "messages/inbox";
+    }
+
+    /**
+     * ✅ Page de composition avec pré-remplissage du destinataire
+     * Appelée depuis le bouton "Contacter l'enseignant" : /messages/compose?recipientId=X
+     */
+    @GetMapping("/compose")
+    public String compose(@RequestParam(required = false) Long recipientId,
+                          @RequestParam(required = false) Long courseId,
+                          Authentication auth,
+                          Model model) {
+        User current = userService.findByEmail(auth.getName());
+
+        String recipientEmail = "";
+        String recipientName = "";
+        if (recipientId != null) {
+            try {
+                User recipient = userService.findById(recipientId);
+                recipientEmail = recipient.getEmail();
+                recipientName = recipient.getFirstName() + " " + recipient.getLastName();
+            } catch (Exception ignored) {}
+        }
+
+        List<Cours> courses = userService.getCoursesForUser(current);
+
+        model.addAttribute("recipientEmail", recipientEmail);
+        model.addAttribute("recipientName", recipientName);
+        model.addAttribute("preselectedCourseId", courseId);
+        model.addAttribute("courses", courses);
+
+        return "messages/compose";
     }
 
     @PostMapping
@@ -68,6 +98,20 @@ public class MessagingController {
                 form.getContent()
         );
         return "redirect:/messages";
+    }
+
+    /**
+     * ✅ Traitement du formulaire compose
+     */
+    @PostMapping("/compose")
+    public String sendFromCompose(@RequestParam String recipientEmail,
+                                  @RequestParam(required = false) Long courseId,
+                                  @RequestParam String subject,
+                                  @RequestParam String content,
+                                  Authentication auth) {
+        User sender = userService.findByEmail(auth.getName());
+        messagingService.sendMessage(sender, recipientEmail, courseId, subject, content);
+        return "redirect:/messages?sent=true";
     }
 
     @PostMapping("/{messageId}/read")

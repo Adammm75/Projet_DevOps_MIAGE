@@ -19,7 +19,7 @@ import java.time.Instant;
 public class NotesCour {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)  // ✅ AJOUTÉ
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
@@ -68,6 +68,9 @@ public class NotesCour {
         }
         if (statut == null) {
             statut = "PROVISOIRE";
+        }
+        if (createdAt == null) {
+            createdAt = Instant.now();
         }
     }
 }

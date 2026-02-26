@@ -8,6 +8,7 @@ import org.example.devopslearning.entities.CourseRessource;
 import org.example.devopslearning.entities.User;
 import org.example.devopslearning.repositories.AssignmentRepository;
 import org.example.devopslearning.repositories.CoursRepository;
+import org.example.devopslearning.repositories.CourseEnrollmentRepository;
 import org.example.devopslearning.repositories.CourseResourceRepository;
 import org.example.devopslearning.repositories.UserRepository;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ public class CoursService {
     private final CourseResourceRepository ressourceCoursRepository;
     private final AssignmentRepository assignmentRepository;
     private final UserRepository userRepository;
+    private final CourseEnrollmentRepository courseEnrollmentRepository; // ✅ AJOUTÉ
 
     // ========================================
     // MÉTHODES DE BASE (CRUD)
@@ -355,6 +357,13 @@ public class CoursService {
     // ========================================
     // STATISTIQUES
     // ========================================
+
+    /**
+     * ✅ AJOUTÉ : Compte le nombre d'étudiants inscrits à un cours
+     */
+    public long countEnrolledStudents(Long courseId) {
+        return courseEnrollmentRepository.countByCourseId(courseId);
+    }
 
     /**
      * ✅ NOUVEAU : Compte le nombre de cours d'un enseignant

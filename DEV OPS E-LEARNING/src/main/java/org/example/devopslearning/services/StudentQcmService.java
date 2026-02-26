@@ -134,7 +134,7 @@ public class StudentQcmService {
                 .orElseThrow(() -> new RuntimeException("Tentative introuvable")));
         r.setQuestion(questionRepository.findById(questionId)
                 .orElseThrow(() -> new RuntimeException("Question introuvable")));
-        r.setOption(optionRepository.findById(optionId)
+        r.setOptionChoisie(optionRepository.findById(optionId)
                 .orElseThrow(() -> new RuntimeException("Option introuvable")));
 
         reponsRepository.save(r);
@@ -156,7 +156,7 @@ public class StudentQcmService {
             if (r.getQuestion() != null && r.getQuestion().getPoints() != null) {
                 scoreMax = scoreMax.add(r.getQuestion().getPoints());
             }
-            if (r.getOption() != null && Boolean.TRUE.equals(r.getOption().getEstCorrecte())) {
+            if (r.getOptionChoisie() != null && Boolean.TRUE.equals(r.getOptionChoisie().getEstCorrecte())) {
                 score = score.add(r.getQuestion().getPoints());
             }
         }

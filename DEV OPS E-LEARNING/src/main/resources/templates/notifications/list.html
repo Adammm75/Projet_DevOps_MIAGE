@@ -3,6 +3,7 @@
       th:replace="~{layout/base :: layout(~{::body})}">
 
 <body>
+<<<<<<< HEAD
 
 <!-- ✅ VERSION ÉTUDIANT/ENSEIGNANT (si pas admin) -->
 <div th:if="${!isAdmin}">
@@ -107,11 +108,65 @@
                         </div>
                     </div>
                 </div>
+=======
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-0">
+            <i class="bi bi-bell me-2"></i>Notifications Administrateur
+        </h2>
+        <p class="text-muted mb-0">Centre de notifications et tableau de bord</p>
+    </div>
+    <div class="col-auto">
+        <form th:action="@{/notifications/read-all}" method="post" class="d-inline">
+            <button type="submit" class="btn btn-outline-primary" th:if="${hasUnread}">
+                <i class="bi bi-check-all me-2"></i>Tout marquer comme lu
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Statistiques rapides ADMIN -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center border-danger">
+            <div class="card-body">
+                <i class="bi bi-exclamation-triangle-fill fs-2 text-danger"></i>
+                <h6 class="mt-2 mb-0 text-danger">Alertes Système</h6>
+                <h4 class="text-danger mb-0" th:text="${systemAlertCount != null ? systemAlertCount : 0}">0</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-info">
+            <div class="card-body">
+                <i class="bi bi-person-plus-fill fs-2 text-info"></i>
+                <h6 class="mt-2 mb-0 text-info">Nouveaux Utilisateurs</h6>
+                <h4 class="text-info mb-0" th:text="${newUserCount != null ? newUserCount : 0}">0</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-success">
+            <div class="card-body">
+                <i class="bi bi-book-fill fs-2 text-success"></i>
+                <h6 class="mt-2 mb-0 text-success">Nouveaux Cours</h6>
+                <h4 class="text-success mb-0" th:text="${courseCount != null ? courseCount : 0}">0</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-primary">
+            <div class="card-body">
+                <i class="bi bi-graph-up-arrow fs-2 text-primary"></i>
+                <h6 class="mt-2 mb-0 text-primary">Total Utilisateurs</h6>
+                <h4 class="text-primary mb-0" th:text="${stats != null ? stats.totalUsers : 0}">0</h4>
+>>>>>>> origin/base_du_projet_8
             </div>
         </div>
     </div>
 </div>
 
+<<<<<<< HEAD
 <!-- ✅ VERSION ADMIN (ton code actuel reste intact) -->
 <div th:if="${isAdmin}">
 
@@ -192,6 +247,29 @@
                 </button>
             </div>
         </div>
+=======
+<!-- Filtres par catégorie -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="btn-group flex-wrap" role="group">
+            <button type="button" class="btn btn-outline-primary active" onclick="showSection('all')">
+                <i class="bi bi-list me-2"></i>Toutes
+            </button>
+            <button type="button" class="btn btn-outline-danger" onclick="showSection('system')">
+                <i class="bi bi-exclamation-triangle me-2"></i>Système
+            </button>
+            <button type="button" class="btn btn-outline-info" onclick="showSection('users')">
+                <i class="bi bi-people me-2"></i>Utilisateurs
+            </button>
+            <button type="button" class="btn btn-outline-success" onclick="showSection('courses')">
+                <i class="bi bi-book me-2"></i>Cours
+            </button>
+            <button type="button" class="btn btn-outline-secondary" onclick="showSection('stats')">
+                <i class="bi bi-graph-up me-2"></i>Visualisations
+            </button>
+        </div>
+    </div>
+>>>>>>> origin/base_du_projet_8
 </div>
 
 <!-- 🚨 SECTION ALERTES SYSTÈME -->

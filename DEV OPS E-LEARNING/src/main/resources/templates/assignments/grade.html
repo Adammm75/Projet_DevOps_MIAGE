@@ -4,6 +4,7 @@
 
 <body>
 <<<<<<< HEAD
+<<<<<<< HEAD
 <!-- Breadcrumb -->
 <nav aria-label="breadcrumb" class="mb-4">
     <ol class="breadcrumb">
@@ -21,6 +22,8 @@
             <i class="bi bi-pencil-square me-2"></i>Correction de devoir
         </h2>
 =======
+=======
+>>>>>>> origin/base_du_projet_8
 
 <!-- BREADCRUMB -->
 <nav aria-label="breadcrumb" class="mb-4">
@@ -46,11 +49,15 @@
             <i class="bi bi-pencil-square me-2"></i>Correction de devoir
         </h2>
         <p class="text-muted mb-0">Évaluez le travail de l'étudiant et donnez un feedback constructif</p>
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
     </div>
 </div>
 
 <div class="row">
+<<<<<<< HEAD
 <<<<<<< HEAD
     <!-- Colonne gauche: Info + Formulaire -->
     <div class="col-lg-8">
@@ -85,6 +92,8 @@
                         <span th:unless="${submission.submittedAt.isAfter(submission.assignment.dueDate)}"
                               class="badge bg-success fs-6">
 =======
+=======
+>>>>>>> origin/base_du_projet_8
     <!-- COLONNE GAUCHE: Info + Formulaire -->
     <div class="col-lg-8">
 
@@ -118,7 +127,10 @@
                         </span>
                         <span th:if="${submission.submittedAt != null && assignment.dueDate != null && !submission.submittedAt.isAfter(assignment.dueDate)}"
                               class="badge bg-success px-3 py-2">
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
                             <i class="bi bi-check-circle me-1"></i>Dans les temps
                         </span>
                     </div>
@@ -127,6 +139,7 @@
         </div>
 
         <!-- Fichier soumis -->
+<<<<<<< HEAD
 <<<<<<< HEAD
         <div class="card mb-4">
             <div class="card-header">
@@ -147,6 +160,8 @@
                         <i class="bi bi-box-arrow-up-right me-2"></i>Ouvrir le fichier
                     </a>
 =======
+=======
+>>>>>>> origin/base_du_projet_8
         <div class="card mb-4 border-0 shadow-sm">
             <div class="card-header bg-white border-bottom py-3">
                 <h5 class="mb-0 fw-bold">
@@ -170,12 +185,16 @@
                         <i class="bi bi-box-arrow-up-right me-2"></i>Ouvrir
                     </a>
                     <span th:if="${submission.fileUrl == null}" class="text-muted">Aucun fichier</span>
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
                 </div>
             </div>
         </div>
 
         <!-- Formulaire de notation -->
+<<<<<<< HEAD
 <<<<<<< HEAD
         <div class="card">
             <div class="card-header bg-primary text-white">
@@ -186,6 +205,8 @@
             <div class="card-body">
                 <form th:action="@{|/teacher/assignments/submissions/${submission.id}/grade|}"
 =======
+=======
+>>>>>>> origin/base_du_projet_8
         <div class="card border-0 shadow-sm">
             <div class="card-header text-white py-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                 <h5 class="mb-0 fw-bold">
@@ -194,11 +215,15 @@
             </div>
             <div class="card-body p-4">
                 <form th:action="@{/teacher/assignments/submissions/{id}/grade(id=${submission.id})}"
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
                       method="post">
 
                     <!-- Note -->
                     <div class="mb-4">
+<<<<<<< HEAD
 <<<<<<< HEAD
                         <label for="grade" class="form-label">
                             <strong>Note obtenue *</strong>
@@ -246,6 +271,8 @@ Conseils:
                         <div class="form-text">
                             Un feedback détaillé aide l'étudiant à progresser
 =======
+=======
+>>>>>>> origin/base_du_projet_8
                         <label for="grade" class="form-label fw-semibold">
                             <i class="bi bi-trophy text-warning me-2"></i>
                             Note obtenue <span class="text-danger">*</span>
@@ -277,12 +304,16 @@ Conseils:
                                     <small class="text-muted">Aperçu</small>
                                 </div>
                             </div>
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
                         </div>
                     </div>
 
                     <hr class="my-4">
 
+<<<<<<< HEAD
 <<<<<<< HEAD
                     <!-- Boutons -->
                     <div class="d-flex gap-2">
@@ -296,6 +327,8 @@ Conseils:
                         <a th:href="@{|/teacher/assignments/${submission.assignment.id}/submissions|}"
                            class="btn btn-outline-secondary btn-lg">
 =======
+=======
+>>>>>>> origin/base_du_projet_8
                     <!-- Feedback -->
                     <div class="mb-4">
                         <label for="feedback" class="form-label fw-semibold">
@@ -332,7 +365,10 @@ Conseils:
                         </button>
                         <a th:href="@{/teacher/assignments/{id}/submissions(id=${assignment.id})}"
                            class="btn btn-outline-secondary btn-lg px-4 py-2">
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
                             <i class="bi bi-x-circle me-2"></i>Annuler
                         </a>
                     </div>
@@ -341,6 +377,7 @@ Conseils:
         </div>
     </div>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     <!-- Colonne droite: Infos et grille -->
     <div class="col-lg-4">
@@ -374,6 +411,8 @@ Conseils:
                     <strong>Barème:</strong>
                     <span th:text="${submission.assignment.maxGrade}">20</span> points
 =======
+=======
+>>>>>>> origin/base_du_projet_8
     <!-- COLONNE DROITE: Infos et aide -->
     <div class="col-lg-4">
 
@@ -405,11 +444,15 @@ Conseils:
                         <i class="bi bi-trophy me-1"></i>
                         <span th:text="${assignment.maxGrade}">20</span> points
                     </strong>
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
                 </div>
             </div>
         </div>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         <!-- Grille d'évaluation suggérée -->
         <div class="card border-info">
@@ -440,6 +483,8 @@ Conseils:
                         <strong>Orthographe et syntaxe</strong><br>
                         <span class="text-muted">L'expression est-elle correcte ?</span>
 =======
+=======
+>>>>>>> origin/base_du_projet_8
         <!-- Grille d'évaluation -->
         <div class="card mb-4 border-0 shadow-sm">
             <div class="card-header bg-info bg-opacity-10 border-0 py-3">
@@ -494,12 +539,16 @@ Conseils:
                                 <span class="text-muted">Orthographe et syntaxe correctes</span>
                             </div>
                         </div>
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
                     </li>
                 </ul>
             </div>
         </div>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         <!-- Statistiques de la classe -->
         <div class="card mt-4">
@@ -519,6 +568,8 @@ Conseils:
                     <strong>Note la plus basse:</strong> --
                 </div>
 =======
+=======
+>>>>>>> origin/base_du_projet_8
         <!-- Conseils -->
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-warning bg-opacity-10 border-0 py-3">
@@ -534,14 +585,20 @@ Conseils:
                     <li class="mb-2">Donnez des pistes d'amélioration</li>
                     <li class="mb-0">Restez encourageant et bienveillant</li>
                 </ul>
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
             </div>
         </div>
     </div>
 </div>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/base_du_projet_8
 <!-- Script pour aperçu de la note -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -578,6 +635,9 @@ Conseils:
     });
 </script>
 
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
 </body>
 </html>

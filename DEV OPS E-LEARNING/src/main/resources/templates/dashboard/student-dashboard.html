@@ -168,8 +168,13 @@
                                 </span>
                                 <span class="badge bg-danger ms-2"
                                       th:if="${d.dueDate != null && d.dueDate.isBefore(T(java.time.Instant).now())}">
+<<<<<<< HEAD
     En retard
 </span>
+=======
+                                    En retard
+                                </span>
+>>>>>>> origin/base_du_projet_8
                             </td>
                             <td>
                                 <span class="badge bg-warning">À rendre</span>
@@ -201,7 +206,11 @@
                     <a th:each="m : ${messages}"
                        th:href="@{/messages}"
                        class="list-group-item list-group-item-action"
+<<<<<<< HEAD
                        th:classappend="${m.read != null && !m.read} ? 'fw-bold'">
+=======
+                       th:classappend="${m.isRead != null && !m.isRead} ? 'fw-bold'">
+>>>>>>> origin/base_du_projet_8
                         <div class="d-flex justify-content-between align-items-start mb-1">
                             <h6 class="mb-0">
                                 <span th:if="${m.subject != null && !#strings.isEmpty(m.subject)}"
@@ -240,7 +249,11 @@
                     <a th:each="n : ${notifications}"
                        th:href="@{/notifications}"
                        class="list-group-item list-group-item-action"
+<<<<<<< HEAD
                        th:classappend="${n.read != null && !n.read} ? 'bg-light'">
+=======
+                       th:classappend="${n.isRead != null && !n.isRead} ? 'bg-light'">
+>>>>>>> origin/base_du_projet_8
                         <div class="d-flex justify-content-between align-items-start mb-1">
                             <h6 class="mb-0">
                                 <i class="bi bi-info-circle text-info me-1"></i>

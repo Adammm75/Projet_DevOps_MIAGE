@@ -43,7 +43,7 @@ public class TeacherAssignmentService {
      * Liste tous les devoirs d'un enseignant
      */
     public List<Assignment> listByTeacher(User teacher) {
-        return assignmentRepository.findByCreatedBy(teacher);
+        return assignmentRepository.findByTeacherId(teacher.getId());
     }
 
     /**
@@ -183,7 +183,7 @@ public class TeacherAssignmentService {
      * Compte le nombre de soumissions en attente de correction pour un enseignant
      */
     public long countPendingSubmissionsByTeacher(User teacher) {
-        List<Assignment> assignments = assignmentRepository.findByCreatedBy(teacher);
+        List<Assignment> assignments = assignmentRepository.findByTeacherId(teacher.getId());
 
         return assignments.stream()
                 .flatMap(a -> submissionRepository.findPendingGradesByAssignmentId(a.getId()).stream())
@@ -302,8 +302,8 @@ public class TeacherAssignmentService {
     /**
      * Récupère toutes les soumissions non corrigées d'un enseignant
      */
-    public List<AssignmentSubmission> getPendingSubmissionsForTeacher(User teacher) {
-        List<Assignment> assignments = assignmentRepository.findByCreatedBy(teacher);
+    public List<AssignmentSubmission> getPendingSubmissionsForTeacher(Long teacherId) {
+        List<Assignment> assignments = assignmentRepository.findByTeacherId(teacherId);
 
         return assignments.stream()
                 .flatMap(a -> submissionRepository.findPendingGradesByAssignmentId(a.getId()).stream())

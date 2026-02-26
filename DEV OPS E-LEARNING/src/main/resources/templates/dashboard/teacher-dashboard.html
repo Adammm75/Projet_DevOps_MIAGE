@@ -23,6 +23,115 @@
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 </div>
 
+<<<<<<< HEAD
+=======
+
+<!-- ========================================
+     🔔 RAPPELS AUTOMATIQUES ENSEIGNANT
+     ======================================== -->
+<div class="mb-4">
+
+    <!-- En-tête section -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="mb-0 fw-bold">
+            <i class="bi bi-bell-fill me-2 text-warning"></i>Rappels
+            <span th:if="${criticalCount > 0}"
+                  class="badge bg-danger ms-2"
+                  th:text="${criticalCount} + ' urgent(s)'"></span>
+            <span th:unless="${criticalCount > 0}"
+                  class="badge bg-secondary bg-opacity-50 ms-2"
+                  th:text="${reminderCount} + ' rappel(s)'"></span>
+        </h5>
+        <small class="text-muted fst-italic">Calculés en temps réel</small>
+    </div>
+
+    <!-- Aucun rappel : message positif -->
+    <div th:if="${reminders == null || #lists.isEmpty(reminders)}"
+         class="alert border-0 shadow-sm d-flex align-items-center gap-3 mb-0"
+         style="background:#e8f5e9;">
+        <i class="bi bi-check-circle-fill text-success fs-4"></i>
+        <div>
+            <div class="fw-semibold text-success">Tout est à jour !</div>
+            <small class="text-muted">Aucun rappel en attente — corrections, messages et activité étudiante sont à jour.</small>
+        </div>
+    </div>
+
+    <!-- Liste des rappels -->
+    <div th:unless="${reminders == null || #lists.isEmpty(reminders)}"
+         class="d-flex flex-column gap-2">
+
+        <div th:each="r : ${reminders}"
+             class="card border-0 shadow-sm"
+             th:classappend="${'border-start border-4 border-' + r.level.colorClass}">
+            <div class="card-body py-3 px-4">
+                <div class="row align-items-center g-3">
+
+                    <!-- Icône -->
+                    <div class="col-auto">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             th:classappend="${'bg-' + r.level.colorClass + ' bg-opacity-10'}"
+                             style="width:42px;height:42px;">
+                            <i class="bi fs-5"
+                               th:classappend="${r.level.icon + ' text-' + r.level.colorClass}"></i>
+                        </div>
+                    </div>
+
+                    <!-- Contenu -->
+                    <div class="col">
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                            <span class="fw-semibold" th:text="${r.title}">Titre</span>
+                            <!-- Badge niveau -->
+                            <span class="badge rounded-pill"
+                                  th:classappend="${'bg-' + r.level.colorClass}"
+                                  th:text="${r.level.name()}">NIVEAU</span>
+                            <!-- Badge type -->
+                            <span th:if="${r.type.name() == 'DEVOIR_NON_CORRIGE'}"
+                                  class="badge rounded-pill bg-secondary bg-opacity-50 text-dark">
+                                <i class="bi bi-file-earmark-check me-1"></i>Devoir
+                            </span>
+                            <span th:if="${r.type.name() == 'MESSAGE_NON_LU'}"
+                                  class="badge rounded-pill bg-secondary bg-opacity-50 text-dark">
+                                <i class="bi bi-envelope me-1"></i>Message
+                            </span>
+                            <span th:if="${r.type.name() == 'ETUDIANT_INACTIF'}"
+                                  class="badge rounded-pill bg-secondary bg-opacity-50 text-dark">
+                                <i class="bi bi-person-dash me-1"></i>Inactivité
+                            </span>
+                            <!-- Badge cours -->
+                            <span th:if="${r.courseCode != null}"
+                                  class="badge bg-primary bg-opacity-75 rounded-pill"
+                                  th:text="${r.courseCode}">CODE</span>
+                        </div>
+                        <div class="text-muted small" th:text="${r.message}">Message</div>
+                    </div>
+
+                    <!-- Bouton action -->
+                    <div class="col-auto">
+                        <a th:href="${r.actionUrl}"
+                           class="btn btn-sm fw-semibold"
+                           th:classappend="${'btn-outline-' + r.level.colorClass}">
+                            <span th:switch="${r.type.name()}">
+                                <span th:case="'DEVOIR_NON_CORRIGE'">
+                                    <i class="bi bi-pencil-square me-1"></i>Corriger
+                                </span>
+                                <span th:case="'MESSAGE_NON_LU'">
+                                    <i class="bi bi-envelope-open me-1"></i>Lire
+                                </span>
+                                <span th:case="'ETUDIANT_INACTIF'">
+                                    <i class="bi bi-bar-chart me-1"></i>Voir suivi
+                                </span>
+                            </span>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+>>>>>>> origin/base_du_projet_8
 <!-- Stats Cards -->
 <div class="row g-3 mb-4">
     <div class="col-md-3">
@@ -258,4 +367,8 @@
 </script>
 
 </body>
+<<<<<<< HEAD
 </html>
+=======
+</html>
+>>>>>>> origin/base_du_projet_8

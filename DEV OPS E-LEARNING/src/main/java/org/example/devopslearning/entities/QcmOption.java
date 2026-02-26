@@ -1,5 +1,6 @@
 package org.example.devopslearning.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -12,8 +13,11 @@ import org.hibernate.annotations.OnDeleteAction;
 @Setter
 @Entity
 @Table(name = "qcm_options")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class QcmOption {
+
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)  // ✅ AUTO_INCREMENT
     @Column(name = "id", nullable = false)
     private Long id;
 
@@ -21,6 +25,7 @@ public class QcmOption {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "question_id", nullable = false)
+    @JsonIgnoreProperties({"options", "qcm"})
     private QcmQuestion question;
 
     @NotNull
@@ -33,4 +38,15 @@ public class QcmOption {
     @Column(name = "est_correcte", nullable = false)
     private Boolean estCorrecte = false;
 
+    // ========================================
+    // CONSTRUCTEURS
+    // ========================================
+
+    public QcmOption() {
+    }
+
+    public QcmOption(String texteOption, Boolean estCorrecte) {
+        this.texteOption = texteOption;
+        this.estCorrecte = estCorrecte;
+    }
 }

@@ -2,8 +2,8 @@ package org.example.devopslearning.controllers;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.devopslearning.entities.PasswordChangeRequest;
-import org.example.devopslearning.entities.ProfileUpdateRequest;
+import org.example.devopslearning.dto.PasswordChangeRequest;
+import org.example.devopslearning.dto.ProfileUpdateRequest;
 import org.example.devopslearning.entities.User;
 import org.example.devopslearning.services.UserService;
 import org.springframework.security.core.Authentication;

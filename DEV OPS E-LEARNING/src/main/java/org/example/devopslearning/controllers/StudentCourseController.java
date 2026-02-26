@@ -13,6 +13,8 @@ import org.example.devopslearning.services.CourseAccessService;
 import org.example.devopslearning.services.CoursService;
 import org.example.devopslearning.services.StudentAssignmentService;
 import org.example.devopslearning.services.UserService;
+import org.example.devopslearning.entities.*;
+import org.example.devopslearning.services.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -27,6 +29,11 @@ import java.util.List;
 /**
  * 📚 CONTRÔLEUR COURS ÉTUDIANT - COMPLET
  */
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List;
+import java.util.Set;
+
 @Controller
 @RequestMapping("/student/courses")
 @RequiredArgsConstructor
@@ -39,6 +46,8 @@ public class StudentCourseController {
     private final CourseStepService courseStepService;
 
     private final StudentAssignmentService studentAssignmentService;
+    private final ResourceConsultationService consultationService;
+    private final CourseCompletionService completionService;
 
     // ========================================
     // LISTE DES COURS
@@ -52,6 +61,7 @@ public class StudentCourseController {
         User student = userService.findByEmail(auth.getName());
         List<Cours> cours = courseAccessService.getCoursAccessibles(student.getId());
         model.addAttribute("courses", cours);
+        model.addAttribute("totalCourses", cours.size());
         return "courses/student-course-list";
     }
 
@@ -89,14 +99,24 @@ public class StudentCourseController {
             model.addAttribute("resources", resources);
             model.addAttribute("resourceCount", resources.size());
 
+            // QCM (si implémenté)
+            // IDs des ressources consultées + compteur de progression
+            Set<Long> consultedIds = consultationService.getConsultedResourceIds(student.getId(), courseId);
+            long consultedCount = consultationService.countConsulted(student.getId(), courseId);
+            model.addAttribute("consultedResourceIds", consultedIds);
+            model.addAttribute("consultedCount", consultedCount);
+
+            // Statut cours terminé
+            boolean isCourseCompleted = completionService.isCompleted(student.getId(), courseId);
+            model.addAttribute("isCourseCompleted", isCourseCompleted);
+
             // Devoirs
-            List<Assignment> assignments = studentAssignmentService.getAssignmentsForStudentByCourse(
-                    student.getId(), courseId
-            );
+            List<Assignment> assignments = studentAssignmentService
+                    .getAssignmentsForStudentByCourse(student.getId(), courseId);
             model.addAttribute("assignments", assignments);
             model.addAttribute("assignmentCount", assignments.size());
 
-            // QCM (si implémenté)
+            // QCM
             List<Qcm> qcms = courseAccessService.getQcms(courseId);
             model.addAttribute("qcms", qcms);
             model.addAttribute("qcmCount", qcms != null ? qcms.size() : 0);
@@ -116,6 +136,34 @@ public class StudentCourseController {
     /**
      * Télécharger une ressource
      */
+    // MARQUEUR COURS TERMINÉ
+    // ========================================
+
+    @PostMapping("/{courseId}/toggle-completion")
+    public String toggleCompletion(@PathVariable Long courseId,
+                                   Authentication auth,
+                                   RedirectAttributes ra) {
+        try {
+            User student = userService.findByEmail(auth.getName());
+            boolean isNowCompleted = completionService.toggleCompletion(student.getId(), courseId);
+
+            if (isNowCompleted) {
+                ra.addFlashAttribute("completionSuccess",
+                        "Bravo ! Tu as marqué ce cours comme terminé. Tu peux y revenir quand tu veux. 🎉");
+            } else {
+                ra.addFlashAttribute("completionInfo",
+                        "Statut réinitialisé. Continue à ton rythme !");
+            }
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Erreur : " + e.getMessage());
+        }
+        return "redirect:/student/courses/" + courseId;
+    }
+
+    // ========================================
+    // RESSOURCES — TÉLÉCHARGEMENT (avec log)
+    // ========================================
+
     @GetMapping("/{courseId}/resources/{resourceId}/download")
     public String downloadResource(@PathVariable Long courseId,
                                    @PathVariable Long resourceId,
@@ -130,16 +178,17 @@ public class StudentCourseController {
                 return "redirect:/student/courses";
             }
 
-            // Récupérer l'URL de la ressource
+            // Vérifier que la ressource appartient au bon cours
             CourseRessource resource = coursService.getResourceById(resourceId);
 
-            // Vérifier que la ressource appartient au bon cours
             if (!resource.getCourse().getId().equals(courseId)) {
                 ra.addFlashAttribute("error", "Ressource invalide");
                 return "redirect:/student/courses/" + courseId;
             }
 
             // Rediriger vers l'URL S3
+            consultationService.markAsConsulted(resourceId, student);
+
             return "redirect:" + resource.getUrl();
 
         } catch (Exception e) {
@@ -168,6 +217,8 @@ public class StudentCourseController {
             CourseRessource resource = coursService.getResourceById(resourceId);
             Cours course = coursService.getById(courseId);
 
+            consultationService.markAsConsulted(resourceId, student);
+
             model.addAttribute("course", course);
             model.addAttribute("resource", resource);
 
@@ -186,6 +237,9 @@ public class StudentCourseController {
     /**
      * Liste des séances d'un cours
      */
+    // SÉANCES
+    // ========================================
+
     @GetMapping("/{courseId}/sessions")
     public String sessions(@PathVariable Long courseId,
                            Authentication auth,
@@ -206,6 +260,7 @@ public class StudentCourseController {
 
             model.addAttribute("course", course);
             // model.addAttribute("sessions", sessions);
+            model.addAttribute("course", course);
 
             return "courses/student-course-sessions";
 

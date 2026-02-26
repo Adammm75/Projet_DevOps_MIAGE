@@ -8,5 +8,6 @@ import java.util.List;
 
 public interface CoursClassRepository extends JpaRepository<CoursClass, CoursClassId> {
     List<CoursClass> findByClasseId(Long classeId);
+    List<CoursClass> findByCoursId(Long coursId); // ✅ AJOUTÉ
     boolean existsByCoursIdAndClasseId(Long coursId, Long classeId);
 }

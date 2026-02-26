@@ -11,6 +11,8 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -57,5 +59,7 @@ public class Assignment {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    // ❌ PAS de updatedAt
+    // ✅ AJOUT DE LA RELATION AVEC LES SOUMISSIONS
+    @OneToMany(mappedBy = "assignment", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AssignmentSubmission> submissions = new ArrayList<>();
 }

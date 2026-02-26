@@ -366,7 +366,7 @@ public class QcmService {
         QcmRepons reponse = new QcmRepons();
         reponse.setTentative(tentative);
         reponse.setQuestion(question);
-        reponse.setOption(option);
+        reponse.setOptionChoisie(option);
         reponse.setEstCorrecte(option.getEstCorrecte());
         reponse.setPointsObtenus(option.getEstCorrecte() ? question.getPoints() : BigDecimal.ZERO);
 

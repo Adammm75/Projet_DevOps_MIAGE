@@ -19,6 +19,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
+    private final CoursRepository coursRepository; // ✅ AJOUTÉ
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
@@ -117,9 +118,22 @@ public class UserService {
         if (principal == null) {
             throw new RuntimeException("Utilisateur non authentifié");
         }
-
         String email = principal.getName();
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé : " + email));
+    }
+
+    /**
+     * ✅ CORRIGÉ : utilise CoursRepository injecté + bonne méthode pour les étudiants
+     */
+    public List<Cours> getCoursesForUser(User user) {
+        boolean isTeacher = user.getUserRoles().stream()
+                .anyMatch(ur -> ur.getRole().getName().equals("ROLE_TEACHER"));
+
+        if (isTeacher) {
+            return coursRepository.findByCreatedBy(user);
+        } else {
+            return coursRepository.findCoursesForStudent(user.getId()); // ✅ bonne méthode
+        }
     }
 }

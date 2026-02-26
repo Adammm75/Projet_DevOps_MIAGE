@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+<body>
+
+<!-- Header -->
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2 class="mb-0 fw-bold">
+            <i class="bi bi-graph-up-arrow me-2 text-primary"></i>Mon avancement
+        </h2>
+        <p class="text-muted mb-0">
+            Bonjour <strong th:text="${student.firstName}">Étudiant</strong> —
+            voici ta progression complète : ressources, devoirs, notes et QCM.
+        </p>
+    </div>
+    <div class="col-auto">
+        <a th:href="@{/student/courses}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-book me-1"></i>Mes cours
+        </a>
+    </div>
+</div>
+
+<!-- Cards résumé -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="card-body p-2">
+                <div class="display-6 fw-bold text-primary" th:text="${globalPercent} + '%'">0%</div>
+                <div class="text-muted small mt-1">Progression globale</div>
+                <div class="progress rounded-pill mt-2" style="height:5px;">
+                    <div class="progress-bar bg-primary rounded-pill"
+                         th:style="'width:' + ${globalPercent} + '%'"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="card-body p-2">
+                <div class="display-6 fw-bold text-success"
+                     th:text="${globalAverage != null} ? ${#numbers.formatDecimal(globalAverage, 1, 2)} + '/20' : 'N/A'">
+                </div>
+                <div class="text-muted small mt-1">Moyenne générale</div>
+                <i class="bi bi-trophy-fill text-warning mt-1 d-block"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="card-body p-2">
+                <div class="display-6 fw-bold text-info" th:text="${coursesCompleted}">0</div>
+                <div class="text-muted small mt-1">Cours terminés</div>
+                <i class="bi bi-patch-check-fill text-success mt-1 d-block"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="card-body p-2">
+                <div class="display-6 fw-bold text-warning" th:text="${coursesInProgress}">0</div>
+                <div class="text-muted small mt-1">En cours</div>
+                <i class="bi bi-hourglass-split text-warning mt-1 d-block"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="card-body p-2">
+                <div class="display-6 fw-bold text-secondary" th:text="${coursesNotStarted}">0</div>
+                <div class="text-muted small mt-1">Non commencés</div>
+                <i class="bi bi-circle text-secondary mt-1 d-block"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm text-center py-3"
+             th:classappend="${totalLate > 0} ? 'border-danger border-opacity-50' : ''">
+            <div class="card-body p-2">
+                <div class="display-6 fw-bold"
+                     th:classappend="${totalLate > 0} ? 'text-danger' : 'text-success'"
+                     th:text="${totalLate}">0</div>
+                <div class="text-muted small mt-1">Devoirs en retard</div>
+                <i class="bi mt-1 d-block"
+                   th:classappend="${totalLate > 0} ? 'bi-exclamation-triangle-fill text-danger' : 'bi-check-circle-fill text-success'"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Progression par cours -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom py-3">
+        <h5 class="mb-0 fw-bold">
+            <i class="bi bi-bar-chart-line me-2 text-primary"></i>Détail par cours
+        </h5>
+    </div>
+    <div class="card-body p-0">
+
+        <div th:if="${progressions == null || #lists.isEmpty(progressions)}" class="text-center py-5">
+            <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
+            <p class="text-muted">Aucun cours accessible pour le moment.</p>
+        </div>
+
+        <div th:each="p : ${progressions}" class="p-4 border-bottom">
+            <div class="row align-items-start g-3">
+
+                <!-- Infos cours + statut -->
+                <div class="col-md-3">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                             th:classappend="${p.courseCompleted} ? 'bg-success bg-opacity-10' : (${p.progressPercent >= 50} ? 'bg-primary bg-opacity-10' : 'bg-secondary bg-opacity-10')"
+                             style="width:46px;height:46px;">
+                            <i class="bi fs-4"
+                               th:classappend="${p.courseCompleted} ? 'bi-patch-check-fill text-success' : (${p.progressPercent >= 50} ? 'bi-book-fill text-primary' : 'bi-book text-secondary')"></i>
+                        </div>
+                        <div>
+                            <div class="fw-semibold">
+                                <span class="badge bg-primary me-1" th:text="${p.course.code}">CODE</span>
+                            </div>
+                            <div class="small" th:text="${p.course.title}">Titre</div>
+                        </div>
+                    </div>
+                    <!-- Badge statut -->
+                    <span th:if="${p.courseCompleted}" class="badge bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-check-circle me-1"></i>Terminé
+                    </span>
+                    <span th:unless="${p.courseCompleted}" class="badge bg-secondary bg-opacity-10 text-secondary"
+                          th:text="${p.progressPercent >= 50} ? 'Bonne progression' : (${p.progressPercent > 0} ? 'En cours' : 'Non commencé')">
+                    </span>
+                </div>
+
+                <!-- Barre progression + message -->
+                <div class="col-md-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small class="text-muted fw-semibold">Progression</small>
+                        <small class="fw-bold"
+                               th:classappend="${p.progressPercent >= 75} ? 'text-success' : (${p.progressPercent >= 40} ? 'text-primary' : 'text-secondary')"
+                               th:text="${p.progressPercent} + '%'">0%</small>
+                    </div>
+                    <div class="progress rounded-pill mb-2" style="height:10px;">
+                        <div class="progress-bar rounded-pill"
+                             th:classappend="${p.progressPercent >= 75} ? 'bg-success' : (${p.progressPercent >= 40} ? 'bg-primary' : (${p.progressPercent > 0} ? 'bg-warning' : 'bg-secondary'))"
+                             th:style="'width:' + ${p.progressPercent} + '%'">
+                        </div>
+                    </div>
+                    <small class="text-muted fst-italic" th:text="${p.motivationMessage}"></small>
+                </div>
+
+                <!-- Note du cours -->
+                <div class="col-md-2 text-center">
+                    <div class="small text-muted mb-1 fw-semibold">Note du cours</div>
+                    <div th:if="${p.courseGrade != null}">
+                        <span class="fs-4 fw-bold"
+                              th:classappend="${p.courseGrade.doubleValue() >= 10} ? 'text-success' : 'text-danger'"
+                              th:text="${#numbers.formatDecimal(p.courseGrade, 1, 2)}">-</span>
+                        <span class="text-muted">/20</span>
+                        <div class="mt-1">
+                            <span class="badge"
+                                  th:classappend="${p.mention == 'TB'} ? 'bg-success' : (${p.mention == 'B' || p.mention == 'AB'} ? 'bg-primary' : (${p.mention == 'P'} ? 'bg-warning text-dark' : 'bg-danger'))"
+                                  th:text="${p.mention}">-</span>
+                        </div>
+                    </div>
+                    <div th:unless="${p.courseGrade != null}" class="text-muted fst-italic small">
+                        Pas encore notée
+                    </div>
+                </div>
+
+                <!-- Indicateurs détaillés -->
+                <div class="col-md-3">
+                    <div class="row g-2 text-center">
+                        <div class="col-4">
+                            <div class="rounded-2 p-2 bg-info bg-opacity-10">
+                                <i class="bi bi-eye text-info small d-block"></i>
+                                <div class="fw-bold text-info small"
+                                     th:text="${p.consultedResources} + '/' + ${p.totalResources}">0/0</div>
+                                <div class="text-muted" style="font-size:0.65rem;">Ressources</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="rounded-2 p-2"
+                                 th:classappend="${p.lateAssignments > 0} ? 'bg-danger bg-opacity-10' : 'bg-warning bg-opacity-10'">
+                                <i class="bi small d-block"
+                                   th:classappend="${p.lateAssignments > 0} ? 'bi-exclamation-triangle text-danger' : 'bi-file-earmark-text text-warning'"></i>
+                                <div class="fw-bold small"
+                                     th:classappend="${p.lateAssignments > 0} ? 'text-danger' : 'text-warning'"
+                                     th:text="${p.submittedAssignments} + '/' + ${p.totalAssignments}">0/0</div>
+                                <div class="text-muted" style="font-size:0.65rem;">Devoirs</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="rounded-2 p-2 bg-success bg-opacity-10">
+                                <i class="bi bi-question-circle text-success small d-block"></i>
+                                <div class="fw-bold text-success small"
+                                     th:text="${p.completedQcm} + '/' + ${p.totalQcm}">0/0</div>
+                                <div class="text-muted" style="font-size:0.65rem;">QCM</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Alerte retard -->
+                    <div th:if="${p.lateAssignments > 0}"
+                         class="alert alert-danger py-1 px-2 mt-2 mb-0 small">
+                        <i class="bi bi-alarm me-1"></i>
+                        <span th:text="${p.lateAssignments} + ' devoir(s) en retard'"></span>
+                    </div>
+                </div>
+
+                <!-- Action -->
+                <div class="col-md-1 text-end">
+                    <a th:href="@{/student/courses/{id}(id=${p.course.id})}"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

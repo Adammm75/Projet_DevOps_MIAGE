@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+<body>
+
+<!-- Header -->
+<div class="row mb-4 align-items-center">
+    <div class="col-auto">
+        <a th:href="@{/teacher/students}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </a>
+    </div>
+    <div class="col">
+        <h2 class="mb-0 fw-bold">
+            <i class="bi bi-person-lines-fill me-2 text-primary"></i>
+            Fiche étudiant
+        </h2>
+        <p class="text-muted mb-0"
+           th:text="${student.firstName + ' ' + student.lastName}">Nom</p>
+    </div>
+</div>
+
+<!-- Carte identité étudiant -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-auto">
+                <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
+                     style="width:72px;height:72px;">
+                    <span class="text-primary fw-bold fs-3"
+                          th:text="${#strings.substring(student.firstName,0,1) + #strings.substring(student.lastName,0,1)}">
+                    </span>
+                </div>
+            </div>
+            <div class="col">
+                <h4 class="mb-1 fw-bold"
+                    th:text="${student.firstName + ' ' + student.lastName}">Nom</h4>
+                <p class="text-muted mb-1">
+                    <i class="bi bi-envelope me-2"></i>
+                    <span th:text="${student.email}">email</span>
+                </p>
+                <p class="text-muted mb-0" th:if="${student.phone != null}">
+                    <i class="bi bi-telephone me-2"></i>
+                    <span th:text="${student.phone}">téléphone</span>
+                </p>
+            </div>
+            <div class="col-auto text-end">
+                <div class="row g-3">
+                    <div class="col text-center">
+                        <div class="fs-3 fw-bold text-primary" th:text="${totalSubmitted}">0</div>
+                        <div class="text-muted small">Devoirs rendus</div>
+                    </div>
+                    <div class="col text-center">
+                        <div class="fs-3 fw-bold text-success" th:text="${totalGraded}">0</div>
+                        <div class="text-muted small">Devoirs notés</div>
+                    </div>
+                    <div class="col text-center">
+                        <div th:if="${globalAvg != null}"
+                             class="fs-3 fw-bold"
+                             th:classappend="${globalAvg.doubleValue() >= 10} ? 'text-success' : 'text-danger'"
+                             th:text="${#numbers.formatDecimal(globalAvg, 1, 2)} + '/20'">-</div>
+                        <div th:unless="${globalAvg != null}"
+                             class="fs-3 fw-bold text-muted">N/A</div>
+                        <div class="text-muted small">Moyenne générale</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Détail par cours -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom py-3">
+        <h5 class="mb-0 fw-bold">
+            <i class="bi bi-book me-2 text-primary"></i>Détail par cours
+        </h5>
+    </div>
+    <div class="card-body p-0">
+
+        <div th:if="${courseDetails == null || #lists.isEmpty(courseDetails)}"
+             class="text-center py-5 text-muted">
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+            <p>Cet étudiant n'est inscrit à aucun de vos cours.</p>
+        </div>
+
+        <div th:each="cd : ${courseDetails}" class="p-4 border-bottom">
+            <div class="row align-items-center g-3">
+
+                <!-- Cours -->
+                <div class="col-md-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center flex-shrink-0"
+                             style="width:40px;height:40px;">
+                            <i class="bi bi-book-fill text-primary"></i>
+                        </div>
+                        <div>
+                            <span class="badge bg-primary me-1" th:text="${cd.course.code}">CODE</span>
+                            <div class="small fw-semibold" th:text="${cd.course.title}">Titre</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Devoirs -->
+                <div class="col-md-3 text-center">
+                    <div class="small text-muted mb-1 fw-semibold">Devoirs</div>
+                    <div class="d-flex justify-content-center gap-3">
+                        <div>
+                            <div class="fw-bold text-success"
+                                 th:text="${cd.submittedAssignments} + '/' + ${cd.totalAssignments}">0/0</div>
+                            <div class="text-muted" style="font-size:0.7rem;">rendus</div>
+                        </div>
+                        <div th:if="${cd.lateAssignments > 0}">
+                            <div class="fw-bold text-danger" th:text="${cd.lateAssignments}">0</div>
+                            <div class="text-muted" style="font-size:0.7rem;">en retard</div>
+                        </div>
+                        <div th:if="${cd.missingAssignments > 0}">
+                            <div class="fw-bold text-warning" th:text="${cd.missingAssignments}">0</div>
+                            <div class="text-muted" style="font-size:0.7rem;">manquants</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progression devoirs -->
+                <div class="col-md-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small class="text-muted">Progression devoirs</small>
+                        <small class="fw-bold"
+                               th:text="${cd.totalAssignments > 0 ? #numbers.formatDecimal(cd.submittedAssignments * 100.0 / cd.totalAssignments, 1, 0) : 0} + '%'">0%</small>
+                    </div>
+                    <div class="progress rounded-pill" style="height:8px;">
+                        <div class="progress-bar rounded-pill bg-success"
+                             th:style="'width:' + ${cd.totalAssignments > 0 ? (cd.submittedAssignments * 100 / cd.totalAssignments) : 0} + '%'">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Note -->
+                <div class="col-md-2 text-center">
+                    <div class="small text-muted mb-1 fw-semibold">Note du cours</div>
+                    <span th:if="${cd.courseGrade != null}"
+                          class="badge fs-6"
+                          th:classappend="${cd.courseGrade.doubleValue() >= 10} ? 'bg-success' : 'bg-danger'"
+                          th:text="${#numbers.formatDecimal(cd.courseGrade, 1, 2)} + '/20'">
+                    </span>
+                    <span th:unless="${cd.courseGrade != null}"
+                          class="text-muted fst-italic small">Non noté</span>
+                </div>
+
+                <!-- Action -->
+                <div class="col-md-1 text-end">
+                    <a th:href="@{/teacher/courses/{id}(id=${cd.course.id})}"
+                       class="btn btn-sm btn-outline-primary" title="Voir le cours">
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

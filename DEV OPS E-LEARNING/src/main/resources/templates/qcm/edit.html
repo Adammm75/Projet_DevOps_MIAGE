@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: layout(~{::body})}">
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 <body>
 <nav aria-label="breadcrumb" class="mb-4">
@@ -39,6 +40,8 @@
                                     th:text="${c.code + ' - ' + c.title}"
                                     th:selected="${c.id == qcm.cours?.id}">Cours</option>
 =======
+=======
+>>>>>>> origin/base_du_projet_8
 <head>
     <title>Modifier le QCM</title>
 </head>
@@ -162,11 +165,15 @@
                                     th:text="${c.code + ' - ' + c.title}"
                                     th:selected="${c.id == qcm.cours?.id}">
                             </option>
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
                         </select>
                     </div>
 
                     <div class="mb-4">
+<<<<<<< HEAD
 <<<<<<< HEAD
                         <label for="titre" class="form-label"><strong>Titre *</strong></label>
                         <input type="text" class="form-control form-control-lg" id="titre" th:field="*{titre}" required>
@@ -265,6 +272,8 @@
                     <strong>Créé le:</strong>
                     <small th:text="${#temporals.format(qcm.dateCreation, 'dd/MM/yyyy')}">01/01/2024</small>
 =======
+=======
+>>>>>>> origin/base_du_projet_8
                         <label class="form-label fw-bold">Titre *</label>
                         <input type="text" class="form-control form-control-lg"
                                name="titre" th:value="${qcm.titre}" required>
@@ -357,11 +366,15 @@
                             <span th:if="${option.estCorrecte}" class="badge bg-success ms-auto">Bonne réponse</span>
                         </div>
                     </div>
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
                 </div>
             </div>
         </div>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         <div class="card mt-3 border-warning">
             <div class="card-body">
@@ -369,6 +382,8 @@
                 <p class="small mb-0">
                     Si des étudiants ont déjà passé ce QCM, la modification des questions ou réponses
 =======
+=======
+>>>>>>> origin/base_du_projet_8
         <!-- SIDEBAR -->
         <div class="col-lg-4">
             <div class="sidebar-card">
@@ -399,7 +414,10 @@
                 <h6 class="alert-heading"><i class="bi bi-exclamation-triangle me-2"></i>Attention</h6>
                 <p class="small mb-0">
                     Si des étudiants ont déjà passé ce QCM, la modification des questions
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
                     peut affecter les résultats enregistrés.
                 </p>
             </div>
@@ -408,7 +426,10 @@
 </div>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/base_du_projet_8
 <!-- MODAL AJOUT QUESTION -->
 <div class="modal fade" id="addQuestionModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -564,6 +585,9 @@
     }
 </script>
 
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
 </body>
 </html>

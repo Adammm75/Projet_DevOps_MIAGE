@@ -39,7 +39,11 @@
             <div class="card-body">
                 <form th:action="@{/teacher/assignments}" method="post">
 
+<<<<<<< HEAD
                     <!-- ✅ COURS PRÉ-SÉLECTIONNÉ (caché) -->
+=======
+                    <!-- COURS PRÉ-SÉLECTIONNÉ (caché) -->
+>>>>>>> origin/base_du_projet_8
                     <input type="hidden" name="courseId" th:value="${course.id}">
 
                     <!-- Affichage du cours sélectionné -->
@@ -88,6 +92,50 @@
 
                     <hr class="my-4">
 
+<<<<<<< HEAD
+=======
+                    <!-- ⭐ AFFECTATION AUX CLASSES -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <strong><i class="bi bi-people me-2"></i>Affecter aux classes</strong>
+                        </label>
+
+                        <div th:if="${classes == null || #lists.isEmpty(classes)}" class="alert alert-warning">
+                            <i class="bi bi-info-circle me-2"></i>Aucune classe disponible. Vous devez d'abord être affecté à des classes.
+                        </div>
+
+                        <div th:if="${classes != null && !#lists.isEmpty(classes)}">
+                            <p class="text-muted small mb-3">Sélectionnez les classes qui recevront ce devoir</p>
+
+                            <div class="row g-3">
+                                <div th:each="classe : ${classes}" class="col-md-6">
+                                    <div class="form-check p-3 border rounded" style="transition: all 0.3s;">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="classeIds"
+                                               th:value="${classe.id}"
+                                               th:id="'classe-' + ${classe.id}">
+                                        <label class="form-check-label w-100" th:for="'classe-' + ${classe.id}">
+                                            <strong th:text="${classe.nom}">Nom classe</strong>
+                                            <div class="small text-muted">
+                                                <span th:if="${classe.code != null}" th:text="${classe.code}">Code</span>
+                                                <span th:if="${classe.anneeUniversitaire != null}"> - </span>
+                                                <span th:if="${classe.anneeUniversitaire != null}" th:text="${classe.anneeUniversitaire}">2024-2025</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-text mt-3">
+                                <i class="bi bi-lightbulb me-1"></i>
+                                Vous pourrez modifier ces affectations après la création
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+>>>>>>> origin/base_du_projet_8
                     <!-- Date limite et Note max -->
                     <div class="row">
                         <div class="col-md-6 mb-4">
@@ -156,29 +204,48 @@
                     <li>Indiquez le sujet principal</li>
                 </ul>
 
+<<<<<<< HEAD
+=======
+                <h6 class="mb-3">Classes</h6>
+                <ul class="small mb-4">
+                    <li>Sélectionnez les classes concernées par ce devoir</li>
+                    <li>Seuls les étudiants des classes sélectionnées verront le devoir</li>
+                </ul>
+
+>>>>>>> origin/base_du_projet_8
                 <h6 class="mb-3">Description</h6>
                 <ul class="small mb-4">
                     <li>Définissez clairement les objectifs d'apprentissage</li>
                     <li>Listez les livrables attendus</li>
                     <li>Précisez les critères d'évaluation</li>
+<<<<<<< HEAD
                     <li>Indiquez les ressources recommandées</li>
+=======
+>>>>>>> origin/base_du_projet_8
                 </ul>
 
                 <h6 class="mb-3">Date limite</h6>
                 <ul class="small mb-4">
                     <li>Donnez suffisamment de temps aux étudiants</li>
                     <li>Évitez les périodes d'examens</li>
+<<<<<<< HEAD
                     <li>Communiquez la date en avance</li>
+=======
+>>>>>>> origin/base_du_projet_8
                 </ul>
 
                 <h6 class="mb-3">Notation</h6>
                 <ul class="small mb-0">
                     <li>Utilisez un barème cohérent</li>
+<<<<<<< HEAD
                     <li>Préparez une grille d'évaluation</li>
+=======
+>>>>>>> origin/base_du_projet_8
                     <li>Prévoyez des critères objectifs</li>
                 </ul>
             </div>
         </div>
+<<<<<<< HEAD
 
         <div class="card mt-3 border-warning">
             <div class="card-body">
@@ -195,6 +262,12 @@
 </div>
 
 <!-- ✅ Script pour définir la date minimale à maintenant -->
+=======
+    </div>
+</div>
+
+<!-- Script pour définir la date minimale à maintenant -->
+>>>>>>> origin/base_du_projet_8
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const dueDateInput = document.getElementById('dueDate');
@@ -215,4 +288,8 @@
 </script>
 
 </body>
+<<<<<<< HEAD
 </html>
+=======
+</html>
+>>>>>>> origin/base_du_projet_8

@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: layout(~{::body})}">
+<<<<<<< HEAD
 
 <body>
 <<<<<<< HEAD
+=======
+<body>
+
+>>>>>>> origin/base_du_projet_8
 <!-- Breadcrumb -->
 <nav aria-label="breadcrumb" class="mb-4">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a th:href="@{/student/courses}">Mes cours</a></li>
+<<<<<<< HEAD
 =======
 
 <!-- Breadcrumb -->
@@ -17,21 +23,31 @@
             <a th:href="@{/student/courses}">Mes cours</a>
         </li>
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
         <li class="breadcrumb-item active" th:text="${course.code}">CODE</li>
     </ol>
 </nav>
 
 <!-- En-tête du cours -->
+<<<<<<< HEAD
 <div class="card mb-4 border-primary">
+=======
+<div class="card mb-4 border-0 shadow-sm">
+>>>>>>> origin/base_du_projet_8
     <div class="card-body">
         <div class="row align-items-center">
             <div class="col-md-8">
                 <div class="d-flex align-items-center mb-2">
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/base_du_projet_8
                     <span class="badge bg-primary fs-5 me-3" th:text="${course.code}">CODE</span>
                     <h3 class="mb-0" th:text="${course.title}">Titre du cours</h3>
                 </div>
                 <p class="text-muted mb-0" th:text="${course.description}">Description du cours</p>
+<<<<<<< HEAD
 =======
                     <span class="badge bg-primary fs-5 me-3"
                           th:text="${course.code}">CODE</span>
@@ -41,6 +57,8 @@
                 <p class="text-muted mb-0"
                    th:text="${course.description}">Description</p>
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
             </div>
             <div class="col-md-4 text-end">
                 <div class="mb-2">
@@ -51,16 +69,24 @@
                     </strong>
                 </div>
 <<<<<<< HEAD
+<<<<<<< HEAD
                 <a th:href="@{/messages/compose(recipientId=${course.createdBy?.id})}" class="btn btn-outline-primary btn-sm">
                     <i class="bi bi-envelope me-2"></i>Contacter l'enseignant
                 </a>
 =======
 >>>>>>> origin/base_du_projet_4
+=======
+                <a th:href="@{/messages/compose(recipientId=${course.createdBy?.id})}"
+                   class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-envelope me-2"></i>Contacter l'enseignant
+                </a>
+>>>>>>> origin/base_du_projet_8
             </div>
         </div>
     </div>
 </div>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <!-- Tabs de navigation -->
 <ul class="nav nav-tabs mb-4" id="courseTabs" role="tablist">
@@ -136,11 +162,130 @@
                 data-bs-target="#grades"
                 type="button">
 >>>>>>> origin/base_du_projet_4
+=======
+<!-- ✅ MARQUEUR COURS TERMINÉ (NOUVEAU) -->
+<!-- Message flash bravo -->
+<div th:if="${completionSuccess}" class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+    <i class="bi bi-trophy-fill me-2 text-warning"></i>
+    <span th:text="${completionSuccess}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<div th:if="${completionInfo}" class="alert alert-info alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+    <i class="bi bi-info-circle me-2"></i>
+    <span th:text="${completionInfo}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<!-- Bouton toggle terminé -->
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-body py-3 d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 th:classappend="${isCourseCompleted} ? 'bg-success bg-opacity-10' : 'bg-secondary bg-opacity-10'"
+                 style="width:48px;height:48px;">
+                <i class="bi fs-4"
+                   th:classappend="${isCourseCompleted} ? 'bi-patch-check-fill text-success' : 'bi-hourglass-split text-secondary'"></i>
+            </div>
+            <div>
+                <div class="fw-semibold"
+                     th:text="${isCourseCompleted} ? 'Cours terminé ✓' : 'En cours d\'apprentissage'">Statut</div>
+                <small class="text-muted"
+                       th:text="${isCourseCompleted} ? 'Tu as déclaré avoir terminé ce cours.' : 'Marque ce cours comme terminé quand tu te sens prêt(e).'">
+                </small>
+            </div>
+        </div>
+        <form th:action="@{/student/courses/{id}/toggle-completion(id=${course.id})}" method="post">
+            <button type="submit"
+                    th:classappend="${isCourseCompleted} ? 'btn-outline-secondary' : 'btn-success'"
+                    class="btn">
+                <i class="bi me-2"
+                   th:classappend="${isCourseCompleted} ? 'bi-arrow-counterclockwise' : 'bi-check-circle-fill'"></i>
+                <span th:text="${isCourseCompleted} ? 'Annuler le statut terminé' : 'Marquer ce cours comme terminé'">Action</span>
+            </button>
+        </form>
+    </div>
+</div>
+
+
+<!-- ✅ PROGRESSION DES RESSOURCES (NOUVEAU) -->
+<div class="card mb-4 border-0 shadow-sm"
+     th:if="${resourceCount != null && resourceCount > 0}">
+    <div class="card-body py-3">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
+                     style="width:48px;height:48px;">
+                    <i class="bi bi-book-half text-primary fs-4"></i>
+                </div>
+                <div>
+                    <div class="fw-semibold">Progression des ressources</div>
+                    <small class="text-muted">
+                        <span class="fw-bold text-primary" th:text="${consultedCount}">0</span>
+                        ressource(s) consultée(s) sur
+                        <span class="fw-bold" th:text="${resourceCount}">0</span>
+                    </small>
+                </div>
+            </div>
+            <!-- Badge de complétion -->
+            <div>
+                <span th:if="${consultedCount == resourceCount && resourceCount > 0}"
+                      class="badge bg-success fs-6 px-3 py-2">
+                    <i class="bi bi-check-circle me-1"></i>Tout consulté !
+                </span>
+                <span th:unless="${consultedCount == resourceCount && resourceCount > 0}"
+                      class="badge bg-warning text-dark fs-6 px-3 py-2"
+                      th:text="${resourceCount - consultedCount} + ' restante(s)'">
+                    X restante(s)
+                </span>
+            </div>
+        </div>
+
+        <!-- Barre de progression -->
+        <div class="mt-3">
+            <div class="progress rounded-pill" style="height:10px;">
+                <div class="progress-bar bg-primary rounded-pill"
+                     role="progressbar"
+                     th:style="'width: ' + ${resourceCount > 0 ? (consultedCount * 100 / resourceCount) : 0} + '%'"
+                     th:attr="aria-valuenow=${consultedCount}, aria-valuemax=${resourceCount}">
+                </div>
+            </div>
+            <div class="text-end mt-1">
+                <small class="text-muted fw-semibold"
+                       th:text="${resourceCount > 0 ? #numbers.formatDecimal(consultedCount * 100 / resourceCount, 1, 0) : 0} + '%'">
+                    0%
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs de navigation -->
+<ul class="nav nav-tabs mb-4" id="courseTabs" role="tablist">
+    <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#resources">
+            <i class="bi bi-folder me-2"></i>Ressources
+            <span class="badge bg-secondary ms-1" th:text="${resourceCount}">0</span>
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#assignments">
+            <i class="bi bi-file-earmark-text me-2"></i>Devoirs
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#qcm">
+            <i class="bi bi-question-circle me-2"></i>QCM
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#grades">
+>>>>>>> origin/base_du_projet_8
             <i class="bi bi-graph-up me-2"></i>Notes
         </button>
     </li>
 </ul>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <!-- ===================================================== -->
 <!-- MODE APPRENDRE À MON RYTHME -->
@@ -290,24 +435,110 @@
                         <strong th:text="${r.title}">Titre</strong>
 >>>>>>> origin/base_du_projet_4
                     </a>
+=======
+<!-- Contenu des tabs -->
+<div class="tab-content">
+
+    <!-- ============ RESSOURCES ============ -->
+    <div class="tab-pane fade show active" id="resources">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-folder-fill me-2 text-primary"></i>Ressources pédagogiques
+                </h5>
+            </div>
+            <div class="card-body p-0">
+
+                <div th:if="${resources == null || #lists.isEmpty(resources)}"
+                     class="text-center py-5">
+                    <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
+                    <p class="text-muted mb-0">Aucune ressource disponible</p>
+                </div>
+
+                <div class="list-group list-group-flush">
+                    <div th:each="r : ${resources}" class="list-group-item list-group-item-action px-4 py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+
+                            <!-- Icône + infos -->
+                            <div class="d-flex align-items-center gap-3">
+
+                                <!-- ✅ Indicateur consulté/non consulté -->
+                                <div class="position-relative">
+                                    <i class="bi fs-2" th:classappend="${r.type == 'PDF'} ? 'bi-file-pdf text-danger' : (${r.type == 'WORD'} ? 'bi-file-word text-primary' : (${r.type == 'PPT'} ? 'bi-file-ppt text-warning' : (${r.type == 'AUDIO'} ? 'bi-file-music text-success' : 'bi-file-earmark text-secondary')))"></i>
+                                    <!-- Badge vert si consulté -->
+                                    <span th:if="${consultedResourceIds != null && consultedResourceIds.contains(r.id)}"
+                                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success"
+                                          style="font-size:0.6rem; padding:3px 5px;">
+                                        <i class="bi bi-check"></i>
+                                    </span>
+                                </div>
+
+                                <div>
+                                    <h6 class="mb-0 fw-semibold" th:text="${r.title}">Titre</h6>
+                                    <small class="text-muted" th:text="${r.description}">Description</small>
+                                    <div class="mt-1">
+                                        <!-- ✅ Label consulté / non consulté -->
+                                        <span th:if="${consultedResourceIds != null && consultedResourceIds.contains(r.id)}"
+                                              class="badge bg-success bg-opacity-10 text-success">
+                                            <i class="bi bi-check-circle me-1"></i>Consultée
+                                        </span>
+                                        <span th:unless="${consultedResourceIds != null && consultedResourceIds.contains(r.id)}"
+                                              class="badge bg-secondary bg-opacity-10 text-secondary">
+                                            <i class="bi bi-circle me-1"></i>Non consultée
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-light text-secondary border" th:text="${r.type}">TYPE</span>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar me-1"></i>
+                                    <span th:text="${#temporals.format(r.createdAt, 'dd/MM/yyyy')}">01/01/2024</span>
+                                </small>
+                                <!-- Bouton → déclenche le log de consultation -->
+                                <a th:href="@{/student/courses/{cid}/resources/{rid}/download(cid=${course.id}, rid=${r.id})}"
+                                   class="btn btn-sm btn-outline-primary"
+                                   title="Ouvrir / Télécharger">
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+>>>>>>> origin/base_du_projet_8
                 </div>
             </div>
         </div>
     </div>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     <!-- DEVOIRS -->
     <div class="tab-pane fade" id="assignments" role="tabpanel">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Devoirs à rendre</h5>
+=======
+    <!-- ============ DEVOIRS ============ -->
+    <div class="tab-pane fade" id="assignments">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-file-earmark-text me-2 text-info"></i>Devoirs à rendre
+                </h5>
+>>>>>>> origin/base_du_projet_8
                 <a th:href="@{|/student/assignments/course/${course.id}|}" class="btn btn-sm btn-primary">
                     Voir tous les devoirs
                 </a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
+<<<<<<< HEAD
                     <table class="table table-hover mb-0">
+=======
+                    <table class="table table-hover align-middle mb-0">
+>>>>>>> origin/base_du_projet_8
                         <thead class="table-light">
                         <tr>
                             <th>Titre</th>
@@ -324,6 +555,7 @@
                                 <p class="text-muted mb-0">Aucun devoir à rendre</p>
                             </td>
                         </tr>
+<<<<<<< HEAD
 
                         <tr th:each="a : ${assignments}">
                             <td>
@@ -343,11 +575,22 @@
                                 <span th:text="${#temporals.format(a.dueDate, 'dd/MM/yyyy HH:mm')}">
                                     01/01/2024 23:59
                                 </span>
+=======
+                        <tr th:each="a : ${assignments}">
+                            <td>
+                                <strong th:text="${a.title}">Titre</strong>
+                                <p class="mb-0 small text-muted"
+                                   th:text="${a.description != null ? #strings.abbreviate(a.description, 60) : ''}"></p>
+                            </td>
+                            <td>
+                                <span th:text="${#temporals.format(a.dueDate, 'dd/MM/yyyy HH:mm')}">Date</span>
+>>>>>>> origin/base_du_projet_8
                                 <span class="badge bg-danger ms-2"
                                       th:if="${a.dueDate != null && #temporals.createNow().isAfter(a.dueDate)}">
                                     En retard
                                 </span>
                             </td>
+<<<<<<< HEAD
                             <td>
                                 <span th:text="${a.maxGrade}">20</span> pts
                             </td>
@@ -357,6 +600,15 @@
                             </td>
                             <td class="text-end">
                                 <a th:if="${!a.submitted}"
+=======
+                            <td><span th:text="${a.maxGrade}">20</span> pts</td>
+                            <td>
+                                <span th:if="${a.submitted}" class="badge bg-success">Rendu</span>
+                                <span th:unless="${a.submitted}" class="badge bg-warning text-dark">À rendre</span>
+                            </td>
+                            <td class="text-end">
+                                <a th:unless="${a.submitted}"
+>>>>>>> origin/base_du_projet_8
                                    th:href="@{|/student/assignments/${a.id}/submit|}"
                                    class="btn btn-sm btn-primary">
                                     <i class="bi bi-upload me-1"></i>Rendre
@@ -371,6 +623,7 @@
                         </tbody>
                     </table>
                 </div>
+<<<<<<< HEAD
 =======
     <!-- ================== RÉSUMÉ ================== -->
     <div class="tab-pane fade" id="summary">
@@ -389,10 +642,13 @@
                     Chargement du résumé...
                 </p>
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
             </div>
         </div>
     </div>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     <!-- QCM -->
     <div class="tab-pane fade" id="qcm" role="tabpanel">
@@ -412,6 +668,24 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <h6 class="mb-1" th:text="${q.titre}">Titre du QCM</h6>
+=======
+    <!-- ============ QCM ============ -->
+    <div class="tab-pane fade" id="qcm">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-question-circle me-2 text-warning"></i>Quiz disponibles</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div th:if="${qcms == null || #lists.isEmpty(qcms)}" class="list-group-item text-center py-5">
+                        <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
+                        <p class="text-muted mb-0">Aucun QCM disponible</p>
+                    </div>
+                    <div th:each="q : ${qcms}" class="list-group-item px-4 py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1 fw-semibold" th:text="${q.titre}">Titre QCM</h6>
+>>>>>>> origin/base_du_projet_8
                                 <p class="mb-2 small text-muted" th:text="${q.description}">Description</p>
                                 <div class="d-flex gap-3">
                                     <small th:if="${q.limiteTempsMinutes != null}">
@@ -424,12 +698,18 @@
                                     </small>
                                 </div>
                             </div>
+<<<<<<< HEAD
                             <div>
                                 <a th:href="@{|/student/qcm/${q.id}/start|}"
                                    class="btn btn-success">
                                     <i class="bi bi-play-fill me-2"></i>Commencer
                                 </a>
                             </div>
+=======
+                            <a th:href="@{|/student/qcm/${q.id}/start|}" class="btn btn-success">
+                                <i class="bi bi-play-fill me-2"></i>Commencer
+                            </a>
+>>>>>>> origin/base_du_projet_8
                         </div>
                     </div>
                 </div>
@@ -437,6 +717,7 @@
         </div>
     </div>
 
+<<<<<<< HEAD
     <!-- NOTES -->
     <div class="tab-pane fade" id="grades" role="tabpanel">
         <div class="card">
@@ -450,10 +731,25 @@
                 </div>
 
                 <!-- Note finale si disponible -->
+=======
+    <!-- ============ NOTES ============ -->
+    <div class="tab-pane fade" id="grades">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-graph-up me-2 text-success"></i>Mes notes pour ce cours</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info border-0">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Consultez toutes vos notes dans la section
+                    <a th:href="@{/student/grades}">Mes Notes</a>
+                </div>
+>>>>>>> origin/base_du_projet_8
                 <div class="text-center py-4">
                     <h6 class="text-muted mb-2">Note finale</h6>
                     <div th:if="${courseGrade != null}">
                         <div class="display-4 fw-bold"
+<<<<<<< HEAD
                              th:classappend="${courseGrade >= 10} ? 'text-success' : 'text-danger'">
                             <span th:text="${#numbers.formatDecimal(courseGrade, 1, 2)}">0.00</span>/20
                         </div>
@@ -521,11 +817,21 @@
                     <div class="display-4 fw-bold text-muted">
                         --/20
 >>>>>>> origin/base_du_projet_4
+=======
+                             th:classappend="${courseGrade >= 10} ? 'text-success' : 'text-danger'"
+                             th:text="${#numbers.formatDecimal(courseGrade, 1, 2)} + '/20'">
+                        </div>
+                    </div>
+                    <div th:unless="${courseGrade != null}">
+                        <div class="display-4 fw-bold text-muted">--/20</div>
+                        <p class="text-muted mt-2">En cours de calcul</p>
+>>>>>>> origin/base_du_projet_8
                     </div>
                 </div>
             </div>
         </div>
     </div>
+<<<<<<< HEAD
 <<<<<<< HEAD
 </div>
 
@@ -600,5 +906,9 @@ function downloadSummaryPDF() {
 </script>
 
 >>>>>>> origin/base_du_projet_4
+=======
+</div>
+
+>>>>>>> origin/base_du_projet_8
 </body>
 </html>

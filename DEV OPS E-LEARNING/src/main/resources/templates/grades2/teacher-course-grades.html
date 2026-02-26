@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
 <<<<<<< HEAD
+<<<<<<< HEAD
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/base}">
 
@@ -219,6 +220,8 @@
                                 3/5
                             </span>
 =======
+=======
+>>>>>>> origin/base_du_projet_8
       th:replace="~{layout/base :: layout(~{::body})}">
 <body>
 
@@ -561,7 +564,10 @@
                         <td class="text-center px-3 py-2">
                             <span th:if="${sub.grade != null}" class="badge bg-success">Corrigé</span>
                             <span th:unless="${sub.grade != null}" class="badge bg-warning text-dark">En attente</span>
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
                         </td>
                     </tr>
                     </tbody>
@@ -570,6 +576,7 @@
         </div>
     </div>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 </div>
 
@@ -598,6 +605,8 @@
                         <i class="bi bi-check-circle me-1"></i>
                         Confirmer
 =======
+=======
+>>>>>>> origin/base_du_projet_8
     <!-- ===================== ONGLET QCM ===================== -->
     <div class="tab-pane fade p-4"
          th:classappend="${activeTab == 'qcm'} ? 'show active' : ''"
@@ -699,7 +708,10 @@
                 <form th:action="@{/teacher/grades/course/{id}/calculate(id=${cours.id})}" method="post">
                     <button type="submit" class="btn btn-success px-4 fw-semibold">
                         <i class="bi bi-check-circle me-1"></i>Confirmer
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
+=======
+>>>>>>> origin/base_du_projet_8
                     </button>
                 </form>
             </div>

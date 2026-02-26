@@ -50,17 +50,18 @@ public class User {
     @Column(name = "last_name", nullable = false, length = 100)
     private String lastName;
 
+    // ⭐ AJOUTÉ - Numéro de téléphone
+    @Size(max = 20)
+    @Column(name = "phone", length = 20)
+    private String phone;
+
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
-
-
-    @Size(max = 20)
-    @Column(name = "phone", length = 20)
-    private String phone;
     
     // 🔥 MÉTHODES HELPER RECOMMANDÉES
+    // 🔥 MÉTHODES HELPER
 
     /**
      * Vérifie si l'utilisateur a un rôle spécifique
@@ -79,5 +80,4 @@ public class User {
                 .map(UserRole::getRole)
                 .orElse(null);
     }
-
 }

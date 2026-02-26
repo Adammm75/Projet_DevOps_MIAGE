@@ -1,5 +1,6 @@
 package org.example.devopslearning.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -9,13 +10,18 @@ import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
 
+/**
+ * ✅ ENTITÉ COURS avec annotations Jackson pour JSON
+ */
 @Getter
 @Setter
 @Entity
 @Table(name = "courses")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Cours {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)  // ← AJOUTE CETTE LIGNE
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
@@ -36,6 +42,7 @@ public class Cours {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "created_by", nullable = false)
+    @JsonIgnoreProperties({"password", "courses", "createdCourses", "enrollments"})
     private User createdBy;
 
     @NotNull
@@ -45,5 +52,4 @@ public class Cours {
 
     @Column(name = "updated_at")
     private Instant updatedAt;
-
 }
