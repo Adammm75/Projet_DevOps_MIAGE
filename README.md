@@ -1,3 +1,7 @@
+![CI](https://github.com/Adammm75/Projet_DevOps_MIAGE/actions/workflows/ci.yml/badge.svg)
+![Docs](https://github.com/Adammm75/Projet_DevOps_MIAGE/actions/workflows/doc.yml/badge.svg)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+
 📘 FICHE TECHNIQUE — Plateforme d’E-Learning (Version Rédigée en Phrases)
 
 La plateforme d’e-learning a pour objectif de proposer une solution web moderne, innovante, modulaire et sécurisée. Elle repose sur une architecture complète combinant Spring Boot pour le backend, une API REST sécurisée, une base de données MySQL, la conteneurisation Docker et une interface utilisateur légère développée en HTML, CSS, JavaScript et Thymeleaf. L’ensemble est conçu pour être scalable, maintenable et facile à déployer.
