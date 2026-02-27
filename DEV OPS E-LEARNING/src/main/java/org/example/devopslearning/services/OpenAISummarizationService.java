@@ -32,7 +32,16 @@ public class OpenAISummarizationService {
             Map<String, Object> requestMap = new HashMap<>();
             requestMap.put("model", "gpt-3.5-turbo");
             requestMap.put("messages", new Object[] {
-                    Map.of("role", "user", "content", "Fais un résumé concis de ce texte : " + text)
+                    Map.of(
+                            "role", "user",
+                            "content",
+                            "Résume le texte suivant.\n" +
+                                    "Retourne STRICTEMENT en JSON avec ce format :\n" +
+                                    "{\n" +
+                                    "  \"title\": \"...\",\n" +
+                                    "  \"summary\": \"...\",\n" +
+                                    "  \"keywords\": [\"mot1\", \"mot2\", \"mot3\"]\n" +
+                                    "}\n\nTexte :\n" + text)
             });
 
             String requestBody = objectMapper.writeValueAsString(requestMap);
@@ -52,8 +61,13 @@ public class OpenAISummarizationService {
                 return "Erreur OpenAI : " + json.get("error").get("message").asText();
             }
 
-            // Format de réponse standard pour chat/completions
-            return json.get("choices").get(0).get("message").get("content").asText();
+            String content = json.get("choices")
+                    .get(0)
+                    .get("message")
+                    .get("content")
+                    .asText();
+
+            return content; // JSON string
 
         } catch (Exception e) {
             e.printStackTrace();
