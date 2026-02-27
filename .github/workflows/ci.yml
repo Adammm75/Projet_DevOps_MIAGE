@@ -16,13 +16,14 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Java
-        uses: actions/setup-java@v3
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
+          cache: gradle
 
       - name: Make gradlew executable
         run: chmod +x gradlew
@@ -30,14 +31,52 @@ jobs:
       - name: Start Docker services
         run: docker compose up -d
 
-      - name: Wait for containers to be ready
-        run: sleep 20
+      # ✅ Attente MySQL sans healthcheck (pas besoin de modifier docker-compose.yml)
+      - name: Wait for MySQL to accept connections
+        run: |
+          set -e
+          echo "Installing mysql client..."
+          sudo apt-get update
+          sudo apt-get install -y mysql-client
 
-      - name: Build project
-        run: ./gradlew build
+          echo "Waiting for MySQL on localhost:3307..."
+          for i in {1..60}; do
+            if mysql -h 127.0.0.1 -P 3307 -uroot -proot -e "SELECT 1" >/dev/null 2>&1; then
+              echo "MySQL is ready!"
+              exit 0
+            fi
+            echo "[$i/60] MySQL not ready yet..."
+            sleep 2
+          done
 
+          echo "MySQL did not become ready in time."
+          docker compose ps
+          docker compose logs --no-color --tail=200 mysql || true
+          exit 1
+
+      # ✅ build sans tests (sinon test s’exécute déjà et casse avant l’étape verbose)
+      - name: Build (skip tests)
+        run: ./gradlew build -x test
+
+      # ✅ tests verbose + variables DB (très important pour forcer la DB docker)
       - name: Run tests (verbose)
         run: ./gradlew test --stacktrace --info
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          SPRING_JPA_SHOW_SQL: "true"
+          LOGGING_LEVEL_ORG_HIBERNATE_SQL: "debug"
+          LOGGING_LEVEL_ORG_HIBERNATE_TYPE_DESCRIPTOR_SQL_BASICBINDER: "trace"
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3307/elearning?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: root
+          SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQL8Dialect
+
+      - name: Docker logs (on failure)
+        if: failure()
+        run: |
+          docker compose ps
+          docker compose logs --no-color --tail=300
 
       - name: Stop Docker services
-        run: docker compose down
+        if: always()
+        run: docker compose down -v
