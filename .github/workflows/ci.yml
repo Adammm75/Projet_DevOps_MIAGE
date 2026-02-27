@@ -15,7 +15,8 @@ jobs:
         working-directory: DEV OPS E-LEARNING
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Setup Java
         uses: actions/setup-java@v3
@@ -26,8 +27,17 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Build with Gradle
+      - name: Start Docker services
+        run: docker-compose up -d
+
+      - name: Wait for containers to be ready
+        run: sleep 20
+
+      - name: Build project
         run: ./gradlew build
 
-      - name: Run unit tests
+      - name: Run tests
         run: ./gradlew test
+
+      - name: Stop Docker services
+        run: docker-compose down
