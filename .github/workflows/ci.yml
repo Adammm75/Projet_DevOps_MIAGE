@@ -36,8 +36,8 @@ jobs:
       - name: Build project
         run: ./gradlew build
 
-      - name: Run tests
-        run: ./gradlew test
+      - name: Run tests (verbose)
+        run: ./gradlew test --stacktrace --info
 
       - name: Stop Docker services
         run: docker compose down
