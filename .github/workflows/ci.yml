@@ -28,7 +28,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Start Docker services
-        run: docker-compose up -d
+        run: docker compose up -d
 
       - name: Wait for containers to be ready
         run: sleep 20
@@ -40,4 +40,4 @@ jobs:
         run: ./gradlew test
 
       - name: Stop Docker services
-        run: docker-compose down
+        run: docker compose down
