@@ -1,5 +1,6 @@
 ![CI](https://github.com/Adammm75/Projet_DevOps_MIAGE/actions/workflows/ci.yml/badge.svg)
 ![Docs](https://github.com/Adammm75/Projet_DevOps_MIAGE/actions/workflows/doc.yml/badge.svg)
+[![Latest Release](https://img.shields.io/github/v/release/Adammm75/Projet_DevOps_MIAGE)](https://github.com/Adammm75/Projet_DevOps_MIAGE/releases)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 📘 FICHE TECHNIQUE — Plateforme d’E-Learning (Version Rédigée en Phrases)
