@@ -17,22 +17,18 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.UUID;
 
-/**
- * ✅ SERVICE CORRIGÉ : Orchestration des transcriptions audio
- * Utilise CourseResourceRepository et CourseRessource (unifiés)
- */
 @Service
 public class TranscriptionOrchestrationService {
 
     private final CoursRepository courseRepository;
-    private final CourseResourceRepository resourceRepository;  // ✅ CHANGÉ
+    private final CourseResourceRepository resourceRepository;
     private final S3Service s3Service;
     private final OpenAISummarizationService summarizationService;
     private final ObjectMapper mapper = new ObjectMapper();
 
     public TranscriptionOrchestrationService(
             CoursRepository courseRepository,
-            CourseResourceRepository resourceRepository,  // ✅ CHANGÉ
+            CourseResourceRepository resourceRepository,
             S3Service s3Service,
             OpenAISummarizationService summarizationService) {
         this.courseRepository = courseRepository;
@@ -41,9 +37,6 @@ public class TranscriptionOrchestrationService {
         this.summarizationService = summarizationService;
     }
 
-    /**
-     * ✅ Traite le payload webhook de Gladia
-     */
     @Transactional
     public void processGladiaPayload(GladiaWebhookDto p) {
         try {
@@ -54,8 +47,7 @@ public class TranscriptionOrchestrationService {
                 return courseRepository.save(c);
             });
 
-            // 2. Créer la ressource avec CourseRessource (entité unifiée)
-            CourseRessource r = new CourseRessource();  // ✅ CHANGÉ
+            CourseRessource r = new CourseRessource();
             r.setCourse(course);
             r.setType("AUDIO");
             r.setTitle(p.getTitle() != null ? p.getTitle()
@@ -70,7 +62,7 @@ public class TranscriptionOrchestrationService {
                 try (InputStream audioStream = downloadUrl(p.getAudioUrl())) {
                     String audioKey = "courses_" + course.getId() + "_" + UUID.randomUUID() + ".mp3";
                     String s3Audio = s3Service.upload(audioStream, audioKey);
-                    r.setS3AudioUrl(s3Audio);  // ✅ Utilise s3AudioUrl au lieu de s3audio_url
+                    r.setS3AudioUrl(s3Audio); // ✅ Utilise s3AudioUrl au lieu de s3audio_url
                 } catch (Exception e) {
                     System.err.println("Erreur upload audio S3: " + e.getMessage());
                 }
@@ -86,27 +78,23 @@ public class TranscriptionOrchestrationService {
                 }
             }
 
-            // 5. Traiter la transcription si disponible
             if (transcriptText != null && !transcriptText.isBlank()) {
                 r.setTranscript(transcriptText);
 
-                // Upload transcription vers S3
                 try {
                     String transcriptKey = "courses_" + course.getId() + "_" + UUID.randomUUID() + ".txt";
                     s3Service.upload(
                             new ByteArrayInputStream(transcriptText.getBytes(StandardCharsets.UTF_8)),
-                            transcriptKey
-                    );
+                            transcriptKey);
                 } catch (Exception e) {
                     System.err.println("Erreur upload transcription S3: " + e.getMessage());
                 }
 
-                // 6. Générer le résumé avec OpenAI
                 try {
                     String summary = summarizationService.summarize(transcriptText);
                     r.setSummary(summary);
-                    r.setKeywords(null);  // À implémenter plus tard si nécessaire
-                    r.setStructureJson(null);  // À implémenter plus tard si nécessaire
+                    r.setKeywords(null);
+                    r.setStructureJson(null);
                 } catch (Exception e) {
                     System.err.println("Erreur génération résumé OpenAI: " + e.getMessage());
                     r.setSummary("Erreur lors de la génération du résumé");
@@ -125,9 +113,6 @@ public class TranscriptionOrchestrationService {
         }
     }
 
-    /**
-     * ✅ Télécharge le contenu d'une URL
-     */
     private InputStream downloadUrl(String urlString) throws Exception {
         URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -143,9 +128,6 @@ public class TranscriptionOrchestrationService {
         return conn.getInputStream();
     }
 
-    /**
-     * ✅ Télécharge le contenu d'une URL en String
-     */
     private String downloadUrlAsString(String urlString) throws Exception {
         try (InputStream is = downloadUrl(urlString)) {
             return new String(is.readAllBytes(), StandardCharsets.UTF_8);

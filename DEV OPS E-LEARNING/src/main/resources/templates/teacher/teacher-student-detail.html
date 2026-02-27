@@ -18,6 +18,12 @@
         <p class="text-muted mb-0"
            th:text="${student.firstName + ' ' + student.lastName}">Nom</p>
     </div>
+    <div class="col-auto">
+        <a th:href="@{/teacher/students/{id}/comments(id=${student.id})}"
+           class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-chat-square-text me-2"></i>Commentaires pédagogiques
+        </a>
+    </div>
 </div>
 
 <!-- Carte identité étudiant -->

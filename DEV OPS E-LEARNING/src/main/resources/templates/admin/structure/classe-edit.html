@@ -2,16 +2,22 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: layout(~{::body})}">
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 <body>
 =======
 <body>
 
 >>>>>>> origin/base_du_projet_8
+=======
+<body>
+
+>>>>>>> origin/base_du_projet_10
 <div class="row mb-4">
     <div class="col">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
+<<<<<<< HEAD
 <<<<<<< HEAD
                 <li class="breadcrumb-item"><a th:href="@{/admin/structure}">Structure Pédagogique</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Modifier Classe</li>
@@ -20,6 +26,11 @@
                 <li class="breadcrumb-item"><a th:href="@{|/admin/structure/classes/${classe.id}|}">Détails</a></li>
                 <li class="breadcrumb-item active">Modifier</li>
 >>>>>>> origin/base_du_projet_8
+=======
+                <li class="breadcrumb-item"><a th:href="@{/templates/admin/structure}">Structure Pédagogique</a></li>
+                <li class="breadcrumb-item"><a th:href="@{|/admin/structure/classes/${classe.id}|}">Détails</a></li>
+                <li class="breadcrumb-item active">Modifier</li>
+>>>>>>> origin/base_du_projet_10
             </ol>
         </nav>
         <h2 class="mb-0">
@@ -36,6 +47,7 @@
             </div>
             <div class="card-body">
 <<<<<<< HEAD
+<<<<<<< HEAD
                 <form th:action="@{/admin/structure/classes/{id}/edit(id=${classe.id})}" method="post">
                     <div class="mb-3">
                         <label for="nom" class="form-label">Nom de la classe *</label>
@@ -47,16 +59,22 @@
                                placeholder="Ex: M1 MIAGE Groupe A"
                                required>
 =======
+=======
+>>>>>>> origin/base_du_projet_10
                 <form th:action="@{|/admin/structure/classes/${classe.id}/edit|}" method="post">
                     <div class="mb-3">
                         <label for="nom" class="form-label">Nom de la classe *</label>
                         <input type="text" class="form-control" id="nom" name="nom"
                                th:value="${classe.nom}" required>
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_8
+=======
+>>>>>>> origin/base_du_projet_10
                     </div>
 
                     <div class="mb-3">
                         <label for="code" class="form-label">Code</label>
+<<<<<<< HEAD
 <<<<<<< HEAD
                         <input type="text"
                                class="form-control"
@@ -73,6 +91,8 @@
                                 name="parcours.id"
                                 required>
 =======
+=======
+>>>>>>> origin/base_du_projet_10
                         <input type="text" class="form-control" id="code" name="code"
                                th:value="${classe.code}">
                     </div>
@@ -80,16 +100,23 @@
                     <div class="mb-3">
                         <label for="parcoursId" class="form-label">Parcours *</label>
                         <select class="form-select" id="parcoursId" name="parcoursId" required>
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_8
+=======
+>>>>>>> origin/base_du_projet_10
                             <option value="">-- Sélectionnez --</option>
                             <option th:each="p : ${parcoursList}"
                                     th:value="${p.id}"
                                     th:text="${p.nom}"
 <<<<<<< HEAD
+<<<<<<< HEAD
                                     th:selected="${classe.parcours != null && classe.parcours.id == p.id}">
 =======
                                     th:selected="${classe.parcours != null && p.id == classe.parcours.id}">
 >>>>>>> origin/base_du_projet_8
+=======
+                                    th:selected="${classe.parcours != null && p.id == classe.parcours.id}">
+>>>>>>> origin/base_du_projet_10
                                 Parcours
                             </option>
                         </select>
@@ -97,6 +124,7 @@
 
                     <div class="mb-3">
                         <label for="anneeUniversitaire" class="form-label">Année universitaire *</label>
+<<<<<<< HEAD
 <<<<<<< HEAD
                         <input type="text"
                                class="form-control"
@@ -107,28 +135,39 @@
                                pattern="\d{4}-\d{4}"
                                title="Format attendu: YYYY-YYYY (ex: 2024-2025)"
 =======
+=======
+>>>>>>> origin/base_du_projet_10
                         <input type="text" class="form-control" id="anneeUniversitaire"
                                name="anneeUniversitaire"
                                th:value="${classe.anneeUniversitaire}"
                                pattern="\d{4}-\d{4}"
                                title="Format: YYYY-YYYY"
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_8
+=======
+>>>>>>> origin/base_du_projet_10
                                required>
                         <div class="form-text">Format: YYYY-YYYY (ex: 2024-2025)</div>
                     </div>
 
                     <div class="d-flex gap-2">
 <<<<<<< HEAD
+<<<<<<< HEAD
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-circle me-2"></i>Enregistrer
                         </button>
                         <a th:href="@{/admin/structure}" class="btn btn-secondary">
 =======
+=======
+>>>>>>> origin/base_du_projet_10
                         <button type="submit" class="btn btn-success">
                             <i class="bi bi-check-circle me-2"></i>Enregistrer
                         </button>
                         <a th:href="@{|/admin/structure/classes/${classe.id}|}" class="btn btn-secondary">
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_8
+=======
+>>>>>>> origin/base_du_projet_10
                             <i class="bi bi-x-circle me-2"></i>Annuler
                         </a>
                     </div>
@@ -141,6 +180,7 @@
         <div class="card bg-light">
             <div class="card-body">
 <<<<<<< HEAD
+<<<<<<< HEAD
                 <h6 class="card-title">
                     <i class="bi bi-info-circle me-2"></i>Informations
                 </h6>
@@ -150,12 +190,17 @@
                     <li>Le code est optionnel</li>
                     <li>L'année universitaire doit suivre le format YYYY-YYYY</li>
 =======
+=======
+>>>>>>> origin/base_du_projet_10
                 <h6 class="card-title"><i class="bi bi-info-circle me-2"></i>Informations</h6>
                 <ul class="mb-0">
                     <li>ID de la classe: <strong th:text="${classe.id}">1</strong></li>
                     <li>Modifiez les informations de base</li>
                     <li>Pour gérer les étudiants et enseignants, retournez aux détails</li>
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_8
+=======
+>>>>>>> origin/base_du_projet_10
                 </ul>
             </div>
         </div>

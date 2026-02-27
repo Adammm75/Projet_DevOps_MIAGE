@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+<body>
+
+<!-- Header -->
+<div class="row mb-4 align-items-center">
+    <div class="col-auto">
+        <a th:href="@{/teacher/attendance}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Mes appels
+        </a>
+    </div>
+    <div class="col">
+        <h2 class="mb-0 fw-bold">
+            <i class="bi bi-clipboard-plus me-2 text-primary"></i>Nouvelle fiche d'appel
+        </h2>
+        <p class="text-muted mb-0">Créez une séance et faites l'appel de vos étudiants</p>
+    </div>
+</div>
+
+<!-- Flash -->
+<div th:if="${error}" class="alert alert-danger alert-dismissible fade show border-0 shadow-sm">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-pencil-square me-2 text-primary"></i>Informations de la séance
+                </h6>
+            </div>
+            <div class="card-body p-4">
+                <form th:action="@{/teacher/attendance/new}" method="post">
+
+                    <!-- ÉTAPE 1 : Choisir la classe -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-people me-1 text-primary"></i>Classe <span class="text-danger">*</span>
+                        </label>
+
+                        <div th:if="${teacherClasses == null || #lists.isEmpty(teacherClasses)}"
+                             class="alert alert-warning border-0">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Vous n'êtes affecté à aucune classe pour le moment.
+                        </div>
+
+                        <select id="classeSelect" class="form-select form-select-lg"
+                                onchange="filterCourses()"
+                                th:unless="${teacherClasses == null || #lists.isEmpty(teacherClasses)}">
+                            <option value="">-- Sélectionner une classe --</option>
+                            <option th:each="cl : ${teacherClasses}"
+                                    th:value="${cl.id}"
+                                    th:text="${cl.nom + (cl.code != null ? ' (' + cl.code + ')' : '')}">
+                            </option>
+                        </select>
+                        <div class="form-text">Sélectionnez d'abord la classe pour filtrer les cours disponibles</div>
+                    </div>
+
+                    <!-- ÉTAPE 2 : Cours (filtré selon la classe) -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-book me-1 text-primary"></i>Cours <span class="text-danger">*</span>
+                        </label>
+
+                        <select name="courseId" id="courseSelect" class="form-select form-select-lg" required>
+                            <option value="">-- Choisissez d'abord une classe --</option>
+                            <!-- Options pour chaque cours, taggées avec l'id de leur classe -->
+                            <th:block th:each="entry : ${classCourses}">
+                                <option th:each="c : ${entry.value}"
+                                        th:value="${c.id}"
+                                        th:text="${c.code + ' — ' + c.title}"
+                                        th:data-classe="${entry.key}"
+                                        class="course-option"
+                                        style="display:none;">
+                                </option>
+                            </th:block>
+                            <!-- Fallback : tous les cours si aucune classe ne filtre -->
+                            <th:block th:if="${classCourses == null || #maps.isEmpty(classCourses)}">
+                                <option th:each="c : ${allCourses}"
+                                        th:value="${c.id}"
+                                        th:text="${c.code + ' — ' + c.title}"
+                                        class="course-option-all">
+                                </option>
+                            </th:block>
+                        </select>
+                        <div id="noCourseMsg" class="form-text text-warning" style="display:none;">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            Aucun cours associé à cette classe.
+                        </div>
+                    </div>
+
+                    <!-- Type de séance + Intitulé -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-tag me-1 text-primary"></i>Type <span class="text-danger">*</span>
+                            </label>
+                            <input type="hidden" name="sessionType" id="sessionTypeInput" value="CM" required>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-primary type-btn" data-value="CM">CM</button>
+                                <button type="button" class="btn btn-outline-secondary type-btn" data-value="TD">TD</button>
+                                <button type="button" class="btn btn-outline-secondary type-btn" data-value="TP">TP</button>
+                                <button type="button" class="btn btn-outline-secondary type-btn" data-value="Examen">Examen</button>
+                                <button type="button" class="btn btn-outline-secondary type-btn" data-value="Rattrap.">Rattrap.</button>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-card-text me-1 text-primary"></i>Intitulé <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="sessionTitle" class="form-control form-control-lg"
+                                   placeholder="Ex : Chapitre 3 — Bases de données" required maxlength="200">
+                        </div>
+                    </div>
+
+                    <!-- Date et Remarque -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-calendar-event me-1 text-primary"></i>Date et heure <span class="text-danger">*</span>
+                            </label>
+                            <input type="datetime-local" name="sessionDate" id="sessionDate"
+                                   class="form-control form-control-lg" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-chat-text me-1 text-primary"></i>Remarque (optionnel)
+                            </label>
+                            <input type="text" name="description" class="form-control form-control-lg"
+                                   placeholder="Ex : Salle changée, intervenant…" maxlength="255">
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3 pt-2">
+                        <button type="submit" class="btn btn-primary btn-lg px-5 fw-semibold">
+                            <i class="bi bi-people-fill me-2"></i>Commencer l'appel
+                        </button>
+                        <a th:href="@{/teacher/attendance}" class="btn btn-outline-secondary btn-lg">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panneau info -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm border-start border-4 border-info mb-4">
+            <div class="card-body py-3 px-4">
+                <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2 text-info"></i>Comment ça marche ?</h6>
+                <div class="d-flex gap-2 mb-2">
+                    <span class="badge bg-primary rounded-pill flex-shrink-0">1</span>
+                    <span class="small">Sélectionnez votre <strong>classe</strong></span>
+                </div>
+                <div class="d-flex gap-2 mb-2">
+                    <span class="badge bg-primary rounded-pill flex-shrink-0">2</span>
+                    <span class="small">Choisissez le <strong>cours</strong> associé</span>
+                </div>
+                <div class="d-flex gap-2 mb-2">
+                    <span class="badge bg-primary rounded-pill flex-shrink-0">3</span>
+                    <span class="small">Indiquez le type, l'intitulé et la date</span>
+                </div>
+                <div class="d-flex gap-2 mb-2">
+                    <span class="badge bg-primary rounded-pill flex-shrink-0">4</span>
+                    <span class="small">Marquez chaque étudiant : Présent / Absent / Retard</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="badge bg-success rounded-pill flex-shrink-0">5</span>
+                    <span class="small">Envoyez le rapport à l'administration en 1 clic</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm border-start border-4 border-warning">
+            <div class="card-body py-3 px-4">
+                <h6 class="fw-bold mb-2">
+                    <i class="bi bi-exclamation-triangle me-2 text-warning"></i>Indicateurs d'alerte
+                </h6>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-success" style="width:70px;">≥ 75%</span>
+                    <span class="small text-success fw-semibold">Normal</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-warning text-dark" style="width:70px;">50–74%</span>
+                    <span class="small text-warning fw-semibold">À surveiller</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-danger" style="width:70px;">< 50%</span>
+                    <span class="small text-danger fw-semibold">Critique</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Filtrer les cours selon la classe sélectionnée
+    function filterCourses() {
+        const classeId = document.getElementById('classeSelect').value;
+        const courseSelect = document.getElementById('courseSelect');
+        const options = courseSelect.querySelectorAll('.course-option');
+        const noMsg = document.getElementById('noCourseMsg');
+
+        // Reset
+        courseSelect.value = '';
+        let visible = 0;
+
+        if (!classeId) {
+            options.forEach(o => o.style.display = 'none');
+            courseSelect.options[0].text = '-- Choisissez d\'abord une classe --';
+            noMsg.style.display = 'none';
+            return;
+        }
+
+        options.forEach(o => {
+            if (o.dataset.classe === classeId) {
+                o.style.display = '';
+                visible++;
+            } else {
+                o.style.display = 'none';
+            }
+        });
+
+        if (visible === 0) {
+            courseSelect.options[0].text = '-- Aucun cours pour cette classe --';
+            noMsg.style.display = '';
+        } else {
+            courseSelect.options[0].text = '-- Sélectionner un cours --';
+            noMsg.style.display = 'none';
+            // Auto-sélectionner si un seul cours
+            if (visible === 1) {
+                const single = courseSelect.querySelector(`.course-option[data-classe="${classeId}"]`);
+                if (single) single.selected = true;
+            }
+        }
+    }
+
+    // Sélection type de séance
+    document.querySelectorAll('.type-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.type-btn').forEach(b => b.className = 'btn btn-outline-secondary type-btn');
+            this.className = 'btn btn-primary type-btn';
+            document.getElementById('sessionTypeInput').value = this.dataset.value;
+        });
+    });
+
+    // Pré-remplir date/heure avec maintenant
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('sessionDate').value = now.toISOString().slice(0, 16);
+</script>
+
+</body>
+</html>

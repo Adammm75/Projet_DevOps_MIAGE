@@ -16,56 +16,54 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
 
-    
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http
-            // Désactivation CSRF pour les endpoints API
-            .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable())
 
-            // Définition des règles d'accès
-            .authorizeHttpRequests(auth -> auth
-                // ✅ RÈGLE 1 : APIs publiques (tes endpoints de test)
-                .requestMatchers("/api/inactivity/**").permitAll()
-                .requestMatchers("/api/activity/**").permitAll()
-                .requestMatchers("/api/v1/audio/upload").permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
+                .authorizeHttpRequests(auth -> auth
+                        // ✅ RÈGLE 1 : APIs publiques (tes endpoints de test)
+                        .requestMatchers("/api/inactivity/**").permitAll()
+                        .requestMatchers("/api/activity/**").permitAll()
+                        .requestMatchers("/api/v1/audio/upload").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
 
-                .requestMatchers("/api/progress/**").permitAll()
+                        .requestMatchers("/api/progress/**").permitAll()
 
-                .requestMatchers("/api/student/**").permitAll()
-                //.requestMatchers("/api/student/steps?**").permitAll()
-                
-                // ✅ RÈGLE 2 : Pages publiques (login, register, assets)
-                .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
-                
-                // ✅ RÈGLE 3 : Accès par rôle (pages web protégées)
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/teacher/**").hasRole("TEACHER")
-                .requestMatchers("/student/**").hasRole("STUDENT")
-                
-                // ✅ RÈGLE 4 : Tout le reste nécessite authentification
-                .anyRequest().authenticated()
-            )
+                        .requestMatchers("/api/student/**").permitAll()
+                        // Pages publiques
+                        .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/api/v1/audio/upload").permitAll()
 
-            // Configuration du login web classique
-            .formLogin(login -> login
-                .loginPage("/login")
-                .loginProcessingUrl("/login")
-                .usernameParameter("email")
-                .passwordParameter("password")
-                .defaultSuccessUrl("/dashboard", true)
-                .failureUrl("/login?error")
-                .permitAll()
-            )
+                        // Accès par rôle
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/teacher/**").hasRole("TEACHER")
+                        .requestMatchers("/student/**").hasRole("STUDENT")
 
-            // Configuration du logout
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout")
-                .permitAll()
-            );
+                        // ✅ AJOUT : progression accessible aux étudiants et enseignants
+                        .requestMatchers("/progression/student/**").hasRole("STUDENT")
+                        .requestMatchers("/progression/teacher/**").hasRole("TEACHER")
+
+                        // Tout le reste nécessite une authentification
+                        .anyRequest().authenticated()
+                )
+
+                .formLogin(login -> login
+                        .loginPage("/login")
+                        .loginProcessingUrl("/login")
+                        .usernameParameter("email")
+                        .passwordParameter("password")
+                        .defaultSuccessUrl("/dashboard", true)
+                        .failureUrl("/login?error")
+                        .permitAll()
+                )
+
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .permitAll()
+                );
 
         return http.build();
     }

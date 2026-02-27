@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<<<<<<< HEAD
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: layout(~{::body})}">
 <body>
@@ -107,11 +108,54 @@
                          th:text="${progressionStats['TERMINE']}">0</div>
                     <div class="text-muted small">Ont terminé</div>
                     <i class="bi bi-patch-check-fill text-info mt-1 d-block"></i>
+=======
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{layout/base :: head('Progression du groupe')}"></head>
+
+<body>
+<div th:replace="~{layout/fragments :: navbar}"></div>
+
+<div class="container py-4">
+
+    <h2 class="mb-4">📊 Progression du groupe — <span th:text="${course.title}">Cours</span></h2>
+
+    <!-- === DISTRIBUTION DES NIVEAUX === -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-4">
+            <div class="card text-center border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="fs-1">🌱</div>
+                    <h3 class="fw-bold text-secondary" th:text="${levelCounts['DECOUVERTE'] ?: 0}">0</h3>
+                    <p class="text-muted mb-0">Découverte</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card text-center border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="fs-1">📘</div>
+                    <h3 class="fw-bold text-primary" th:text="${levelCounts['COMPREHENSION'] ?: 0}">0</h3>
+                    <p class="text-muted mb-0">Compréhension</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card text-center border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="fs-1">🏆</div>
+                    <h3 class="fw-bold text-success" th:text="${levelCounts['MAITRISE'] ?: 0}">0</h3>
+                    <p class="text-muted mb-0">Maîtrise</p>
+>>>>>>> origin/base_du_projet_10
                 </div>
             </div>
         </div>
     </div>
 
+<<<<<<< HEAD
     <!-- Tableau des étudiants -->
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
@@ -251,5 +295,87 @@
     <p>Sélectionnez un cours pour visualiser la progression de vos étudiants.</p>
 </div>
 
+=======
+    <!-- === ÉTUDIANTS EN DIFFICULTÉ === -->
+    <div class="card mb-4 border-0 shadow-sm border-start border-danger border-4">
+        <div class="card-body">
+            <h5 class="card-title text-danger">⚠️ Étudiants en difficulté (niveau Découverte)</h5>
+            <div th:if="${#lists.isEmpty(strugglingStudents)}" class="text-muted fst-italic">
+                Aucun étudiant en difficulté. Excellent !
+            </div>
+            <ul class="list-group list-group-flush" th:unless="${#lists.isEmpty(strugglingStudents)}">
+                <li class="list-group-item d-flex justify-content-between align-items-center"
+                    th:each="sp : ${strugglingStudents}">
+                    <span>
+                        <i class="bi bi-person-fill text-danger me-2"></i>
+                        <span th:text="${sp.student.firstName + ' ' + sp.student.lastName}">Étudiant</span>
+                    </span>
+                    <span class="badge bg-secondary" th:text="${sp.totalPoints} + ' pts'">0 pts</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- === CLASSEMENT COMPLET === -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">🏅 Classement du groupe</h5>
+            <div th:if="${#lists.isEmpty(ranking)}" class="text-muted fst-italic">
+                Aucune donnée de progression disponible.
+            </div>
+            <table class="table table-hover align-middle" th:unless="${#lists.isEmpty(ranking)}">
+                <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Étudiant</th>
+                    <th>Niveau</th>
+                    <th>Points</th>
+                    <th>Badges</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="sp, stat : ${ranking}">
+                    <td>
+                        <span th:if="${stat.index == 0}" class="text-warning fw-bold fs-5">🥇</span>
+                        <span th:if="${stat.index == 1}" class="text-secondary fw-bold fs-5">🥈</span>
+                        <span th:if="${stat.index == 2}" class="text-warning fw-bold fs-6">🥉</span>
+                        <span th:if="${stat.index > 2}"  th:text="${stat.index + 1}">4</span>
+                    </td>
+                    <td th:text="${sp.student.firstName + ' ' + sp.student.lastName}">Nom</td>
+                    <td>
+                            <span th:switch="${sp.academicLevel.name()}">
+                                <span th:case="'DECOUVERTE'"    class="badge bg-secondary">🌱 Découverte</span>
+                                <span th:case="'COMPREHENSION'" class="badge bg-primary">📘 Compréhension</span>
+                                <span th:case="'MAITRISE'"      class="badge bg-success">🏆 Maîtrise</span>
+                            </span>
+                    </td>
+                    <td>
+                        <div class="progress" style="width: 120px; height: 16px;">
+                            <div class="progress-bar bg-info"
+                                 th:style="'width: ' + ${T(java.lang.Math).min(sp.totalPoints * 100 / 250, 100)} + '%'"
+                                 th:text="${sp.totalPoints} + ' pts'">
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <!-- Badges de l'étudiant pour ce cours -->
+                        <span th:each="sb : ${badgesByStudent[sp.student.id]}">
+                                <span th:switch="${sb.badge.code}">
+                                    <span th:case="'PARTICIPATION_ACTIVE'" title="Participation active">🙋</span>
+                                    <span th:case="'REGULARITE'"           title="Régularité">📅</span>
+                                    <span th:case="'MAITRISE_COURS'"       title="Maîtrise du cours">🏆</span>
+                                </span>
+                            </span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<div th:replace="~{layout/fragments :: scripts}"></div>
+>>>>>>> origin/base_du_projet_10
 </body>
 </html>

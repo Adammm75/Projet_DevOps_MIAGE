@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/base :: layout(~{::body})}">
+
+<body>
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="mb-1">
+            <i class="bi bi-bar-chart-line me-2"></i>Ma Progression
+        </h2>
+        <p class="text-muted mb-0">Sélectionnez un cours pour voir vos points, niveau et badges.</p>
+    </div>
+</div>
+
+<div th:if="${cours == null || #lists.isEmpty(cours)}" class="text-center py-5 text-muted">
+    <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+    <p>Vous n'êtes inscrit à aucun cours pour le moment.</p>
+</div>
+
+<div class="row g-3" th:unless="${cours == null || #lists.isEmpty(cours)}">
+    <div class="col-md-4" th:each="c : ${cours}">
+        <a th:href="@{/progression/student/{id}(id=${c.id})}" class="text-decoration-none">
+            <div class="card h-100 shadow-sm border-0 card-hover">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge bg-primary fs-6" th:text="${c.code}">CODE</span>
+                        <i class="bi bi-chevron-right text-muted"></i>
+                    </div>
+                    <h5 class="card-title fw-bold" th:text="${c.title}">Titre du cours</h5>
+                    <p class="card-text text-muted small"
+                       th:text="${c.description != null ? #strings.abbreviate(c.description, 80) : 'Aucune description'}">
+                        Description...
+                    </p>
+                </div>
+                <div class="card-footer bg-white border-0 pt-0">
+                    <small class="text-primary fw-semibold">
+                        <i class="bi bi-graph-up me-1"></i>Voir ma progression →
+                    </small>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<style>
+    .card-hover { transition: transform 0.15s ease, box-shadow 0.15s ease; cursor: pointer; }
+    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1) !important; }
+</style>
+</body>
+</html>

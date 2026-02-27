@@ -8,6 +8,12 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.List;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 @Repository
 public interface CourseSessionRepository extends JpaRepository<CourseSession, Long> {
@@ -27,4 +33,8 @@ public interface CourseSessionRepository extends JpaRepository<CourseSession, Lo
     List<CourseSession> findRecentPastSessionsByTeacherId(@Param("teacherId") Long teacherId,
                                                           @Param("from") Instant from,
                                                           @Param("now") Instant now);
+    List<CourseSession> findByCourseIdOrderBySessionDateDesc(Long courseId);
+
+    @Query("SELECT s FROM CourseSession s LEFT JOIN FETCH s.course WHERE s.id = :id")
+    Optional<CourseSession> findByIdWithCourse(@Param("id") Long id);
 }

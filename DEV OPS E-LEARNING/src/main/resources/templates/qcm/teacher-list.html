@@ -3,6 +3,7 @@
       th:replace="~{layout/base :: layout(~{::body})}">
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 <body>
 <div class="row mb-4">
@@ -41,6 +42,8 @@
 =======
 =======
 >>>>>>> origin/base_du_projet_8
+=======
+>>>>>>> origin/base_du_projet_10
 <head>
     <title>Mes QCM</title>
 </head>
@@ -295,13 +298,17 @@
                 <button type="submit" class="btn btn-primary w-100">
                     <i class="bi bi-search me-2"></i>Filtrer
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
 =======
 >>>>>>> origin/base_du_projet_8
+=======
+>>>>>>> origin/base_du_projet_10
                 </button>
             </div>
         </form>
     </div>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 </div>
@@ -356,6 +363,8 @@
 =======
 =======
 >>>>>>> origin/base_du_projet_8
+=======
+>>>>>>> origin/base_du_projet_10
 
     <!-- TABLE QCM -->
     <div class="qcm-table-card animate-in" style="animation-delay: 0.6s">
@@ -363,13 +372,17 @@
             <table class="table table-hover align-middle">
                 <thead>
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
 =======
 >>>>>>> origin/base_du_projet_8
+=======
+>>>>>>> origin/base_du_projet_10
                 <tr>
                     <th>Cours</th>
                     <th>Titre</th>
                     <th>Questions</th>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
                     <th>Temps limite</th>
@@ -379,6 +392,9 @@
 =======
                     <th>Temps</th>
 >>>>>>> origin/base_du_projet_8
+=======
+                    <th>Temps</th>
+>>>>>>> origin/base_du_projet_10
                     <th>Tentatives</th>
                     <th>Statut</th>
                     <th class="text-end">Actions</th>
@@ -386,6 +402,7 @@
                 </thead>
                 <tbody>
                 <tr th:if="${qcms == null || #lists.isEmpty(qcms)}">
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
                     <td colspan="7" class="text-center py-5">
@@ -401,6 +418,8 @@
 =======
 =======
 >>>>>>> origin/base_du_projet_8
+=======
+>>>>>>> origin/base_du_projet_10
                     <td colspan="7">
                         <div class="empty-state">
                             <div class="empty-icon"><i class="bi bi-inbox"></i></div>
@@ -415,27 +434,32 @@
 
                 <tr th:each="q : ${qcms}" th:attr="data-published=${q.publie}">
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_4
 =======
 >>>>>>> origin/base_du_projet_8
+=======
+>>>>>>> origin/base_du_projet_10
                     <td>
                         <span class="badge bg-secondary" th:text="${q.cours?.code}">CODE</span>
                     </td>
                     <td>
-<<<<<<< HEAD
-<<<<<<< HEAD
+
                         <strong th:text="${q.titre}">Titre du QCM</strong>
                         <p class="mb-0 small text-muted" th:text="${#strings.abbreviate(q.description ?: '', 60)}">Description</p>
-=======
+
                         <strong th:text="${q.titre}">Titre</strong>
                         <p class="mb-0 small text-muted"
                            th:text="${q.description != null ? #strings.abbreviate(q.description, 60) : ''}"></p>
->>>>>>> origin/base_du_projet_4
-=======
+
                         <strong th:text="${q.titre}">Titre</strong>
                         <p class="mb-0 small text-muted"
                            th:text="${q.description != null ? #strings.abbreviate(q.description, 60) : ''}"></p>
->>>>>>> origin/base_du_projet_8
+
+                        <strong th:text="${q.titre}">Titre</strong>
+                        <p class="mb-0 small text-muted"
+                           th:text="${q.description != null ? #strings.abbreviate(q.description, 60) : ''}"></p>
+
                     </td>
                     <td>
                         <span class="badge bg-info">0 questions</span>
@@ -456,15 +480,15 @@
                     <td>
                             <span class="badge" th:classappend="${q.publie} ? 'bg-success' : 'bg-warning'">
                                 <i class="bi" th:classappend="${q.publie} ? 'bi-check-circle' : 'bi-file-earmark'"></i>
-<<<<<<< HEAD
-<<<<<<< HEAD
+
                                 <span th:text="${q.publie} ? 'Publié' : 'Brouillon'">Statut</span>
-=======
+
                                 <span th:text="${q.publie} ? 'Publié' : 'Brouillon'"></span>
->>>>>>> origin/base_du_projet_4
-=======
+
                                 <span th:text="${q.publie} ? 'Publié' : 'Brouillon'"></span>
->>>>>>> origin/base_du_projet_8
+
+                                <span th:text="${q.publie} ? 'Publié' : 'Brouillon'"></span>
+
                             </span>
                     </td>
                     <td class="text-end">
@@ -475,17 +499,14 @@
                             <a th:href="@{|/teacher/qcm/${q.id}/edit|}" class="btn btn-outline-primary" title="Modifier">
                                 <i class="bi bi-pencil"></i>
                             </a>
-<<<<<<< HEAD
-<<<<<<< HEAD
+
                             <button type="button" class="btn btn-outline-warning" title="Publier/Dépublier">
                                 <i class="bi bi-eye"></i>
                             </button>
                             <button type="button" class="btn btn-outline-danger" title="Supprimer" onclick="if(confirm('Supprimer ce QCM ?')) {}">
                                 <i class="bi bi-trash"></i>
                             </button>
-=======
-=======
->>>>>>> origin/base_du_projet_8
+
                             <form th:action="@{|/teacher/qcm/${q.id}/toggle-publish|}" method="post" style="display:inline">
                                 <button type="submit" class="btn btn-outline-warning" title="Publier/Dépublier">
                                     <i class="bi" th:classappend="${q.publie} ? 'bi-eye-slash' : 'bi-eye'"></i>
@@ -502,10 +523,7 @@
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
-<<<<<<< HEAD
->>>>>>> origin/base_du_projet_4
-=======
->>>>>>> origin/base_du_projet_8
+
                         </div>
                     </td>
                 </tr>
@@ -515,11 +533,7 @@
     </div>
 </div>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> origin/base_du_projet_8
+
 <script>
     // ✅ Calcul des statistiques SANS sérialisation Jackson
     document.addEventListener('DOMContentLoaded', function() {
@@ -541,9 +555,5 @@
     });
 </script>
 
-<<<<<<< HEAD
->>>>>>> origin/base_du_projet_4
-=======
->>>>>>> origin/base_du_projet_8
 </body>
 </html>

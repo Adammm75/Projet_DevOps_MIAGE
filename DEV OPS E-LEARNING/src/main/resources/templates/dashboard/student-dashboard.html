@@ -169,12 +169,17 @@
                                 <span class="badge bg-danger ms-2"
                                       th:if="${d.dueDate != null && d.dueDate.isBefore(T(java.time.Instant).now())}">
 <<<<<<< HEAD
+<<<<<<< HEAD
     En retard
 </span>
 =======
                                     En retard
                                 </span>
 >>>>>>> origin/base_du_projet_8
+=======
+                                    En retard
+                                </span>
+>>>>>>> origin/base_du_projet_10
                             </td>
                             <td>
                                 <span class="badge bg-warning">À rendre</span>
@@ -207,10 +212,14 @@
                        th:href="@{/messages}"
                        class="list-group-item list-group-item-action"
 <<<<<<< HEAD
+<<<<<<< HEAD
                        th:classappend="${m.read != null && !m.read} ? 'fw-bold'">
 =======
                        th:classappend="${m.isRead != null && !m.isRead} ? 'fw-bold'">
 >>>>>>> origin/base_du_projet_8
+=======
+                       th:classappend="${m.isRead != null && !m.isRead} ? 'fw-bold'">
+>>>>>>> origin/base_du_projet_10
                         <div class="d-flex justify-content-between align-items-start mb-1">
                             <h6 class="mb-0">
                                 <span th:if="${m.subject != null && !#strings.isEmpty(m.subject)}"
@@ -250,10 +259,14 @@
                        th:href="@{/notifications}"
                        class="list-group-item list-group-item-action"
 <<<<<<< HEAD
+<<<<<<< HEAD
                        th:classappend="${n.read != null && !n.read} ? 'bg-light'">
 =======
                        th:classappend="${n.isRead != null && !n.isRead} ? 'bg-light'">
 >>>>>>> origin/base_du_projet_8
+=======
+                       th:classappend="${n.isRead != null && !n.isRead} ? 'bg-light'">
+>>>>>>> origin/base_du_projet_10
                         <div class="d-flex justify-content-between align-items-start mb-1">
                             <h6 class="mb-0">
                                 <i class="bi bi-info-circle text-info me-1"></i>
@@ -273,6 +286,160 @@
             </div>
         </div>
 
+<<<<<<< HEAD
+=======
+        <!-- ========================================
+             🎓 MA PROGRESSION — Badge Engine
+             ======================================== -->
+        <div class="card mt-4 border-0 shadow-sm">
+            <div class="card-body text-center py-4"
+                 style="background: linear-gradient(135deg, #667eea22, #764ba222); border-radius: 0.5rem;">
+                <div class="fs-1 mb-2">🎓</div>
+                <h5 class="fw-bold mb-1">Ma Progression</h5>
+                <p class="text-muted small mb-3">Points, niveaux et badges pédagogiques</p>
+                <a th:href="@{/progression/student}" class="btn btn-primary btn-sm px-4">
+                    <i class="bi bi-bar-chart-line me-1"></i>Voir ma progression
+                </a>
+            </div>
+        </div>
+
+        <!-- ========================================
+             🚨 ABSENCES & RETARDS RÉCENTS
+             ======================================== -->
+        <div class="card mt-4 border-0 shadow-sm"
+             th:if="${absencesRetards != null and !#lists.isEmpty(absencesRetards)}">
+            <div class="card-header d-flex justify-content-between align-items-center py-3"
+                 style="background: linear-gradient(135deg, #ff6b6b22, #feca5722);">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-exclamation-triangle me-2 text-warning"></i>
+                    Présences récentes
+                </h5>
+                <div class="d-flex gap-2">
+                    <span th:if="${absencesCount > 0}"
+                          class="badge bg-danger rounded-pill"
+                          th:text="${absencesCount} + ' absence(s)'"></span>
+                    <span th:if="${retardsCount > 0}"
+                          class="badge bg-warning text-dark rounded-pill"
+                          th:text="${retardsCount} + ' retard(s)'"></span>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div th:each="a : ${absencesRetards}"
+                         class="list-group-item px-3 py-2 border-start border-3"
+                         th:classappend="${a.status.name() == 'ABSENT'} ? 'border-danger' : 'border-warning'">
+
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                 th:classappend="${a.status.name() == 'ABSENT'} ? 'bg-danger bg-opacity-10' : 'bg-warning bg-opacity-20'"
+                                 style="width:32px;height:32px;">
+                                <i class="bi"
+                                   th:classappend="${a.status.name() == 'ABSENT'} ? 'bi-person-x text-danger' : 'bi-clock text-warning'"
+                                   style="font-size:0.9rem;"></i>
+                            </div>
+
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge me-1"
+                                              th:classappend="${a.status.name() == 'ABSENT'} ? 'bg-danger' : 'bg-warning text-dark'"
+                                              th:text="${a.status.name() == 'ABSENT'} ? 'Absent(e)' : 'En retard'">Absent</span>
+                                        <span class="badge bg-secondary bg-opacity-75 small"
+                                              th:if="${a.session != null and a.session.course != null}"
+                                              th:text="${a.session.course.code}">CODE</span>
+                                    </div>
+                                    <small class="text-muted"
+                                           th:text="${#temporals.format(a.markedAt, 'dd/MM HH:mm')}">01/01</small>
+                                </div>
+                                <small class="text-muted d-block"
+                                       th:if="${a.session != null}"
+                                       th:text="${a.session.title}">Titre séance</small>
+                                <small class="fst-italic text-muted d-block"
+                                       th:if="${a.note != null and !#strings.isEmpty(a.note)}"
+                                       th:text="${'💬 ' + a.note}">Note...</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-white py-2 text-center">
+                <small class="text-muted fst-italic">
+                    <i class="bi bi-clock-history me-1"></i>30 derniers jours
+                </small>
+            </div>
+        </div>
+
+        <!-- ========================================
+             💬 COMMENTAIRES PÉDAGOGIQUES
+             ======================================== -->
+        <div class="card mt-4"
+             th:if="${pedagogicComments != null && !#lists.isEmpty(pedagogicComments)}">
+            <div class="card-header d-flex justify-content-between align-items-center"
+                 style="background: linear-gradient(135deg, #667eea22, #764ba222);">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-chat-square-quote me-2 text-primary"></i>
+                    Observations de vos enseignants
+                </h5>
+                <span th:if="${newCommentsCount > 0}"
+                      class="badge bg-danger rounded-pill"
+                      th:text="${newCommentsCount} + ' nouveau(x)'"></span>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div th:each="c, iter : ${pedagogicComments}"
+                         th:if="${iter.index < 3}"
+                         class="list-group-item px-3 py-3"
+                         th:classappend="${c.isPinned} ? 'border-start border-3 border-warning' : 'border-start border-3 border-primary'">
+
+                        <div class="d-flex align-items-start gap-2">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                 th:classappend="${c.isPinned} ? 'bg-warning bg-opacity-20' : 'bg-primary bg-opacity-10'"
+                                 style="width:34px;height:34px;">
+                                <i class="bi bi-person-badge"
+                                   th:classappend="${c.isPinned} ? 'text-warning' : 'text-primary'"></i>
+                            </div>
+
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div class="d-flex flex-wrap align-items-center gap-1 mb-1">
+                                    <span class="fw-semibold small"
+                                          th:text="${c.teacher.firstName + ' ' + c.teacher.lastName}">Prof</span>
+                                    <span class="text-muted small">·</span>
+                                    <span class="badge bg-primary bg-opacity-75 rounded-pill"
+                                          style="font-size:0.65rem;"
+                                          th:text="${c.course.code}">CODE</span>
+                                    <span th:if="${c.tag != null}"
+                                          class="badge rounded-pill"
+                                          th:classappend="${#strings.containsIgnoreCase(c.tag,'MANQUE') or #strings.containsIgnoreCase(c.tag,'RETARD') or #strings.containsIgnoreCase(c.tag,'ABSENT') ? 'bg-warning text-dark' : (#strings.containsIgnoreCase(c.tag,'PROGRES') or #strings.containsIgnoreCase(c.tag,'SERIEUX') or #strings.containsIgnoreCase(c.tag,'PARTICIPATION') ? 'bg-success' : 'bg-info')}"
+                                          style="font-size:0.65rem;"
+                                          th:text="${c.tag}">Tag</span>
+                                    <span th:if="${c.isPinned}"
+                                          class="badge bg-warning text-dark"
+                                          style="font-size:0.6rem;">
+                                        <i class="bi bi-pin-fill"></i>
+                                    </span>
+                                    <span th:if="${c.createdAt != null && c.createdAt.isAfter(T(java.time.Instant).now().minus(7, T(java.time.temporal.ChronoUnit).DAYS))}"
+                                          class="badge bg-danger"
+                                          style="font-size:0.6rem;">Nouveau</span>
+                                </div>
+                                <p class="mb-1 small text-dark"
+                                   th:text="${#strings.abbreviate(c.content, 100)}">Observation...</p>
+                                <small class="text-muted fst-italic"
+                                       style="font-size:0.68rem;"
+                                       th:text="${'Le ' + #temporals.format(c.createdAt, 'dd/MM/yyyy')}">date</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${#lists.size(pedagogicComments) > 3}"
+                         class="list-group-item text-center py-2">
+                        <small class="text-muted fst-italic"
+                               th:text="${#lists.size(pedagogicComments) - 3} + ' autre(s) observation(s)'"></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+>>>>>>> origin/base_du_projet_10
         <!-- Mes Notes (Aperçu) -->
         <div class="card mt-4" th:if="${notes != null && !#lists.isEmpty(notes)}">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -301,6 +468,10 @@
                 </div>
             </div>
         </div>
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/base_du_projet_10
     </div>
 </div>
 

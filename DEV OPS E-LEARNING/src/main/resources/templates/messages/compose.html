@@ -21,49 +21,71 @@
 </div>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/base_du_projet_10
 <!-- Alerte succès -->
 <div th:if="${param.sent}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
     <i class="bi bi-check-circle me-2"></i>Votre message a bien été envoyé !
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 </div>
 
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_8
+=======
+>>>>>>> origin/base_du_projet_10
 <div class="row">
     <div class="col-lg-8">
         <div class="card">
             <div class="card-body">
 <<<<<<< HEAD
+<<<<<<< HEAD
                 <form th:action="@{/messages}" method="post">
 
                     <!-- Email destinataire -->
 =======
+=======
+>>>>>>> origin/base_du_projet_10
                 <!-- ✅ Action vers /messages/compose -->
                 <form th:action="@{/messages/compose}" method="post">
 
                     <!-- Email destinataire (pré-rempli si recipientId fourni) -->
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_8
+=======
+>>>>>>> origin/base_du_projet_10
                     <div class="mb-4">
                         <label for="recipientEmail" class="form-label">
                             <strong>Destinataire (email) *</strong>
                         </label>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/base_du_projet_10
                         <!-- Bandeau nom enseignant si pré-rempli -->
                         <div th:if="${recipientName != null && !#strings.isEmpty(recipientName)}"
                              class="alert alert-info py-2 mb-2">
                             <i class="bi bi-person-check me-2"></i>
                             À : <strong th:text="${recipientName}">Nom</strong>
                         </div>
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_8
+=======
+>>>>>>> origin/base_du_projet_10
                         <input type="email"
                                class="form-control form-control-lg"
                                id="recipientEmail"
                                name="recipientEmail"
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
                                th:value="${recipientEmail}"
 >>>>>>> origin/base_du_projet_8
+=======
+                               th:value="${recipientEmail}"
+>>>>>>> origin/base_du_projet_10
                                placeholder="exemple@email.com"
                                required>
                         <div class="form-text">
@@ -84,11 +106,16 @@
                             <option th:each="c : ${courses}"
                                     th:value="${c.id}"
 <<<<<<< HEAD
+<<<<<<< HEAD
                                     th:text="${c.code + ' - ' + c.title}">
 =======
                                     th:text="${c.code + ' - ' + c.title}"
                                     th:selected="${preselectedCourseId != null && preselectedCourseId == c.id}">
 >>>>>>> origin/base_du_projet_8
+=======
+                                    th:text="${c.code + ' - ' + c.title}"
+                                    th:selected="${preselectedCourseId != null && preselectedCourseId == c.id}">
+>>>>>>> origin/base_du_projet_10
                                 Cours
                             </option>
                         </select>
@@ -184,11 +211,15 @@
                 <p class="small mb-0">
                     Les messages envoyés via cette plateforme sont privés et ne sont visibles
 <<<<<<< HEAD
+<<<<<<< HEAD
                     que par vous et le destinataire. Ne partagez pas d'informations sensibles
                     ou confidentielles.
 =======
                     que par vous et le destinataire.
 >>>>>>> origin/base_du_projet_8
+=======
+                    que par vous et le destinataire.
+>>>>>>> origin/base_du_projet_10
                 </p>
             </div>
         </div>

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<<<<<<< HEAD
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: layout(~{::body})}">
 <body>
@@ -218,5 +219,121 @@
     </div>
 </div>
 
+=======
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{layout/base :: head('Ma Progression')}"></head>
+
+<body>
+<div th:replace="~{layout/fragments :: navbar}"></div>
+
+<div class="container py-4">
+
+    <h2 class="mb-4">🎓 Ma Progression — <span th:text="${course.title}">Nom du cours</span></h2>
+
+    <!-- === NIVEAU ACADÉMIQUE === -->
+    <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Niveau académique</h5>
+            <div class="d-flex align-items-center gap-3">
+
+                <!-- Icône niveau -->
+                <div th:switch="${studentPoints?.academicLevel?.name()}">
+                    <span th:case="'DECOUVERTE'"    class="fs-1">🌱</span>
+                    <span th:case="'COMPREHENSION'" class="fs-1">📘</span>
+                    <span th:case="'MAITRISE'"      class="fs-1">🏆</span>
+                </div>
+
+                <div class="flex-grow-1">
+                    <!-- Label du niveau -->
+                    <div th:switch="${studentPoints?.academicLevel?.name()}">
+                        <h4 th:case="'DECOUVERTE'"    class="mb-0 text-secondary">Découverte</h4>
+                        <h4 th:case="'COMPREHENSION'" class="mb-0 text-primary">Compréhension</h4>
+                        <h4 th:case="'MAITRISE'"      class="mb-0 text-success">Maîtrise</h4>
+                        <h4 th:case="*"               class="mb-0 text-secondary">Découverte</h4>
+                    </div>
+
+                    <!-- Barre de progression vers le prochain niveau -->
+                    <div class="progress mt-2" style="height: 18px;">
+                        <div class="progress-bar bg-success"
+                             th:style="'width: ' + ${progressPercent} + '%'"
+                             th:text="${studentPoints?.totalPoints ?: 0} + ' pts'">
+                        </div>
+                    </div>
+                    <small class="text-muted" th:text="${nextLevelLabel}">Prochain niveau : Compréhension (100 pts)</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === BADGES === -->
+    <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">🏅 Mes badges</h5>
+
+            <div th:if="${#lists.isEmpty(badges)}" class="text-muted fst-italic">
+                Aucun badge obtenu pour ce cours pour le moment. Continuez vos efforts !
+            </div>
+
+            <div class="row g-3" th:unless="${#lists.isEmpty(badges)}">
+                <div class="col-auto" th:each="badge : ${badges}">
+                    <div class="card text-center border-warning" style="width: 120px;">
+                        <div class="card-body p-2">
+                            <!-- Icône par défaut si pas d'image -->
+                            <div class="fs-2" th:switch="${badge.badge.code}">
+                                <span th:case="'PARTICIPATION_ACTIVE'">🙋</span>
+                                <span th:case="'REGULARITE'">📅</span>
+                                <span th:case="'MAITRISE_COURS'">🏆</span>
+                                <span th:case="*">🎖️</span>
+                            </div>
+                            <small class="fw-semibold d-block mt-1" th:text="${badge.badge.label}">Badge</small>
+                            <small class="text-muted"
+                                   th:text="${#temporals.format(badge.earnedAt, 'dd/MM/yyyy')}">01/01/2026</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === HISTORIQUE DES POINTS === -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">📊 Historique des points</h5>
+            <div th:if="${#lists.isEmpty(transactions)}" class="text-muted fst-italic">
+                Aucun point enregistré.
+            </div>
+            <table class="table table-sm table-hover" th:unless="${#lists.isEmpty(transactions)}">
+                <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Raison</th>
+                    <th class="text-end">Points</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="tx : ${transactions}">
+                    <td th:text="${#temporals.format(tx.earnedAt, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td>
+                            <span th:switch="${tx.reason.name()}">
+                                <span th:case="'ATTENDANCE'">           ✅ Présence en séance</span>
+                                <span th:case="'ASSIGNMENT_SUBMITTED'"> 📄 Devoir rendu</span>
+                                <span th:case="'ASSIGNMENT_GRADED'">    ⭐ Bonne note (≥ 14/20)</span>
+                                <span th:case="'QCM_SUCCESS'">          🎯 QCM réussi (≥ 70%)</span>
+                                <span th:case="'RESOURCE_CONSULTED'">   📚 Ressource consultée</span>
+                            </span>
+                    </td>
+                    <td class="text-end fw-bold text-success" th:text="'+' + ${tx.points} + ' pts'"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<div th:replace="~{layout/fragments :: scripts}"></div>
+>>>>>>> origin/base_du_projet_10
 </body>
 </html>

@@ -15,15 +15,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AssignmentService {
 
-    private final AssignmentRepository assignmentRepository;
-    private final AssignmentSubmissionRepository submissionRepository;
-    private final S3StorageService s3StorageService;
-    private final AssignmentClassRepository assignmentClassRepository;
-    private final AcademicClassRepository academicClassRepository;
+    private final AssignmentRepository            assignmentRepository;
+    private final AssignmentSubmissionRepository  submissionRepository;
+    private final S3StorageService                s3StorageService;
+    private final AssignmentClassRepository       assignmentClassRepository;
+    private final AcademicClassRepository         academicClassRepository;
+    private final TeacherClassRepository          teacherClassRepository;
+    private final BadgeEngineService              badgeEngineService;
 
-    /**
-     * Liste tous les devoirs d'un cours
-     */
     public List<Assignment> listByCourse(Long courseId) {
         return assignmentRepository.findByCourseId(courseId);
     }
@@ -65,16 +64,37 @@ public class AssignmentService {
         submission.setFileUrl(fileUrl);
         submission.setSubmittedAt(Instant.now());
 
-        return submissionRepository.save(submission);
+        AssignmentSubmission saved = submissionRepository.save(submission);
+
+        // ✅ Badge Engine : points pour la remise du devoir
+        Long courseId = assignment.getCourse().getId();
+        badgeEngineService.onAssignmentSubmitted(student.getId(), courseId, assignmentId);
+
+        return saved;
     }
 
-    /**
-     * Récupère l'ID du cours associé à un devoir
-     */
+    public AssignmentSubmission gradeSubmission(Long submissionId, double grade, String feedback) {
+
+        AssignmentSubmission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new RuntimeException("Soumission introuvable"));
+
+        submission.setGrade(java.math.BigDecimal.valueOf(grade));
+        submission.setFeedback(feedback);
+        submission.setGradedAt(Instant.now());
+
+        AssignmentSubmission saved = submissionRepository.save(submission);
+
+        // ✅ Badge Engine : points bonus si note >= 14
+        Long studentId = submission.getStudent().getId();
+        Long courseId  = submission.getAssignment().getCourse().getId();
+        badgeEngineService.onAssignmentGraded(studentId, courseId, submissionId, grade);
+
+        return saved;
+    }
+
     public Long getCourseId(Long assignmentId) {
         Assignment assignment = assignmentRepository.findById(assignmentId)
                 .orElseThrow(() -> new RuntimeException("Devoir introuvable"));
-
         return assignment.getCourse().getId();
     }
 
@@ -98,22 +118,14 @@ public class AssignmentService {
         return assignmentClassRepository.save(assignmentClass);
     }
 
-    /**
-     * Affecte un devoir à plusieurs classes
-     */
     public void affecterDevoirAClasses(Long assignmentId, List<Long> classeIds) {
-        if (classeIds == null || classeIds.isEmpty()) {
-            return;
-        }
+        if (classeIds == null || classeIds.isEmpty()) return;
 
         for (Long classeId : classeIds) {
             try {
                 affecterDevoirAClasse(assignmentId, classeId);
             } catch (RuntimeException e) {
-                // Si déjà affecté, continuer
-                if (!e.getMessage().contains("déjà affecté")) {
-                    throw e;
-                }
+                if (!e.getMessage().contains("déjà affecté")) throw e;
             }
         }
     }
@@ -133,13 +145,9 @@ public class AssignmentService {
         return assignmentClassRepository.findByAssignmentId(assignmentId);
     }
 
-    /**
-     * Récupère les classes disponibles (non affectées) pour un devoir
-     */
     public List<AcademicClass> getClassesDisponibles(Long assignmentId, Long teacherId) {
         List<Long> assignedClasseIds = assignmentClassRepository.findClasseIdsByAssignmentId(assignmentId);
 
-        // Récupérer uniquement les classes de l'enseignant
         List<TeacherClass> teacherClasses = teacherClassRepository.findByTeacherId(teacherId);
 
         return teacherClasses.stream()
@@ -148,27 +156,18 @@ public class AssignmentService {
                 .toList();
     }
 
-    /**
-     * Met à jour les affectations de classes pour un devoir
-     */
     @Transactional
     public void updateClassesForAssignment(Long assignmentId, List<Long> newClasseIds) {
-        // Récupérer les IDs actuels
         List<Long> currentIds = assignmentClassRepository.findClasseIdsByAssignmentId(assignmentId);
 
-        // Retirer ceux qui ne sont plus sélectionnés
         for (Long currentId : currentIds) {
             if (newClasseIds == null || !newClasseIds.contains(currentId)) {
                 retirerDevoirDeClasse(assignmentId, currentId);
             }
         }
 
-        // Ajouter les nouveaux
         if (newClasseIds != null) {
             affecterDevoirAClasses(assignmentId, newClasseIds);
         }
     }
-
-    // ⭐ AJOUTER AUSSI cette injection si pas déjà présente :
-    private final TeacherClassRepository teacherClassRepository;
 }

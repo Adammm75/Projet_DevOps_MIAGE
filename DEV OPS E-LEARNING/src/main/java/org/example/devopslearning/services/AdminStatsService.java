@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.example.devopslearning.repositories.*;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -65,7 +67,7 @@ public class AdminStatsService {
 
         // --- Étudiants actifs ---
         // ✅ CORRIGÉ : utilise countActiveStudents() défini dans UserRepository
-        long activeStudents = userRepository.countActiveStudents();
+        long activeStudents = userRepository.countActiveStudentsSince(Instant.now().minus(30, ChronoUnit.DAYS));
         long inactiveStudents = totalStudents - activeStudents;
         stats.put("activeStudents", activeStudents);
         stats.put("inactiveStudents", inactiveStudents);

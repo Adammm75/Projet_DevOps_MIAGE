@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::body})}">
+<body>
+
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2 class="fw-bold mb-0"><i class="bi bi-clipboard-data me-2 text-primary"></i>Rapports d'appel</h2>
+        <p class="text-muted mb-0">Vue globale des feuilles d'appel — tous les enseignants</p>
+    </div>
+    <div class="col-auto">
+        <span class="badge bg-secondary fs-6 py-2 px-3" th:text="${totalReports + ' rapport(s)'}">0</span>
+    </div>
+</div>
+
+<!-- Alertes WARNING / CRITICAL -->
+<div th:if="${alerts != null && !#lists.isEmpty(alerts)}"
+     class="card border-0 shadow-sm mb-4 border-start border-5 border-danger">
+    <div class="card-header bg-danger bg-opacity-10 border-0 py-3">
+        <h5 class="mb-0 fw-bold text-danger">
+            <i class="bi bi-exclamation-octagon-fill me-2"></i>
+            <span th:text="${alertCount}">0</span> alerte(s) active(s)
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Séance</th>
+                    <th>Enseignant</th>
+                    <th class="text-center">Taux</th>
+                    <th class="text-center">Niveau</th>
+                    <th class="text-center">Notifié</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${alerts}"
+                    th:classappend="${r.alertLevel == 'CRITICAL' ? 'table-danger' : 'table-warning'}">
+                    <td>
+                        <div class="fw-semibold small" th:text="${r.session.title}">Séance</div>
+                        <div class="text-muted" style="font-size:0.72rem;"
+                             th:text="${r.session.course.code + ' · ' + #temporals.format(r.session.sessionDate,'dd/MM/yyyy HH:mm')}">info</div>
+                    </td>
+                    <td th:text="${r.teacher.firstName + ' ' + r.teacher.lastName}">Prof</td>
+                    <td class="text-center fw-bold" th:text="${r.presenceRate + '%'}">0%</td>
+                    <td class="text-center">
+                        <span class="badge"
+                              th:classappend="${r.alertLevel == 'CRITICAL' ? 'bg-danger' : 'bg-warning text-dark'}"
+                              th:text="${r.alertLevel}">CRITICAL</span>
+                    </td>
+                    <td class="text-center">
+                        <i th:if="${r.sentToAdmin}" class="bi bi-check-circle-fill text-success fs-5"></i>
+                        <i th:unless="${r.sentToAdmin}" class="bi bi-dash-circle text-muted fs-5"></i>
+                    </td>
+                    <td>
+                        <a th:href="@{/admin/attendance/{id}(id=${r.id})}"
+                           class="btn btn-sm btn-outline-danger">Détail</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Tous les rapports -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom py-3">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-list-ul me-2 text-primary"></i>Tous les rapports</h6>
+    </div>
+    <div th:if="${reports == null || #lists.isEmpty(reports)}"
+         class="card-body text-center py-5 text-muted">
+        <i class="bi bi-clipboard fs-1 d-block mb-2 opacity-25"></i>
+        <p class="mb-0">Aucun rapport disponible</p>
+    </div>
+    <div class="card-body p-0" th:unless="${reports == null || #lists.isEmpty(reports)}">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Séance</th>
+                    <th>Cours</th>
+                    <th>Enseignant</th>
+                    <th class="text-center">Présents</th>
+                    <th class="text-center">Absents</th>
+                    <th class="text-center">Retards</th>
+                    <th class="text-center">Taux</th>
+                    <th class="text-center">Alerte</th>
+                    <th class="text-center">Envoyé</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${reports}"
+                    th:classappend="${r.alertLevel == 'CRITICAL' ? 'table-danger' : (r.alertLevel == 'WARNING' ? 'table-warning' : '')}">
+                    <td>
+                        <div class="fw-semibold small" th:text="${r.session.title}">Séance</div>
+                        <div class="text-muted" style="font-size:0.72rem;"
+                             th:text="${#temporals.format(r.session.sessionDate,'dd/MM/yyyy HH:mm')}">date</div>
+                    </td>
+                    <td><span class="badge bg-primary" th:text="${r.session.course.code}">CODE</span></td>
+                    <td class="small" th:text="${r.teacher.firstName + ' ' + r.teacher.lastName}">Prof</td>
+                    <td class="text-center fw-bold text-success" th:text="${r.presentCount}">0</td>
+                    <td class="text-center fw-bold text-danger" th:text="${r.absentCount}">0</td>
+                    <td class="text-center fw-bold text-warning" th:text="${r.lateCount}">0</td>
+                    <td class="text-center fw-bold" th:text="${r.presenceRate + '%'}">0%</td>
+                    <td class="text-center">
+                        <span class="badge rounded-pill"
+                              th:classappend="${r.alertLevel == 'CRITICAL' ? 'bg-danger' : (r.alertLevel == 'WARNING' ? 'bg-warning text-dark' : 'bg-success')}"
+                              th:text="${r.alertLevel}">NORMAL</span>
+                    </td>
+                    <td class="text-center">
+                        <i th:if="${r.sentToAdmin}" class="bi bi-check-circle-fill text-success fs-5"
+                           th:title="${'Le ' + #temporals.format(r.sentAt,'dd/MM HH:mm')}"></i>
+                        <i th:unless="${r.sentToAdmin}" class="bi bi-dash-circle text-muted fs-5"></i>
+                    </td>
+                    <td>
+                        <a th:href="@{/admin/attendance/{id}(id=${r.id})}"
+                           class="btn btn-sm btn-outline-primary">Détail</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

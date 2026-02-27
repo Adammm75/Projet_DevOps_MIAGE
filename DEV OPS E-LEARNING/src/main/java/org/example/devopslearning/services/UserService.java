@@ -49,7 +49,7 @@ public class UserService {
         userRoleId.setUserId(user.getId());
         userRoleId.setRoleId(role.getId());
 
-        // Création du lien User ↔ Role
+        // Création du lien User <=> Role
         UserRole userRole = new UserRole();
         userRole.setId(userRoleId);
         userRole.setUser(user);

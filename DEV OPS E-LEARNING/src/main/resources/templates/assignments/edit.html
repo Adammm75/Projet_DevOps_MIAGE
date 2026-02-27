@@ -32,14 +32,12 @@
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 </div>
 
-<<<<<<< HEAD
-=======
+
 <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
     <i class="bi bi-check-circle me-2"></i><span th:text="${success}"></span>
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 </div>
 
->>>>>>> origin/base_du_projet_8
 <!-- Formulaire -->
 <div class="row">
     <div class="col-lg-8">
@@ -88,8 +86,6 @@
 
                     <hr class="my-4">
 
-<<<<<<< HEAD
-=======
                     <!-- ⭐ CLASSES AFFECTÉES -->
                     <div class="mb-4">
                         <label class="form-label">
@@ -153,7 +149,6 @@
 
                     <hr class="my-4">
 
->>>>>>> origin/base_du_projet_8
                     <!-- Date limite et Note max -->
                     <div class="row">
                         <div class="col-md-6 mb-4">
@@ -202,11 +197,6 @@
 
     <!-- Sidebar -->
     <div class="col-lg-4">
-<<<<<<< HEAD
-        <!-- ✅ Informations CORRIGÉES (sans updatedAt) -->
-=======
-        <!-- Informations -->
->>>>>>> origin/base_du_projet_8
         <div class="card border-primary mb-3">
             <div class="card-header bg-primary text-white">
                 <h6 class="mb-0">
@@ -218,12 +208,11 @@
                     <strong>Date de création :</strong><br>
                     <span th:text="${#temporals.format(assignment.createdAt, 'dd/MM/yyyy HH:mm')}">--</span>
                 </p>
-<<<<<<< HEAD
+
                 <p class="small mb-0" th:if="${assignment.createdBy != null}">
                     <strong>Créé par :</strong><br>
                     <span th:text="${assignment.createdBy.firstName + ' ' + assignment.createdBy.lastName}">--</span>
                 </p>
-=======
                 <p class="small mb-2" th:if="${assignment.createdBy != null}">
                     <strong>Créé par :</strong><br>
                     <span th:text="${assignment.createdBy.firstName + ' ' + assignment.createdBy.lastName}">--</span>
@@ -234,7 +223,6 @@
                     <span class="badge bg-info" th:text="${classesAffectees != null ? #lists.size(classesAffectees) : 0}">0</span>
                     classe(s)
                 </p>
->>>>>>> origin/base_du_projet_8
             </div>
         </div>
 
@@ -247,24 +235,30 @@
             </div>
             <div class="card-body">
                 <h6 class="mb-3">Modifications</h6>
-<<<<<<< HEAD
                 <ul class="small mb-0">
 =======
                 <ul class="small mb-3">
->>>>>>> origin/base_du_projet_8
+                <ul class="small mb-3">
+>>>>>>> origin/base_du_projet_10
                     <li>Vérifiez que la nouvelle date limite est cohérente</li>
                     <li>Informez les étudiants des changements importants</li>
                     <li>Ne modifiez pas le barème si des notes ont déjà été attribuées</li>
                 </ul>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> origin/base_du_projet_10
 
                 <h6 class="mb-3">Classes</h6>
                 <ul class="small mb-0">
                     <li>Vous pouvez ajouter ou retirer des classes à tout moment</li>
                     <li>Les étudiants verront/ne verront plus le devoir immédiatement</li>
                 </ul>
+<<<<<<< HEAD
 >>>>>>> origin/base_du_projet_8
+=======
+>>>>>>> origin/base_du_projet_10
             </div>
         </div>
 
@@ -276,10 +270,14 @@
                 </h6>
                 <p class="small mb-0">
 <<<<<<< HEAD
+<<<<<<< HEAD
                     Les modifications sont immédiatement visibles par les étudiants.
 =======
                     Les modifications sont immédiatement visibles par les étudiants des classes affectées.
 >>>>>>> origin/base_du_projet_8
+=======
+                    Les modifications sont immédiatement visibles par les étudiants des classes affectées.
+>>>>>>> origin/base_du_projet_10
                 </p>
             </div>
         </div>
@@ -311,7 +309,11 @@
 
 </body>
 <<<<<<< HEAD
+<<<<<<< HEAD
 </html>
 =======
 </html>
 >>>>>>> origin/base_du_projet_8
+=======
+</html>
+>>>>>>> origin/base_du_projet_10

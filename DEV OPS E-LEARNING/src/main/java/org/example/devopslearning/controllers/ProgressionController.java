@@ -1,117 +1,146 @@
 package org.example.devopslearning.controllers;
 
 import lombok.RequiredArgsConstructor;
-import org.example.devopslearning.entities.Cours;
-import org.example.devopslearning.entities.User;
-import org.example.devopslearning.services.*;
-import org.springframework.security.core.Authentication;
+import org.example.devopslearning.entities.*;
+import org.example.devopslearning.entities.StudentPoints.AcademicLevel;
+import org.example.devopslearning.repositories.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
+@RequestMapping("/progression")
 @RequiredArgsConstructor
 public class ProgressionController {
 
-    private final UserService userService;
-    private final ProgressionService progressionService;
-    private final AdminStatsService adminStatsService;
-    private final CoursService coursService;
+    private final StudentPointsRepository    studentPointsRepository;
+    private final PointTransactionRepository pointTransactionRepository;
+    private final StudentBadgeRepository     studentBadgeRepository;
+    private final CoursRepository            coursRepository;
+    private final CourseEnrollmentRepository courseEnrollmentRepository;
 
-    // ========================================
-    // ÉTUDIANT — Mon avancement
-    // ========================================
+    // -------------------------------------------------------------------------
+    //  ✅ NOUVELLE ROUTE — page de sélection de cours
+    //  Appelée depuis le dashboard : /progression/student
+    // -------------------------------------------------------------------------
 
-    @GetMapping("/student/progression")
-    public String studentProgression(Authentication auth, Model model) {
-        User student = userService.findByEmail(auth.getName());
+    @GetMapping("/student")
+    public String selectCourse(@AuthenticationPrincipal UserDetails userDetails, Model model) {
 
-        List<ProgressionService.CourseProgressDTO> progressions =
-                progressionService.getStudentProgression(student.getId());
+        Long studentId = extractUserId(userDetails);
 
-        int globalPercent = progressionService.getGlobalProgressPercent(student.getId());
-        BigDecimal globalAverage = progressionService.getGlobalAverage(student.getId());
+        // Récupère tous les cours auxquels l'étudiant est inscrit
+        List<Cours> cours = courseEnrollmentRepository
+                .findByStudentId(studentId)
+                .stream()
+                .map(CourseEnrollment::getCourse)
+                .collect(Collectors.toList());
 
-        long coursesCompleted  = progressions.stream().filter(ProgressionService.CourseProgressDTO::isCourseCompleted).count();
-        long coursesInProgress = progressions.stream().filter(p -> p.getProgressPercent() > 0 && !p.isCourseCompleted()).count();
-        long coursesNotStarted = progressions.stream().filter(p -> p.getProgressPercent() == 0).count();
-        long totalLate         = progressions.stream().mapToLong(ProgressionService.CourseProgressDTO::getLateAssignments).sum();
+        model.addAttribute("cours", cours);
+        return "progression/student-progression-select";
+    }
 
-        model.addAttribute("student", student);
-        model.addAttribute("progressions", progressions);
-        model.addAttribute("globalPercent", globalPercent);
-        model.addAttribute("globalAverage", globalAverage);
-        model.addAttribute("totalCourses", progressions.size());
-        model.addAttribute("coursesCompleted", coursesCompleted);
-        model.addAttribute("coursesInProgress", coursesInProgress);
-        model.addAttribute("coursesNotStarted", coursesNotStarted);
-        model.addAttribute("totalLate", totalLate);
+    // -------------------------------------------------------------------------
+    //  VUE ÉTUDIANT pour un cours précis
+    //  Appelée après sélection : /progression/student/{courseId}
+    // -------------------------------------------------------------------------
+
+    @GetMapping("/student/{courseId}")
+    public String studentProgression(@PathVariable Long courseId,
+                                     @AuthenticationPrincipal UserDetails userDetails,
+                                     Model model) {
+
+        Long studentId = extractUserId(userDetails);
+
+        Cours course = coursRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Cours introuvable"));
+
+        StudentPoints sp = studentPointsRepository
+                .findByStudentIdAndCourseId(studentId, courseId)
+                .orElse(null);
+
+        List<StudentBadge> badges = studentBadgeRepository
+                .findByStudentIdAndCourseId(studentId, courseId);
+
+        List<PointTransaction> transactions = pointTransactionRepository
+                .findByStudentIdAndCourseIdOrderByEarnedAtDesc(studentId, courseId);
+
+        int totalPoints = sp != null ? sp.getTotalPoints() : 0;
+        int progressPercent;
+        String nextLevelLabel;
+        if (totalPoints < 100) {
+            progressPercent = totalPoints;
+            nextLevelLabel  = "Prochain niveau : Compréhension (100 pts)";
+        } else if (totalPoints < 250) {
+            progressPercent = (int) ((totalPoints - 100) / 1.5);
+            nextLevelLabel  = "Prochain niveau : Maîtrise (250 pts)";
+        } else {
+            progressPercent = 100;
+            nextLevelLabel  = "🎉 Niveau maximum atteint !";
+        }
+
+        model.addAttribute("course",          course);
+        model.addAttribute("studentPoints",   sp);
+        model.addAttribute("badges",          badges);
+        model.addAttribute("transactions",    transactions);
+        model.addAttribute("progressPercent", progressPercent);
+        model.addAttribute("nextLevelLabel",  nextLevelLabel);
 
         return "progression/student-progression";
     }
 
-    // ========================================
-    // ENSEIGNANT — Suivi de la classe
-    // ========================================
+    // -------------------------------------------------------------------------
+    //  VUE ENSEIGNANT
+    // -------------------------------------------------------------------------
 
-    @GetMapping("/teacher/progression")
-    public String teacherProgression(Authentication auth,
-                                     @RequestParam(required = false) Long courseId,
-                                     @RequestParam(defaultValue = "all") String filter,
-                                     Model model) {
-        User teacher = userService.findByEmail(auth.getName());
-        List<Cours> courses = coursService.getCoursesByTeacher(teacher);
+    @GetMapping("/teacher/{courseId}")
+    public String teacherProgression(@PathVariable Long courseId, Model model) {
 
-        model.addAttribute("teacher", teacher);
-        model.addAttribute("courses", courses);
-        model.addAttribute("selectedFilter", filter);
+        Cours course = coursRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Cours introuvable"));
 
-        if (courseId != null) {
-            Cours selectedCourse = coursService.getById(courseId);
-            List<ProgressionService.StudentProgressDTO> allProgressions =
-                    progressionService.getCourseProgressionForTeacher(courseId);
+        List<StudentPoints> ranking = studentPointsRepository
+                .findByCourseIdOrderByPointsDesc(courseId);
 
-            List<ProgressionService.StudentProgressDTO> filtered = switch (filter) {
-                case "EN_AVANCE" -> allProgressions.stream().filter(s -> "EN_AVANCE".equals(s.getStatus())).toList();
-                case "INACTIF"   -> allProgressions.stream().filter(s -> "INACTIF".equals(s.getStatus())).toList();
-                case "EN_COURS"  -> allProgressions.stream().filter(s -> "EN_COURS".equals(s.getStatus())).toList();
-                case "TERMINE"   -> allProgressions.stream().filter(s -> "TERMINE".equals(s.getStatus())).toList();
-                default          -> allProgressions;
-            };
-
-            int avgProgress = progressionService.getAverageCourseProgression(courseId);
-            Map<String, Long> stats = progressionService.getProgressionStats(courseId);
-            Double classAverage = progressionService.getCourseClassAverage(courseId);
-
-            // Nombre d'étudiants en retard (au moins 1 devoir manqué en retard)
-            long atRiskCount = allProgressions.stream()
-                    .filter(s -> s.getLateAssignments() > 0).count();
-
-            model.addAttribute("selectedCourse", selectedCourse);
-            model.addAttribute("studentProgressions", filtered);
-            model.addAttribute("allStudentProgressions", allProgressions);
-            model.addAttribute("avgProgress", avgProgress);
-            model.addAttribute("progressionStats", stats);
-            model.addAttribute("selectedCourseId", courseId);
-            model.addAttribute("classAverage", classAverage);
-            model.addAttribute("atRiskCount", atRiskCount);
+        Map<String, Long> levelCounts = new HashMap<>();
+        for (AcademicLevel level : AcademicLevel.values()) {
+            levelCounts.put(level.name(), 0L);
         }
+        for (Object[] row : studentPointsRepository.countByLevelForCourse(courseId)) {
+            levelCounts.put(((AcademicLevel) row[0]).name(), (Long) row[1]);
+        }
+
+        List<StudentPoints> struggling = studentPointsRepository
+                .findByCourseIdAndAcademicLevel(courseId, AcademicLevel.DECOUVERTE);
+
+        List<StudentBadge> allBadges = studentBadgeRepository.findByCourseId(courseId);
+        Map<Long, List<StudentBadge>> badgesByStudent = allBadges.stream()
+                .collect(Collectors.groupingBy(sb -> sb.getStudent().getId()));
+
+        model.addAttribute("course",             course);
+        model.addAttribute("ranking",            ranking);
+        model.addAttribute("levelCounts",        levelCounts);
+        model.addAttribute("strugglingStudents", struggling);
+        model.addAttribute("badgesByStudent",    badgesByStudent);
 
         return "progression/teacher-progression";
     }
 
-    // ========================================
-    // ADMIN — Vue globale plateforme
-    // ========================================
+    // -------------------------------------------------------------------------
+    //  Utilitaire
+    // -------------------------------------------------------------------------
 
-    @GetMapping("/admin/progression")
-    public String adminProgression(Authentication auth, Model model) {
-        Map<String, Object> stats = adminStatsService.buildAdminStats();
-        model.addAllAttributes(stats);
-        return "progression/admin-progression";
+    private Long extractUserId(UserDetails userDetails) {
+        if (userDetails instanceof User user) {
+            return user.getId();
+        }
+        throw new RuntimeException("Impossible d'extraire l'ID utilisateur");
     }
 }

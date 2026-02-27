@@ -22,19 +22,25 @@ public class ResourceConsultationService {
     private final ResourceConsultationRepository consultationRepository;
     private final CourseResourceRepository resourceRepository;
 
+    // ✅ Badge Engine
+    private final BadgeEngineService badgeEngineService;
+
     /**
      * Enregistre (ou met à jour) la consultation d'une ressource par un étudiant.
      * Appelé dès que l'étudiant ouvre/télécharge la ressource.
+     * Déclenche l'attribution de points Badge Engine uniquement à la première consultation.
      */
     @Transactional
     public void markAsConsulted(Long resourceId, User student) {
         CourseRessource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new RuntimeException("Ressource introuvable"));
 
+        final boolean[] isFirstConsultation = {false};
+
         consultationRepository.findByResourceAndStudent(resource, student)
                 .ifPresentOrElse(
                         existing -> {
-                            // Déjà consultée : on incrémente le compteur
+                            // Déjà consultée : on incrémente le compteur uniquement
                             existing.setLastSeenAt(Instant.now());
                             existing.setViewCount(existing.getViewCount() + 1);
                             consultationRepository.save(existing);
@@ -45,13 +51,19 @@ public class ResourceConsultationService {
                             c.setResource(resource);
                             c.setStudent(student);
                             consultationRepository.save(c);
+                            isFirstConsultation[0] = true;
                         }
                 );
+
+        // ✅ Badge Engine : points uniquement à la première consultation
+        if (isFirstConsultation[0]) {
+            Long courseId = resource.getCourse().getId();
+            badgeEngineService.onResourceConsulted(student.getId(), courseId, resourceId);
+        }
     }
 
     /**
      * Retourne les IDs des ressources déjà consultées par l'étudiant dans un cours.
-     * Utilisé côté étudiant pour afficher les indicateurs visuels.
      */
     public Set<Long> getConsultedResourceIds(Long studentId, Long courseId) {
         return consultationRepository.findConsultedResourceIdsByStudentAndCourse(studentId, courseId);
@@ -66,7 +78,6 @@ public class ResourceConsultationService {
 
     /**
      * Retourne une map resourceId → nombre d'étudiants distincts ayant consulté.
-     * Utilisé côté enseignant pour voir le taux de consultation par ressource.
      */
     public Map<Long, Long> getConsultationCountPerResource(Long courseId) {
         List<Object[]> rows = consultationRepository.countStudentsPerResourceInCourse(courseId);
