@@ -40,8 +40,8 @@ public class TeacherGradeController {
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
 
         // Cours groupés par classe (null = sans classe)
-        Map<AcademicClass, List<TeacherGradeService.CourseGradeStats>> byClass =
-                gradeService.getCoursesGroupedByClass(teacher);
+        Map<AcademicClass, List<TeacherGradeService.CourseGradeStats>> byClass = gradeService
+                .getCoursesGroupedByClass(teacher);
 
         model.addAttribute("coursesByClass", byClass);
         model.addAttribute("currentPath", "/teacher/grades");
@@ -56,10 +56,10 @@ public class TeacherGradeController {
 
     @GetMapping("/course/{id}")
     public String courseGrades(@PathVariable Long id,
-                               @RequestParam(defaultValue = "students") String tab,
-                               @AuthenticationPrincipal UserDetails userDetails,
-                               Model model,
-                               RedirectAttributes ra) {
+            @RequestParam(defaultValue = "students") String tab,
+            @AuthenticationPrincipal UserDetails userDetails,
+            Model model,
+            RedirectAttributes ra) {
         try {
             User teacher = userRepository.findByEmail(userDetails.getUsername())
                     .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
@@ -76,16 +76,13 @@ public class TeacherGradeController {
             TeacherGradeService.CourseGradeStats courseStats = gradeService.getCourseStats(cours);
 
             // Onglet Étudiants
-            List<TeacherGradeService.StudentGradeDetail> studentGrades =
-                    gradeService.getCourseGradeDetails(id);
+            List<TeacherGradeService.StudentGradeDetail> studentGrades = gradeService.getCourseGradeDetails(id);
 
             // Onglet Devoirs
-            List<TeacherGradeService.AssignmentGradeDetail> assignmentDetails =
-                    gradeService.getAssignmentDetails(id);
+            List<TeacherGradeService.AssignmentGradeDetail> assignmentDetails = gradeService.getAssignmentDetails(id);
 
             // Onglet QCM
-            List<TeacherGradeService.QcmGradeDetail> qcmDetails =
-                    gradeService.getQcmDetails(id);
+            List<TeacherGradeService.QcmGradeDetail> qcmDetails = gradeService.getQcmDetails(id);
 
             // Statistiques avancées
             Map<String, Long> gradeDistribution = gradeService.getGradeDistribution(id);
@@ -117,8 +114,8 @@ public class TeacherGradeController {
 
     @PostMapping("/course/{id}/calculate")
     public String calculateGrades(@PathVariable Long id,
-                                  @AuthenticationPrincipal UserDetails userDetails,
-                                  RedirectAttributes ra) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            RedirectAttributes ra) {
         try {
             User teacher = userRepository.findByEmail(userDetails.getUsername())
                     .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
@@ -147,7 +144,7 @@ public class TeacherGradeController {
 
     @GetMapping("/course/{id}/export/excel")
     public ResponseEntity<byte[]> exportExcel(@PathVariable Long id,
-                                              @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails) {
         try {
             User teacher = userRepository.findByEmail(userDetails.getUsername())
                     .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
@@ -175,7 +172,7 @@ public class TeacherGradeController {
 
     @GetMapping("/course/{id}/export/pdf")
     public ResponseEntity<byte[]> exportPDF(@PathVariable Long id,
-                                            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails) {
         try {
             User teacher = userRepository.findByEmail(userDetails.getUsername())
                     .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));

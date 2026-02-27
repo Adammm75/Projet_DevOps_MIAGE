@@ -23,7 +23,7 @@ public class TeacherGradeService {
     private final CoursRepository coursRepository;
     private final QcmTentativeRepository qcmTentativeRepository;
     private final QcmRepository qcmRepository;
-    private final CoursClassRepository coursClassRepository;        // lien cours <-> classe
+    private final CoursClassRepository coursClassRepository; // lien cours <-> classe
     private final InscriptionsClassRepository inscriptionsClassRepository; // étudiants d'une classe
 
     // ========================================
@@ -148,8 +148,7 @@ public class TeacherGradeService {
                         qcmTentativeRepository.findByQcmIdAndStatut(q.getId(), "TERMINE")
                                 .stream()
                                 .filter(t -> t.getEtudiant().getId().equals(student.getId()))
-                                .collect(Collectors.toList())
-                );
+                                .collect(Collectors.toList()));
             }
 
             // Moyenne QCM de l'étudiant (meilleure tentative par QCM)
@@ -266,7 +265,7 @@ public class TeacherGradeService {
 
     @Transactional
     public void calculateStudentGrade(Cours cours, User student,
-                                      List<Assignment> assignments, List<Qcm> qcms) {
+            List<Assignment> assignments, List<Qcm> qcms) {
         List<BigDecimal> grades = new ArrayList<>();
 
         // Notes des devoirs (normalisées sur 20)
@@ -300,7 +299,8 @@ public class TeacherGradeService {
                     });
         }
 
-        if (grades.isEmpty()) return;
+        if (grades.isEmpty())
+            return;
 
         BigDecimal moyenne = grades.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
                 .divide(BigDecimal.valueOf(grades.size()), 2, RoundingMode.HALF_UP);
@@ -338,7 +338,8 @@ public class TeacherGradeService {
 
     public BigDecimal getSuccessRate(Long coursId) {
         List<NotesCour> notes = notesCoursRepository.findByCoursId(coursId);
-        if (notes.isEmpty()) return BigDecimal.ZERO;
+        if (notes.isEmpty())
+            return BigDecimal.ZERO;
         long passed = notes.stream().filter(n -> n.getNoteFinale() != null
                 && n.getNoteFinale().compareTo(BigDecimal.valueOf(10)) >= 0).count();
         return BigDecimal.valueOf(passed * 100L)
@@ -369,31 +370,42 @@ public class TeacherGradeService {
     // ========================================
 
     private BigDecimal calculerMoyenneQcm(List<QcmTentative> tentatives, List<Qcm> qcms) {
-        if (tentatives.isEmpty() || qcms.isEmpty()) return BigDecimal.ZERO;
+        if (tentatives.isEmpty() || qcms.isEmpty())
+            return BigDecimal.ZERO;
         List<BigDecimal> scores = tentatives.stream()
                 .filter(t -> t.getPourcentage() != null)
                 .map(t -> BigDecimal.valueOf(t.getPourcentage())
                         .divide(BigDecimal.valueOf(5), 2, RoundingMode.HALF_UP)) // % → /20
                 .collect(Collectors.toList());
-        if (scores.isEmpty()) return BigDecimal.ZERO;
+        if (scores.isEmpty())
+            return BigDecimal.ZERO;
         return scores.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
                 .divide(BigDecimal.valueOf(scores.size()), 2, RoundingMode.HALF_UP);
     }
 
     private String determineMention(BigDecimal note) {
-        if (note.compareTo(BigDecimal.valueOf(16)) >= 0) return "TB";
-        if (note.compareTo(BigDecimal.valueOf(14)) >= 0) return "B";
-        if (note.compareTo(BigDecimal.valueOf(12)) >= 0) return "AB";
-        if (note.compareTo(BigDecimal.valueOf(10)) >= 0) return "P";
+        if (note.compareTo(BigDecimal.valueOf(16)) >= 0)
+            return "TB";
+        if (note.compareTo(BigDecimal.valueOf(14)) >= 0)
+            return "B";
+        if (note.compareTo(BigDecimal.valueOf(12)) >= 0)
+            return "AB";
+        if (note.compareTo(BigDecimal.valueOf(10)) >= 0)
+            return "P";
         return null;
     }
 
     private String getGradeRange(BigDecimal note) {
-        if (note.compareTo(BigDecimal.valueOf(16)) >= 0) return "16-20";
-        if (note.compareTo(BigDecimal.valueOf(14)) >= 0) return "14-16";
-        if (note.compareTo(BigDecimal.valueOf(12)) >= 0) return "12-14";
-        if (note.compareTo(BigDecimal.valueOf(10)) >= 0) return "10-12";
-        if (note.compareTo(BigDecimal.valueOf(8)) >= 0) return "8-10";
+        if (note.compareTo(BigDecimal.valueOf(16)) >= 0)
+            return "16-20";
+        if (note.compareTo(BigDecimal.valueOf(14)) >= 0)
+            return "14-16";
+        if (note.compareTo(BigDecimal.valueOf(12)) >= 0)
+            return "12-14";
+        if (note.compareTo(BigDecimal.valueOf(10)) >= 0)
+            return "10-12";
+        if (note.compareTo(BigDecimal.valueOf(8)) >= 0)
+            return "8-10";
         return "0-8";
     }
 
@@ -401,7 +413,10 @@ public class TeacherGradeService {
     // 7. DTOs
     // ========================================
 
-    @Data @Builder @NoArgsConstructor @AllArgsConstructor
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CourseGradeStats {
         private Cours cours;
         private long totalStudents;
@@ -414,17 +429,22 @@ public class TeacherGradeService {
         private Map<String, Long> mentionDistribution;
 
         public double getGradedPercentage() {
-            if (totalStudents == 0) return 0.0;
+            if (totalStudents == 0)
+                return 0.0;
             return (double) studentsWithGrades / totalStudents * 100;
         }
 
         public double getAssignmentGradedPercentage() {
-            if (totalAssignments == 0) return 0.0;
+            if (totalAssignments == 0)
+                return 0.0;
             return (double) gradedAssignments / totalAssignments * 100;
         }
     }
 
-    @Data @Builder @NoArgsConstructor @AllArgsConstructor
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class StudentGradeDetail {
         private NotesCour notesCour;
         private User student;
@@ -441,7 +461,8 @@ public class TeacherGradeService {
         private BigDecimal moyenneQcm;
 
         public double getSubmissionRate() {
-            if (totalAssignments == 0) return 0.0;
+            if (totalAssignments == 0)
+                return 0.0;
             return (double) submittedAssignments / totalAssignments * 100;
         }
 
@@ -450,7 +471,10 @@ public class TeacherGradeService {
         }
     }
 
-    @Data @Builder @NoArgsConstructor @AllArgsConstructor
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class AssignmentGradeDetail {
         private Assignment assignment;
         private int totalSubmissions;
@@ -460,7 +484,10 @@ public class TeacherGradeService {
         private List<AssignmentSubmission> submissions;
     }
 
-    @Data @Builder @NoArgsConstructor @AllArgsConstructor
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class QcmGradeDetail {
         private Qcm qcm;
         private long totalTentatives;
@@ -470,7 +497,8 @@ public class TeacherGradeService {
         private long tentativesEchouees;
 
         public double getTauxReussite() {
-            if (tentativesTerminees == 0) return 0.0;
+            if (tentativesTerminees == 0)
+                return 0.0;
             return (double) tentativesReussies / tentativesTerminees * 100;
         }
     }

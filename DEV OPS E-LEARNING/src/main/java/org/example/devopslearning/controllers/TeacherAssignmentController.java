@@ -35,16 +35,16 @@ public class TeacherAssignmentController {
     private final TeacherAssignmentService teacherAssignmentService;
     private final CoursService coursService;
     private final UserService userService;
-    private final AssignmentClassRepository assignmentClassRepository;  // ⭐ AJOUTÉ
-    private final TeacherClassRepository teacherClassRepository;        // ⭐ AJOUTÉ
+    private final AssignmentClassRepository assignmentClassRepository; // ⭐ AJOUTÉ
+    private final TeacherClassRepository teacherClassRepository; // ⭐ AJOUTÉ
 
     // ========================================
     // 1️⃣ LISTE GLOBALE DES DEVOIRS (tous cours)
     // ========================================
     @GetMapping
     public String listAllAssignments(@AuthenticationPrincipal UserDetails userDetails,
-                                     @RequestParam(required = false) Long courseId,
-                                     Model model) {
+            @RequestParam(required = false) Long courseId,
+            Model model) {
         User teacher = userService.findByUsername(userDetails.getUsername());
 
         List<Assignment> assignments;
@@ -84,8 +84,8 @@ public class TeacherAssignmentController {
     // ========================================
     @GetMapping("/course/{courseId}")
     public String listCourseAssignments(@PathVariable Long courseId,
-                                        @AuthenticationPrincipal UserDetails userDetails,
-                                        Model model) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            Model model) {
         User teacher = userService.findByUsername(userDetails.getUsername());
         Cours course = coursService.getById(courseId);
         List<Assignment> assignments = teacherAssignmentService.listByCourse(courseId);
@@ -122,9 +122,9 @@ public class TeacherAssignmentController {
     // ========================================
     @GetMapping("/new")
     public String newAssignment(@RequestParam(required = false) Long courseId,
-                                @AuthenticationPrincipal UserDetails userDetails,
-                                Model model,
-                                RedirectAttributes ra) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            Model model,
+            RedirectAttributes ra) {
 
         // Si courseId n'est pas fourni, rediriger vers la liste avec erreur
         if (courseId == null) {
@@ -147,7 +147,7 @@ public class TeacherAssignmentController {
 
             model.addAttribute("assignment", assignment);
             model.addAttribute("course", course);
-            model.addAttribute("classes", classes);  // ⭐ AJOUTÉ
+            model.addAttribute("classes", classes); // ⭐ AJOUTÉ
 
             return "assignments/create";
         } catch (Exception e) {
@@ -157,22 +157,21 @@ public class TeacherAssignmentController {
     }
 
     // 4️⃣ MODIFIER LA MÉTHODE createAssignment (ligne 144-170)
-// Ajouter le paramètre classeIds et l'affectation
+    // Ajouter le paramètre classeIds et l'affectation
     @PostMapping
     public String createAssignment(@RequestParam Long courseId,
-                                   @RequestParam String title,
-                                   @RequestParam(required = false) String description,
-                                   @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dueDate,
-                                   @RequestParam(required = false) BigDecimal maxGrade,
-                                   @RequestParam(required = false) List<Long> classeIds,  // ⭐ AJOUTÉ
-                                   @AuthenticationPrincipal UserDetails userDetails,
-                                   RedirectAttributes redirectAttributes) {
+            @RequestParam String title,
+            @RequestParam(required = false) String description,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dueDate,
+            @RequestParam(required = false) BigDecimal maxGrade,
+            @RequestParam(required = false) List<Long> classeIds, // ⭐ AJOUTÉ
+            @AuthenticationPrincipal UserDetails userDetails,
+            RedirectAttributes redirectAttributes) {
         try {
             User teacher = userService.findByUsername(userDetails.getUsername());
 
             Assignment assignment = teacherAssignmentService.createAssignment(
-                    courseId, title, description, dueDate, maxGrade, teacher
-            );
+                    courseId, title, description, dueDate, maxGrade, teacher);
 
             // ⭐ AFFECTER AUX CLASSES
             if (classeIds != null && !classeIds.isEmpty()) {
@@ -217,19 +216,18 @@ public class TeacherAssignmentController {
     // ========================================
     @PostMapping("/{assignmentId}/update")
     public String updateAssignment(@PathVariable Long assignmentId,
-                                   @RequestParam String title,
-                                   @RequestParam(required = false) String description,
-                                   @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dueDate,
-                                   @RequestParam BigDecimal maxGrade,
-                                   RedirectAttributes ra) {
+            @RequestParam String title,
+            @RequestParam(required = false) String description,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dueDate,
+            @RequestParam BigDecimal maxGrade,
+            RedirectAttributes ra) {
         try {
             Assignment assignment = teacherAssignmentService.updateAssignment(
                     assignmentId,
                     title,
                     description,
                     dueDate,
-                    maxGrade
-            );
+                    maxGrade);
 
             ra.addFlashAttribute("success", "Devoir modifié avec succès");
             return "redirect:/teacher/assignments/course/" + assignment.getCourse().getId();
@@ -324,10 +322,10 @@ public class TeacherAssignmentController {
     // ========================================
     @PostMapping("/submissions/{submissionId}/grade")
     public String grade(@PathVariable Long submissionId,
-                        @RequestParam BigDecimal grade,
-                        @RequestParam(required = false) String feedback,
-                        @AuthenticationPrincipal UserDetails userDetails,
-                        RedirectAttributes ra) {
+            @RequestParam BigDecimal grade,
+            @RequestParam(required = false) String feedback,
+            @AuthenticationPrincipal UserDetails userDetails,
+            RedirectAttributes ra) {
         try {
             User teacher = userService.findByUsername(userDetails.getUsername());
 

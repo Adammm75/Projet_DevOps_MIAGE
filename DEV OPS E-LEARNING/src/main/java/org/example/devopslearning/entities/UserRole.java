@@ -6,8 +6,6 @@ import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 @Getter
 @Setter
 @Entity
@@ -17,15 +15,14 @@ public class UserRole {
     @EmbeddedId
     private UserRoleId id;
 
-    @JsonIgnoreProperties({"userRoles"})
     @MapsId("userId")
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)  // 🔥 Changé de LAZY à EAGER
+    @ManyToOne(fetch = FetchType.EAGER, optional = false) // 🔥 Changé de LAZY à EAGER
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @MapsId("roleId")
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)  // 🔥 Changé de LAZY à EAGER
+    @ManyToOne(fetch = FetchType.EAGER, optional = false) // 🔥 Changé de LAZY à EAGER
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;

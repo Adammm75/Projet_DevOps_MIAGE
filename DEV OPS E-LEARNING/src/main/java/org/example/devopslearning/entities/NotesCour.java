@@ -60,7 +60,6 @@ public class NotesCour {
     @Column(name = "created_at")
     private Instant createdAt;
 
-    // ✅ MÉTHODE HELPER
     @PrePersist
     public void prePersist() {
         if (noteMax == null) {

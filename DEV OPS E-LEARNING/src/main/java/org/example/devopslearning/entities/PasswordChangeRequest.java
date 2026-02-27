@@ -1,4 +1,4 @@
-package org.example.devopslearning.entities;
+package org.example.devopslearning.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

@@ -53,8 +53,7 @@ public class StudentAssignmentController {
                 .collect(Collectors.toMap(
                         s -> s.getAssignment().getId(),
                         s -> s,
-                        (s1, s2) -> s1.getSubmittedAt().isAfter(s2.getSubmittedAt()) ? s1 : s2
-                ));
+                        (s1, s2) -> s1.getSubmittedAt().isAfter(s2.getSubmittedAt()) ? s1 : s2));
 
         // Catégoriser les devoirs
         Instant now = Instant.now();
@@ -89,13 +88,12 @@ public class StudentAssignmentController {
      */
     @GetMapping("/course/{courseId}")
     public String listByCourse(@PathVariable Long courseId,
-                               Authentication auth,
-                               Model model) {
+            Authentication auth,
+            Model model) {
         User student = userService.findByEmail(auth.getName());
 
         List<Assignment> assignments = studentAssignmentService.getAssignmentsForStudentByCourse(
-                student.getId(), courseId
-        );
+                student.getId(), courseId);
 
         List<AssignmentSubmission> submissions = assignmentService.submissionsForStudent(student.getId());
 
@@ -103,8 +101,7 @@ public class StudentAssignmentController {
                 .collect(Collectors.toMap(
                         s -> s.getAssignment().getId(),
                         s -> s,
-                        (s1, s2) -> s1.getSubmittedAt().isAfter(s2.getSubmittedAt()) ? s1 : s2
-                ));
+                        (s1, s2) -> s1.getSubmittedAt().isAfter(s2.getSubmittedAt()) ? s1 : s2));
 
         model.addAttribute("assignments", assignments);
         model.addAttribute("submissionMap", submissionMap);
@@ -122,9 +119,9 @@ public class StudentAssignmentController {
      */
     @GetMapping("/{assignmentId}")
     public String details(@PathVariable Long assignmentId,
-                          Authentication auth,
-                          Model model,
-                          RedirectAttributes ra) {
+            Authentication auth,
+            Model model,
+            RedirectAttributes ra) {
         try {
             User student = userService.findByEmail(auth.getName());
             Assignment assignment = studentAssignmentService.getAssignmentById(assignmentId);
@@ -137,8 +134,7 @@ public class StudentAssignmentController {
 
             // Récupérer la soumission si elle existe
             AssignmentSubmission submission = studentAssignmentService.getSubmission(
-                    student.getId(), assignmentId
-            );
+                    student.getId(), assignmentId);
 
             // Calculer le temps restant
             Instant now = Instant.now();
@@ -167,9 +163,9 @@ public class StudentAssignmentController {
      */
     @PostMapping("/{assignmentId}/submit")
     public String submit(@PathVariable Long assignmentId,
-                         @RequestParam("file") MultipartFile file,
-                         Authentication auth,
-                         RedirectAttributes ra) {
+            @RequestParam("file") MultipartFile file,
+            Authentication auth,
+            RedirectAttributes ra) {
         try {
             User student = userService.findByEmail(auth.getName());
 
@@ -208,9 +204,9 @@ public class StudentAssignmentController {
      */
     @PostMapping("/{assignmentId}/resubmit")
     public String resubmit(@PathVariable Long assignmentId,
-                           @RequestParam("file") MultipartFile file,
-                           Authentication auth,
-                           RedirectAttributes ra) {
+            @RequestParam("file") MultipartFile file,
+            Authentication auth,
+            RedirectAttributes ra) {
         try {
             User student = userService.findByEmail(auth.getName());
 
@@ -247,8 +243,8 @@ public class StudentAssignmentController {
      */
     @GetMapping("/submission/{submissionId}/download")
     public String downloadSubmission(@PathVariable Long submissionId,
-                                     Authentication auth,
-                                     RedirectAttributes ra) {
+            Authentication auth,
+            RedirectAttributes ra) {
         try {
             User student = userService.findByEmail(auth.getName());
             AssignmentSubmission submission = studentAssignmentService.getSubmissionById(submissionId);

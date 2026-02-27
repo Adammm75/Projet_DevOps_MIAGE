@@ -26,14 +26,16 @@ public class QcmService {
     private final QcmReponsRepository reponseRepository;
     private final UserRepository userRepository;
     private final CoursRepository coursRepository;
+    private final QcmClassRepository qcmClassRepository;
+    private final AcademicClassRepository academicClassRepository;
+
+    // ✅ Badge Engine
+    private final BadgeEngineService badgeEngineService;
 
     // ========================================
     // GESTION DES QCM (CRUD)
     // ========================================
 
-    /**
-     * Crée un nouveau QCM
-     */
     public Qcm createQcm(Qcm qcm, Long enseignantId) {
         User enseignant = userRepository.findById(enseignantId)
                 .orElseThrow(() -> new RuntimeException("Enseignant introuvable"));
@@ -44,9 +46,6 @@ public class QcmService {
         return qcmRepository.save(qcm);
     }
 
-    /**
-     * Met à jour un QCM existant
-     */
     public Qcm updateQcm(Long qcmId, Qcm qcmData) {
         Qcm qcm = qcmRepository.findById(qcmId)
                 .orElseThrow(() -> new RuntimeException("QCM introuvable"));
@@ -57,20 +56,13 @@ public class QcmService {
         qcm.setTentativesMax(qcmData.getTentativesMax());
         qcm.setPublie(qcmData.getPublie());
 
-
         return qcmRepository.save(qcm);
     }
 
-    /**
-     * Supprime un QCM
-     */
     public void deleteQcm(Long qcmId) {
         qcmRepository.deleteById(qcmId);
     }
 
-    /**
-     * Publie ou dépublie un QCM
-     */
     public Qcm togglePublish(Long qcmId) {
         Qcm qcm = qcmRepository.findById(qcmId)
                 .orElseThrow(() -> new RuntimeException("QCM introuvable"));
@@ -80,9 +72,6 @@ public class QcmService {
         return qcmRepository.save(qcm);
     }
 
-    /**
-     * Duplique un QCM avec toutes ses questions
-     */
     public Qcm duplicateQcm(Long qcmId, Long enseignantId) {
         Qcm original = qcmRepository.findById(qcmId)
                 .orElseThrow(() -> new RuntimeException("QCM introuvable"));
@@ -90,20 +79,18 @@ public class QcmService {
         User enseignant = userRepository.findById(enseignantId)
                 .orElseThrow(() -> new RuntimeException("Enseignant introuvable"));
 
-        // Créer la copie du QCM
         Qcm copie = new Qcm();
         copie.setCours(original.getCours());
         copie.setTitre(original.getTitre() + " (Copie)");
         copie.setDescription(original.getDescription());
         copie.setLimiteTempsMinutes(original.getLimiteTempsMinutes());
         copie.setTentativesMax(original.getTentativesMax());
-        copie.setPublie(false);  // Toujours en brouillon
+        copie.setPublie(false);
         copie.setCreeePar(enseignant);
         copie.setDateCreation(Instant.now());
 
         copie = qcmRepository.save(copie);
 
-        // Copier les questions
         List<QcmQuestion> questions = questionRepository.findByQcmIdOrderByPositionAsc(qcmId);
         for (QcmQuestion q : questions) {
             QcmQuestion nouvelleQuestion = new QcmQuestion();
@@ -115,14 +102,12 @@ public class QcmService {
 
             nouvelleQuestion = questionRepository.save(nouvelleQuestion);
 
-            // Copier les options
             List<QcmOption> options = optionRepository.findByQuestionId(q.getId());
             for (QcmOption o : options) {
                 QcmOption nouvelleOption = new QcmOption();
                 nouvelleOption.setQuestion(nouvelleQuestion);
                 nouvelleOption.setTexteOption(o.getTexteOption());
                 nouvelleOption.setEstCorrecte(o.getEstCorrecte());
-
                 optionRepository.save(nouvelleOption);
             }
         }
@@ -134,27 +119,20 @@ public class QcmService {
     // GESTION DES QUESTIONS
     // ========================================
 
-    /**
-     * Ajoute une question à un QCM
-     */
     public QcmQuestion addQuestion(Long qcmId, QcmQuestion question) {
         Qcm qcm = qcmRepository.findById(qcmId)
                 .orElseThrow(() -> new RuntimeException("QCM introuvable"));
 
         question.setQcm(qcm);
 
-        // Déterminer la position
         List<QcmQuestion> existingQuestions = questionRepository.findByQcmIdOrderByPositionAsc(qcmId);
-        int nextPosition = existingQuestions.isEmpty() ? 1 :
-                existingQuestions.get(existingQuestions.size() - 1).getPosition() + 1;
+        int nextPosition = existingQuestions.isEmpty() ? 1
+                : existingQuestions.get(existingQuestions.size() - 1).getPosition() + 1;
         question.setPosition(nextPosition);
 
         return questionRepository.save(question);
     }
 
-    /**
-     * Met à jour une question
-     */
     public QcmQuestion updateQuestion(Long questionId, QcmQuestion questionData) {
         QcmQuestion question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new RuntimeException("Question introuvable"));
@@ -166,16 +144,10 @@ public class QcmService {
         return questionRepository.save(question);
     }
 
-    /**
-     * Supprime une question
-     */
     public void deleteQuestion(Long questionId) {
         questionRepository.deleteById(questionId);
     }
 
-    /**
-     * Réordonne les questions d'un QCM
-     */
     public void reorderQuestions(Long qcmId, List<Long> questionIds) {
         for (int i = 0; i < questionIds.size(); i++) {
             QcmQuestion question = questionRepository.findById(questionIds.get(i))
@@ -189,9 +161,6 @@ public class QcmService {
     // GESTION DES OPTIONS
     // ========================================
 
-    /**
-     * Ajoute une option à une question
-     */
     public QcmOption addOption(Long questionId, QcmOption option) {
         QcmQuestion question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new RuntimeException("Question introuvable"));
@@ -200,9 +169,6 @@ public class QcmService {
         return optionRepository.save(option);
     }
 
-    /**
-     * Supprime une option
-     */
     public void deleteOption(Long optionId) {
         optionRepository.deleteById(optionId);
     }
@@ -211,45 +177,27 @@ public class QcmService {
     // RÉCUPÉRATION DES DONNÉES
     // ========================================
 
-    /**
-     * Récupère un QCM par ID
-     */
     public Qcm getQcmById(Long qcmId) {
         return qcmRepository.findById(qcmId)
                 .orElseThrow(() -> new RuntimeException("QCM introuvable"));
     }
 
-    /**
-     * Liste tous les QCM d'un enseignant
-     */
     public List<Qcm> getQcmsByEnseignant(Long enseignantId) {
         return qcmRepository.findByCreeeParIdOrderByDateCreationDesc(enseignantId);
     }
 
-    /**
-     * Liste les QCM d'un cours pour un enseignant
-     */
     public List<Qcm> getQcmsByCourseAndEnseignant(Long coursId, Long enseignantId) {
         return qcmRepository.findByCoursIdAndCreeeParIdOrderByDateCreationDesc(coursId, enseignantId);
     }
 
-    /**
-     * Liste les QCM publiés d'un cours
-     */
     public List<Qcm> getPublishedQcmsByCourse(Long coursId) {
         return qcmRepository.findByCoursIdAndPublieTrue(coursId);
     }
 
-    /**
-     * Récupère les questions d'un QCM
-     */
     public List<QcmQuestion> getQuestionsByQcm(Long qcmId) {
         return questionRepository.findByQcmIdOrderByPositionAsc(qcmId);
     }
 
-    /**
-     * Récupère les options d'une question
-     */
     public List<QcmOption> getOptionsByQuestion(Long questionId) {
         return optionRepository.findByQuestionIdOrderById(questionId);
     }
@@ -258,16 +206,10 @@ public class QcmService {
     // STATISTIQUES
     // ========================================
 
-    /**
-     * Compte le nombre de questions d'un QCM
-     */
     public long countQuestions(Long qcmId) {
         return questionRepository.findByQcmId(qcmId).size();
     }
 
-    /**
-     * Calcule le score maximum d'un QCM
-     */
     public BigDecimal calculateMaxScore(Long qcmId) {
         List<QcmQuestion> questions = questionRepository.findByQcmId(qcmId);
         return questions.stream()
@@ -275,27 +217,20 @@ public class QcmService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    /**
-     * Compte le nombre de tentatives pour un QCM
-     */
     public long countTentatives(Long qcmId) {
         return tentativeRepository.findAll().stream()
                 .filter(t -> t.getQcm().getId().equals(qcmId))
                 .count();
     }
 
-    /**
-     * Calcule le score moyen pour un QCM
-     */
     public Double calculateAverageScore(Long qcmId) {
         List<QcmTentative> tentatives = tentativeRepository.findAll().stream()
                 .filter(t -> t.getQcm().getId().equals(qcmId))
                 .filter(t -> t.getScore() != null)
                 .collect(Collectors.toList());
 
-        if (tentatives.isEmpty()) {
+        if (tentatives.isEmpty())
             return null;
-        }
 
         double sum = tentatives.stream()
                 .mapToDouble(t -> t.getScore().doubleValue())
@@ -304,17 +239,12 @@ public class QcmService {
         return sum / tentatives.size();
     }
 
-    /**
-     * Récupère les statistiques détaillées d'un QCM
-     */
     public Map<String, Object> getQcmStatistics(Long qcmId) {
         Map<String, Object> stats = new HashMap<>();
-
         stats.put("nbQuestions", countQuestions(qcmId));
         stats.put("scoreMax", calculateMaxScore(qcmId));
         stats.put("nbTentatives", countTentatives(qcmId));
         stats.put("scoreMoyen", calculateAverageScore(qcmId));
-
         return stats;
     }
 
@@ -322,9 +252,6 @@ public class QcmService {
     // PASSAGE DE QCM (ÉTUDIANTS)
     // ========================================
 
-    /**
-     * Démarre une tentative de QCM
-     */
     public QcmTentative startTentative(Long qcmId, Long etudiantId) {
         Qcm qcm = qcmRepository.findById(qcmId)
                 .orElseThrow(() -> new RuntimeException("QCM introuvable"));
@@ -332,7 +259,6 @@ public class QcmService {
         User etudiant = userRepository.findById(etudiantId)
                 .orElseThrow(() -> new RuntimeException("Étudiant introuvable"));
 
-        // Vérifier le nombre de tentatives
         List<QcmTentative> tentatives = tentativeRepository
                 .findByQcmIdAndEtudiantIdOrderByDateDebutDesc(qcmId, etudiantId);
 
@@ -350,9 +276,6 @@ public class QcmService {
         return tentativeRepository.save(tentative);
     }
 
-    /**
-     * Enregistre une réponse
-     */
     public void saveReponse(Long tentativeId, Long questionId, Long optionId) {
         QcmTentative tentative = tentativeRepository.findById(tentativeId)
                 .orElseThrow(() -> new RuntimeException("Tentative introuvable"));
@@ -374,7 +297,7 @@ public class QcmService {
     }
 
     /**
-     * Termine une tentative et calcule le score
+     * Termine une tentative, calcule le score et déclenche le Badge Engine.
      */
     public QcmTentative finishTentative(Long tentativeId) {
         QcmTentative tentative = tentativeRepository.findById(tentativeId)
@@ -383,7 +306,7 @@ public class QcmService {
         tentative.setDateFin(Instant.now());
         tentative.setStatut("TERMINE");
 
-        // Calculer le score
+        // Calculer le score obtenu
         List<QcmRepons> reponses = reponseRepository.findByTentativeId(tentativeId);
         BigDecimal score = reponses.stream()
                 .map(QcmRepons::getPointsObtenus)
@@ -391,25 +314,25 @@ public class QcmService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         tentative.setScore(score);
+        QcmTentative saved = tentativeRepository.save(tentative);
 
-        return tentativeRepository.save(tentative);
+        // ✅ Badge Engine : calcul du scorePercent et déclenchement si >= 70%
+        BigDecimal scoreMax = tentative.getScoreMax();
+        if (scoreMax != null && scoreMax.compareTo(BigDecimal.ZERO) > 0) {
+            double scorePercent = score.doubleValue() / scoreMax.doubleValue() * 100.0;
+
+            Long studentId = tentative.getEtudiant().getId();
+            Long courseId = tentative.getQcm().getCours().getId();
+            badgeEngineService.onQcmCompleted(studentId, courseId, tentativeId, scorePercent);
+        }
+
+        return saved;
     }
 
     // ========================================
-// ⭐ AJOUTER CES MÉTHODES DANS QcmService.java
-// ========================================
+    // GESTION DES AFFECTATIONS AUX CLASSES
+    // ========================================
 
-    // Ajouter cette injection dans les dépendances :
-    private final QcmClassRepository qcmClassRepository;
-    private final AcademicClassRepository academicClassRepository;
-
-// ========================================
-// GESTION DES AFFECTATIONS AUX CLASSES
-// ========================================
-
-    /**
-     * Affecte un QCM à une classe
-     */
     public QcmClass affecterQcmAClasse(Long qcmId, Long classeId) {
         Qcm qcm = qcmRepository.findById(qcmId)
                 .orElseThrow(() -> new RuntimeException("QCM introuvable"));
@@ -417,7 +340,6 @@ public class QcmService {
         AcademicClass classe = academicClassRepository.findById(classeId)
                 .orElseThrow(() -> new RuntimeException("Classe introuvable"));
 
-        // Vérifier si déjà affecté
         if (qcmClassRepository.existsByQcmIdAndClasseId(qcmId, classeId)) {
             throw new RuntimeException("Ce QCM est déjà affecté à cette classe");
         }
@@ -430,44 +352,29 @@ public class QcmService {
         return qcmClassRepository.save(qcmClass);
     }
 
-    /**
-     * Affecte un QCM à plusieurs classes
-     */
     public void affecterQcmAClasses(Long qcmId, List<Long> classeIds) {
-        if (classeIds == null || classeIds.isEmpty()) {
+        if (classeIds == null || classeIds.isEmpty())
             return;
-        }
 
         for (Long classeId : classeIds) {
             try {
                 affecterQcmAClasse(qcmId, classeId);
             } catch (RuntimeException e) {
-                // Si déjà affecté, continuer
-                if (!e.getMessage().contains("déjà affecté")) {
+                if (!e.getMessage().contains("déjà affecté"))
                     throw e;
-                }
             }
         }
     }
 
-    /**
-     * Retire un QCM d'une classe
-     */
     @Transactional
     public void retirerQcmDeClasse(Long qcmId, Long classeId) {
         qcmClassRepository.deleteByQcmIdAndClasseId(qcmId, classeId);
     }
 
-    /**
-     * Récupère les classes auxquelles un QCM est affecté
-     */
     public List<QcmClass> getClassesByQcm(Long qcmId) {
         return qcmClassRepository.findByQcmId(qcmId);
     }
 
-    /**
-     * Récupère les classes disponibles (non affectées) pour un QCM
-     */
     public List<AcademicClass> getClassesDisponibles(Long qcmId) {
         List<Long> assignedClasseIds = qcmClassRepository.findClasseIdsByQcmId(qcmId);
 
@@ -476,29 +383,20 @@ public class QcmService {
                 .toList();
     }
 
-    /**
-     * Récupère les QCM publiés pour une classe (pour les étudiants)
-     */
     public List<QcmClass> getPublishedQcmsForClasse(Long classeId) {
         return qcmClassRepository.findPublishedQcmsByClasseId(classeId);
     }
 
-    /**
-     * Met à jour les affectations de classes pour un QCM
-     */
     @Transactional
     public void updateClassesForQcm(Long qcmId, List<Long> newClasseIds) {
-        // Récupérer les IDs actuels
         List<Long> currentIds = qcmClassRepository.findClasseIdsByQcmId(qcmId);
 
-        // Retirer ceux qui ne sont plus sélectionnés
         for (Long currentId : currentIds) {
             if (newClasseIds == null || !newClasseIds.contains(currentId)) {
                 retirerQcmDeClasse(qcmId, currentId);
             }
         }
 
-        // Ajouter les nouveaux
         if (newClasseIds != null) {
             affecterQcmAClasses(qcmId, newClasseIds);
         }

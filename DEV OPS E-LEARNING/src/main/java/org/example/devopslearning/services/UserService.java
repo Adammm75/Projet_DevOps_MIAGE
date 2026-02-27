@@ -25,12 +25,10 @@ public class UserService {
     @Transactional
     public User registerUser(RegisterRequest request, String roleName) {
 
-        // Vérifier si l'email existe déjà
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Cet email est déjà utilisé");
         }
 
-        // Création utilisateur
         User user = new User();
         user.setEmail(request.getEmail());
         user.setFirstName(request.getFirstName());
@@ -40,16 +38,13 @@ public class UserService {
 
         user = userRepository.save(user);
 
-        // Récupération du rôle
         Role role = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new RuntimeException("Role introuvable : " + roleName));
 
-        // Construction de l'ID composite
         UserRoleId userRoleId = new UserRoleId();
         userRoleId.setUserId(user.getId());
         userRoleId.setRoleId(role.getId());
 
-        // Création du lien User ↔ Role
         UserRole userRole = new UserRole();
         userRole.setId(userRoleId);
         userRole.setUser(user);
@@ -65,32 +60,20 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
     }
 
-    /**
-     * Trouve un utilisateur par son username (email)
-     */
     public User findByUsername(String username) {
         return userRepository.findByEmail(username)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé : " + username));
     }
 
-    /**
-     * Trouve un utilisateur par son ID
-     */
     public User findById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
     }
 
-    /**
-     * Liste tous les utilisateurs
-     */
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    /**
-     * ✅ NOUVEAU : Mettre à jour un utilisateur
-     */
     @Transactional
     public User updateUser(User user) {
         User existingUser = findById(user.getId());
@@ -100,17 +83,10 @@ public class UserService {
         return userRepository.save(existingUser);
     }
 
-    /**
-     * ✅ NOUVEAU : Supprimer un utilisateur
-     */
     @Transactional
     public void deleteUser(Long userId) {
         User user = findById(userId);
-
-        // Supprimer d'abord les rôles associés
         userRoleRepository.deleteByUserId(userId);
-
-        // Puis supprimer l'utilisateur
         userRepository.delete(user);
     }
 
@@ -124,7 +100,8 @@ public class UserService {
     }
 
     /**
-     * ✅ CORRIGÉ : utilise CoursRepository injecté + bonne méthode pour les étudiants
+     * ✅ CORRIGÉ : utilise CoursRepository injecté + bonne méthode pour les
+     * étudiants
      */
     public List<Cours> getCoursesForUser(User user) {
         boolean isTeacher = user.getUserRoles().stream()
