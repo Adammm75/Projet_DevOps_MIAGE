@@ -38,6 +38,8 @@
         <div class="card">
             <div class="card-body">
                 <form th:action="@{/teacher/assignments}" method="post">
+
+                    <!-- COURS PRÉ-SÉLECTIONNÉ (caché) -->
                     <input type="hidden" name="courseId" th:value="${course.id}">
 
                     <!-- Affichage du cours sélectionné -->
@@ -195,7 +197,6 @@
                     <li>Indiquez le sujet principal</li>
                 </ul>
 
-
                 <h6 class="mb-3">Classes</h6>
                 <ul class="small mb-4">
                     <li>Sélectionnez les classes concernées par ce devoir</li>
@@ -207,42 +208,21 @@
                     <li>Définissez clairement les objectifs d'apprentissage</li>
                     <li>Listez les livrables attendus</li>
                     <li>Précisez les critères d'évaluation</li>
-                    <li>Indiquez les ressources recommandées</li>
                 </ul>
 
                 <h6 class="mb-3">Date limite</h6>
                 <ul class="small mb-4">
                     <li>Donnez suffisamment de temps aux étudiants</li>
                     <li>Évitez les périodes d'examens</li>
-
-                    <li>Communiquez la date en avance</li>
                 </ul>
 
                 <h6 class="mb-3">Notation</h6>
                 <ul class="small mb-0">
                     <li>Utilisez un barème cohérent</li>
-
-                    <li>Préparez une grille d'évaluation</li>
                     <li>Prévoyez des critères objectifs</li>
                 </ul>
             </div>
         </div>
-
-        <div class="card mt-3 border-warning">
-            <div class="card-body">
-                <h6 class="text-warning">
-                    <i class="bi bi-exclamation-triangle me-2"></i>Important
-                </h6>
-                <p class="small mb-0">
-                    Une fois le devoir créé, les étudiants inscrits à ce cours recevront une notification.
-                    Vous pourrez modifier les détails tant qu'aucune soumission n'a été faite.
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ✅ Script pour définir la date minimale à maintenant -->
     </div>
 </div>
 

@@ -3,115 +3,6 @@
       th:replace="~{layout/base :: layout(~{::body})}">
 
 <body>
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-<!-- ✅ VERSION ÉTUDIANT/ENSEIGNANT (si pas admin) -->
-<div th:if="${!isAdmin}">
-    <div class="row mb-4">
-        <div class="col">
-            <h2 class="mb-0">
-                <i class="bi bi-bell me-2"></i>Mes Notifications
-            </h2>
-            <p class="text-muted mb-0">
-                <span th:text="${unreadCount}">0</span> notification(s) non lue(s)
-            </p>
-        </div>
-        <div class="col-auto">
-            <form th:action="@{/notifications/read-all}" method="post" class="d-inline">
-                <button type="submit" class="btn btn-outline-primary" th:if="${hasUnread}">
-                    <i class="bi bi-check-all me-2"></i>Tout marquer comme lu
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Liste des notifications -->
-    <div class="card">
-        <div class="card-body p-0">
-            <div class="list-group list-group-flush">
-                <!-- Si aucune notification -->
-                <div th:if="${notifications == null || #lists.isEmpty(notifications)}" 
-                     class="list-group-item text-center py-5">
-                    <i class="bi bi-bell-slash fs-1 text-muted d-block mb-3"></i>
-                    <h5 class="text-muted">Aucune notification</h5>
-                    <p class="text-muted">Vous êtes à jour !</p>
-                </div>
-
-                <!-- Pour chaque notification -->
-                <div th:each="n : ${notifications}" 
-                     class="list-group-item" 
-                     th:classappend="${!n.isRead} ? 'bg-light border-start border-warning border-3' : ''">
-                    
-                    <div class="d-flex align-items-start">
-                        <!-- Icône selon le type -->
-                        <div class="me-3 mt-1">
-                            <i th:if="${n.type == 'INACTIVITY_ALERT'}" 
-                               class="bi bi-exclamation-triangle-fill fs-3 text-warning"></i>
-                            <i th:if="${n.type == 'INACTIVITY_RESOLVED'}" 
-                               class="bi bi-check-circle-fill fs-3 text-success"></i>
-                            <i th:if="${n.type != 'INACTIVITY_ALERT' and n.type != 'INACTIVITY_RESOLVED'}" 
-                               class="bi bi-info-circle-fill fs-3 text-primary"></i>
-                        </div>
-
-                        <!-- Contenu -->
-                        <div class="flex-grow-1">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h6 class="mb-0" th:classappend="${!n.isRead} ? 'fw-bold'">
-                                    <span th:text="${n.title}">Titre</span>
-                                </h6>
-                                <small class="text-muted ms-3" 
-                                       th:text="${#temporals.format(n.createdAt, 'dd/MM/yyyy HH:mm')}">
-                                    01/01/2026 10:00
-                                </small>
-                            </div>
-                            
-                            <p class="mb-2" th:text="${n.content}">Contenu de la notification</p>
-                            
-                            <!-- Badge selon le type -->
-                            <span th:if="${n.type == 'INACTIVITY_ALERT'}" 
-                                  class="badge bg-warning text-dark">
-                                <i class="bi bi-exclamation-triangle me-1"></i>
-                                Alerte d'inactivité
-                            </span>
-                            <span th:if="${n.type == 'INACTIVITY_RESOLVED'}" 
-                                  class="badge bg-success">
-                                <i class="bi bi-check-circle me-1"></i>
-                                Alerte résolue
-                            </span>
-                            
-                            <!-- Lien vers le cours si disponible -->
-                            <a th:if="${n.relatedCourse != null}" 
-                               th:href="@{/student/courses/{id}(id=${n.relatedCourse.id})}"
-                               class="badge bg-secondary text-decoration-none ms-2">
-                                <i class="bi bi-book me-1"></i>
-                                <span th:text="${n.relatedCourse.code}">COURS</span>
-                            </a>
-                        </div>
-
-                        <!-- Actions -->
-                        <div class="ms-3">
-                            <form th:action="@{|/notifications/${n.id}/read|}" method="post" class="d-inline">
-                                <button type="submit" 
-                                        class="btn btn-sm btn-outline-secondary" 
-                                        title="Marquer comme lu"
-                                        th:if="${!n.isRead}">
-                                    <i class="bi bi-check"></i>
-                                </button>
-                            </form>
-                            <form th:action="@{|/notifications/${n.id}/delete|}" method="post" class="d-inline">
-                                <button type="submit" 
-                                        class="btn btn-sm btn-outline-danger" 
-                                        title="Supprimer">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-=======
-=======
->>>>>>> origin/base_du_projet_10
 <div class="row mb-4">
     <div class="col">
         <h2 class="mb-0">
@@ -163,100 +54,11 @@
                 <i class="bi bi-graph-up-arrow fs-2 text-primary"></i>
                 <h6 class="mt-2 mb-0 text-primary">Total Utilisateurs</h6>
                 <h4 class="text-primary mb-0" th:text="${stats != null ? stats.totalUsers : 0}">0</h4>
-<<<<<<< HEAD
->>>>>>> origin/base_du_projet_8
-=======
->>>>>>> origin/base_du_projet_10
             </div>
         </div>
     </div>
 </div>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<!-- ✅ VERSION ADMIN (ton code actuel reste intact) -->
-<div th:if="${isAdmin}">
-
-    <div class="row mb-4">
-        <div class="col">
-            <h2 class="mb-0">
-                <i class="bi bi-bell me-2"></i>Notifications Administrateur
-            </h2>
-            <p class="text-muted mb-0">Centre de notifications et tableau de bord</p>
-        </div>
-        <div class="col-auto">
-            <form th:action="@{/notifications/read-all}" method="post" class="d-inline">
-                <button type="submit" class="btn btn-outline-primary" th:if="${hasUnread}">
-                    <i class="bi bi-check-all me-2"></i>Tout marquer comme lu
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Statistiques rapides ADMIN -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card text-center border-danger">
-                <div class="card-body">
-                    <i class="bi bi-exclamation-triangle-fill fs-2 text-danger"></i>
-                    <h6 class="mt-2 mb-0 text-danger">Alertes Système</h6>
-                    <h4 class="text-danger mb-0" th:text="${systemAlertCount != null ? systemAlertCount : 0}">0</h4>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center border-info">
-                <div class="card-body">
-                    <i class="bi bi-person-plus-fill fs-2 text-info"></i>
-                    <h6 class="mt-2 mb-0 text-info">Nouveaux Utilisateurs</h6>
-                    <h4 class="text-info mb-0" th:text="${newUserCount != null ? newUserCount : 0}">0</h4>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center border-success">
-                <div class="card-body">
-                    <i class="bi bi-book-fill fs-2 text-success"></i>
-                    <h6 class="mt-2 mb-0 text-success">Nouveaux Cours</h6>
-                    <h4 class="text-success mb-0" th:text="${courseCount != null ? courseCount : 0}">0</h4>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center border-primary">
-                <div class="card-body">
-                    <i class="bi bi-graph-up-arrow fs-2 text-primary"></i>
-                    <h6 class="mt-2 mb-0 text-primary">Total Utilisateurs</h6>
-                    <h4 class="text-primary mb-0" th:text="${stats != null ? stats.totalUsers : 0}">0</h4>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filtres par catégorie -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="btn-group flex-wrap" role="group">
-                <button type="button" class="btn btn-outline-primary active" onclick="showSection('all')">
-                    <i class="bi bi-list me-2"></i>Toutes
-                </button>
-                <button type="button" class="btn btn-outline-danger" onclick="showSection('system')">
-                    <i class="bi bi-exclamation-triangle me-2"></i>Système
-                </button>
-                <button type="button" class="btn btn-outline-info" onclick="showSection('users')">
-                    <i class="bi bi-people me-2"></i>Utilisateurs
-                </button>
-                <button type="button" class="btn btn-outline-success" onclick="showSection('courses')">
-                    <i class="bi bi-book me-2"></i>Cours
-                </button>
-                <button type="button" class="btn btn-outline-secondary" onclick="showSection('stats')">
-                    <i class="bi bi-graph-up me-2"></i>Visualisations
-                </button>
-            </div>
-        </div>
-=======
-=======
->>>>>>> origin/base_du_projet_10
 <!-- Filtres par catégorie -->
 <div class="card mb-4">
     <div class="card-body">
@@ -278,10 +80,6 @@
             </button>
         </div>
     </div>
-<<<<<<< HEAD
->>>>>>> origin/base_du_projet_8
-=======
->>>>>>> origin/base_du_projet_10
 </div>
 
 <!-- 🚨 SECTION ALERTES SYSTÈME -->

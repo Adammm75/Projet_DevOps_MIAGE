@@ -1,19 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/base :: layout(~{::body})}">
-<<<<<<< HEAD
-<<<<<<< HEAD
 
 <body>
-=======
-<body>
-
-<!-- Header -->
->>>>>>> origin/base_du_projet_8
-=======
-
-<body>
->>>>>>> origin/base_du_projet_10
 <div class="row mb-4">
     <div class="col">
         <nav aria-label="breadcrumb">
@@ -23,16 +12,7 @@
             </ol>
         </nav>
         <h2 class="mb-0">
-<<<<<<< HEAD
-<<<<<<< HEAD
             <i class="bi bi-book me-2"></i><span th:text="${cours.title ?: 'Sans titre'}">Titre du cours</span>
-=======
-            <i class="bi bi-book me-2"></i>
-            <span th:text="${cours.title ?: 'Sans titre'}">Titre du cours</span>
->>>>>>> origin/base_du_projet_8
-=======
-            <i class="bi bi-book me-2"></i><span th:text="${cours.title ?: 'Sans titre'}">Titre du cours</span>
->>>>>>> origin/base_du_projet_10
         </h2>
         <p class="text-muted mb-0">
             <span class="badge bg-primary me-2" th:text="${cours.code ?: 'N/A'}">CODE</span>
@@ -46,37 +26,16 @@
 </div>
 
 <!-- Actions rapides -->
-<<<<<<< HEAD
-<<<<<<< HEAD
 <div class="card mb-4">
-=======
-<div class="card mb-4 border-0 shadow-sm">
->>>>>>> origin/base_du_projet_8
-=======
-<div class="card mb-4">
->>>>>>> origin/base_du_projet_10
     <div class="card-header bg-success text-white">
         <h5 class="mb-0"><i class="bi bi-lightning-fill me-2"></i>Actions rapides</h5>
     </div>
     <div class="card-body">
         <div class="d-flex gap-2 flex-wrap">
-<<<<<<< HEAD
-<<<<<<< HEAD
-            <a th:href="@{/teacher/assignments/course/{id}(id=${cours.id})}" class="btn btn-primary">
-                <i class="bi bi-clipboard-check me-2"></i>Gérer les devoirs
-            </a>
-            <a th:href="@{/teacher/courses/{id}/grades(id=${cours.id})}" class="btn btn-success">
-=======
-=======
->>>>>>> origin/base_du_projet_10
             <a th:href="@{/teacher/assignments(courseId=${cours.id})}" class="btn btn-primary">
                 <i class="bi bi-clipboard-check me-2"></i>Gérer les devoirs
             </a>
             <a th:href="@{/teacher/grades/course/{id}(id=${cours.id})}" class="btn btn-success">
-<<<<<<< HEAD
->>>>>>> origin/base_du_projet_8
-=======
->>>>>>> origin/base_du_projet_10
                 <i class="bi bi-award-fill me-2"></i>Gérer les notes
             </a>
             <a th:href="@{/admin/courses/{id}/enrollment(id=${cours.id})}" class="btn btn-warning">
@@ -92,10 +51,6 @@
     </div>
 </div>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/base_du_projet_10
 <!-- Modal Upload Audio -->
 <div class="modal fade" id="uploadAudioModal" tabindex="-1">
     <div class="modal-dialog">
@@ -130,44 +85,6 @@
 
 <!-- JS pour Upload Audio -->
 <script th:inline="javascript">
-<<<<<<< HEAD
-document.addEventListener('DOMContentLoaded', function() {
-    const uploadBtn = document.getElementById('uploadAudioBtn');
-    const uploadForm = document.getElementById('uploadAudioForm');
-
-    uploadBtn.addEventListener('click', function() {
-        const fileInput = document.getElementById('audioFile');
-        if (!fileInput.files || fileInput.files.length === 0) {
-            alert('Veuillez sélectionner un fichier avant de continuer.');
-            fileInput.focus();
-            return;
-        }
-
-        const formData = new FormData(uploadForm);
-
-        fetch(uploadForm.getAttribute('action'), {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert('Audio uploadé et résumé généré !');
-            console.log('Résumé:', data.summary);
-            const modal = bootstrap.Modal.getInstance(document.getElementById('uploadAudioModal'));
-            modal.hide();
-            uploadForm.reset();
-
-            // Mettre à jour la section résumé si besoin
-            const summaryContent = document.getElementById('courseSummaryContent');
-            if (summaryContent) summaryContent.innerHTML = `<p>${data.summary}</p>`;
-        })
-        .catch(err => {
-            console.error('Erreur upload audio :', err);
-            alert('Erreur lors de l\'upload audio.');
-        });
-    });
-});
-=======
     document.addEventListener('DOMContentLoaded', function() {
         const uploadBtn = document.getElementById('uploadAudioBtn');
         const uploadForm = document.getElementById('uploadAudioForm');
@@ -241,38 +158,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         });
     });
->>>>>>> origin/base_du_projet_10
 </script>
 
 <div class="row">
     <div class="col-md-4">
         <!-- Informations générales -->
         <div class="card mb-4">
-<<<<<<< HEAD
-=======
-<div class="row">
-    <!-- Colonne gauche -->
-    <div class="col-md-4">
-        <!-- Informations générales -->
-        <div class="card mb-4 border-0 shadow-sm">
->>>>>>> origin/base_du_projet_8
-=======
->>>>>>> origin/base_du_projet_10
             <div class="card-header">
                 <h5 class="mb-0">Informations générales</h5>
             </div>
             <div class="card-body">
                 <table class="table table-borderless mb-0">
                     <tr>
-<<<<<<< HEAD
-<<<<<<< HEAD
                         <th style="width: 120px;">ID</th>
-=======
-                        <th style="width:120px;">ID</th>
->>>>>>> origin/base_du_projet_8
-=======
-                        <th style="width: 120px;">ID</th>
->>>>>>> origin/base_du_projet_10
                         <td><span class="badge bg-secondary" th:text="${cours.id}">#1</span></td>
                     </tr>
                     <tr>
@@ -285,21 +183,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     </tr>
                     <tr>
                         <th>Créé le</th>
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/base_du_projet_10
                         <td><small th:text="${#dates.format(T(java.util.Date).from(cours.createdAt), 'dd/MM/yyyy HH:mm')}">01/01/2024</small></td>
                     </tr>
                     <tr th:if="${cours.updatedAt != null}">
                         <th>Modifié le</th>
                         <td><small th:text="${#dates.format(T(java.util.Date).from(cours.updatedAt), 'dd/MM/yyyy HH:mm')}">01/01/2024</small></td>
-<<<<<<< HEAD
-=======
-                        <td><small th:text="${#dates.format(T(java.util.Date).from(cours.createdAt), 'dd/MM/yyyy HH:mm')}">Date</small></td>
->>>>>>> origin/base_du_projet_8
-=======
->>>>>>> origin/base_du_projet_10
                     </tr>
                     <tr>
                         <th>Statut</th>
@@ -309,61 +197,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         </div>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-        <!-- Section Résumé -->
-        <div class="card mb-4">
-=======
-        <!-- ✅ STATS CONSULTATION GLOBALES (NOUVEAU) -->
-        <div class="card mb-4 border-0 shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="bi bi-eye me-2"></i>Consultations</h5>
-            </div>
-            <div class="card-body">
-                <div class="text-center mb-3">
-                    <div class="fs-1 fw-bold text-primary"
-                         th:text="${resources != null ? #lists.size(resources) : 0}">0</div>
-                    <small class="text-muted">ressources publiées</small>
-                </div>
-                <div class="text-center mb-3">
-                    <div class="fs-2 fw-bold text-info" th:text="${totalStudents}">0</div>
-                    <small class="text-muted">étudiants inscrits</small>
-                </div>
-                <hr>
-                <p class="small text-muted mb-1">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Taux de consultation par ressource affiché ci-dessous.
-                </p>
-                <!-- ✅ COMPLÉTION COURS (NOUVEAU) -->
-                <hr>
-                <div class="text-center mt-2">
-                    <i class="bi bi-trophy-fill text-warning fs-4 d-block mb-1"></i>
-                    <div class="fw-bold text-success fs-4" th:text="${completedCount}">0</div>
-                    <small class="text-muted d-block">étudiant(s) ont terminé ce cours</small>
-                    <div class="mt-2" th:if="${totalStudents > 0}">
-                        <div class="progress rounded-pill mb-1" style="height:8px;">
-                            <div class="progress-bar bg-success rounded-pill"
-                                 th:style="'width: ' + ${totalStudents > 0 ? (completedCount * 100 / totalStudents) : 0} + '%'">
-                            </div>
-                        </div>
-                        <small class="text-success fw-semibold"
-                               th:text="${totalStudents > 0 ? #numbers.formatDecimal(completedCount * 100 / totalStudents, 1, 0) : 0} + '% de la classe'">
-                        </small>
-                    </div>
-                    <small th:if="${totalStudents == 0}" class="text-muted">Aucun étudiant inscrit</small>
-                </div>
-            </div>
-        </div>
-
-        <!-- Résumé du cours -->
-        <div class="card mb-4 border-0 shadow-sm">
->>>>>>> origin/base_du_projet_8
-            <div class="card-header bg-secondary text-white">
-                <h5 class="mb-0"><i class="bi bi-file-text me-2"></i>Résumé du cours</h5>
-            </div>
-            <div class="card-body" id="courseSummaryContent">
-<<<<<<< HEAD
-=======
         <!-- Section Résumé -->
         <div class="card mb-4">
             <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
@@ -373,7 +206,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 </button>
             </div>
             <div class="card-body" id="courseSummaryContent">
->>>>>>> origin/base_du_projet_10
                 <p class="text-muted">
                     <i class="bi bi-info-circle me-2"></i>Chargement du résumé...
                 </p>
@@ -387,104 +219,10 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="card-body">
                 <!-- Ressources, devoirs, étudiants -->
-<<<<<<< HEAD
-=======
-                <p class="text-muted"><i class="bi bi-info-circle me-2"></i>Chargement...</p>
->>>>>>> origin/base_du_projet_8
-=======
->>>>>>> origin/base_du_projet_10
             </div>
         </div>
     </div>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-    <div class="col-md-8">
-        <!-- Description, cartes statistiques, ressources, devoirs -->
-    </div>
-</div>
-
-<!-- Retour -->
-=======
-    <!-- Colonne droite -->
-    <div class="col-md-8">
-
-        <!-- ✅ RESSOURCES AVEC TAUX DE CONSULTATION (NOUVEAU) -->
-        <div class="card mb-4 border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
-                <h5 class="mb-0 fw-bold">
-                    <i class="bi bi-folder-fill me-2 text-primary"></i>Ressources pédagogiques
-                </h5>
-                <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#addResourceModal">
-                    <i class="bi bi-plus me-1"></i>Ajouter
-                </button>
-            </div>
-
-            <div class="card-body p-0">
-                <div th:if="${resources == null || #lists.isEmpty(resources)}"
-                     class="text-center py-5">
-                    <i class="bi bi-folder2-open fs-1 text-muted d-block mb-2"></i>
-                    <p class="text-muted">Aucune ressource publiée</p>
-                </div>
-
-                <div class="list-group list-group-flush">
-                    <div th:each="r : ${resources}" class="list-group-item px-4 py-3">
-                        <div class="d-flex justify-content-between align-items-start">
-
-                            <!-- Icône + titre -->
-                            <div class="d-flex align-items-center gap-3 flex-grow-1 me-3">
-                                <i class="bi fs-3" th:classappend="${r.type == 'PDF'} ? 'bi-file-pdf text-danger' : (${r.type == 'WORD'} ? 'bi-file-word text-primary' : (${r.type == 'PPT'} ? 'bi-file-ppt text-warning' : (${r.type == 'AUDIO'} ? 'bi-file-music text-success' : 'bi-file-earmark text-secondary')))"></i>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <h6 class="mb-0 fw-semibold" th:text="${r.title}">Titre</h6>
-                                        <span class="badge bg-light text-secondary border ms-2" th:text="${r.type}">TYPE</span>
-                                    </div>
-                                    <small class="text-muted d-block mb-2" th:text="${r.description}">Description</small>
-
-                                    <!-- ✅ TAUX DE CONSULTATION PAR RESSOURCE -->
-                                    <div th:with="views=${consultationCounts != null ? consultationCounts[r.id] : 0},
-                                                  total=${totalStudents > 0 ? totalStudents : 1},
-                                                  pct=${consultationCounts != null && consultationCounts[r.id] != null ? (consultationCounts[r.id] * 100 / (totalStudents > 0 ? totalStudents : 1)) : 0}">
-
-                                        <div class="d-flex align-items-center gap-2 mb-1">
-                                            <small class="text-muted">
-                                                <i class="bi bi-people me-1"></i>
-                                                <span th:text="${views != null ? views : 0}">0</span>
-                                                /
-                                                <span th:text="${totalStudents}">0</span>
-                                                étudiant(s)
-                                            </small>
-                                            <!-- Badge de popularité -->
-                                            <span th:if="${pct >= 75}" class="badge bg-success bg-opacity-10 text-success" style="font-size:0.7rem;">
-                                                <i class="bi bi-fire me-1"></i>Populaire
-                                            </span>
-                                            <span th:if="${pct > 0 && pct < 25}" class="badge bg-warning bg-opacity-10 text-warning" style="font-size:0.7rem;">
-                                                <i class="bi bi-exclamation-triangle me-1"></i>Peu consultée
-                                            </span>
-                                            <span th:if="${pct == 0}" class="badge bg-danger bg-opacity-10 text-danger" style="font-size:0.7rem;">
-                                                <i class="bi bi-eye-slash me-1"></i>Non consultée
-                                            </span>
-                                        </div>
-                                        <div class="progress rounded-pill" style="height:6px; max-width:300px;">
-                                            <div class="progress-bar rounded-pill"
-                                                 th:classappend="${pct >= 75} ? 'bg-success' : (${pct >= 25} ? 'bg-info' : (${pct > 0} ? 'bg-warning' : 'bg-danger'))"
-                                                 th:style="'width: ' + ${pct} + '%'">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Actions -->
-                            <div class="d-flex gap-1">
-                                <form th:action="@{/teacher/courses/{cid}/resources/{rid}/delete(cid=${cours.id},rid=${r.id})}"
-                                      method="post"
-                                      onsubmit="return confirm('Supprimer cette ressource ?')">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-=======
     <div class="col-md-8">
 
         <!-- ========================================
@@ -539,7 +277,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                        th:classappend="${attendanceDoneMap != null && attendanceDoneMap[s.id]} ? 'bi-eye' : 'bi-clipboard-check'"></i>
                                     <span th:text="${attendanceDoneMap != null && attendanceDoneMap[s.id]} ? 'Voir' : 'Faire l\'appel'">Faire l'appel</span>
                                 </a>
->>>>>>> origin/base_du_projet_10
                             </div>
                         </div>
                     </div>
@@ -547,100 +284,10 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         </div>
 
-<<<<<<< HEAD
-        <!-- Devoirs -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom py-3">
-                <h5 class="mb-0 fw-bold">
-                    <i class="bi bi-clipboard-check me-2 text-info"></i>Devoirs
-                </h5>
-            </div>
-            <div class="card-body">
-                <div th:if="${assignments == null || #lists.isEmpty(assignments)}"
-                     class="text-center py-3 text-muted">
-                    <i class="bi bi-inbox d-block fs-2 mb-2"></i>Aucun devoir
-                </div>
-                <div th:each="a : ${assignments}" class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                    <div>
-                        <strong th:text="${a.title}">Titre</strong>
-                        <small class="text-muted d-block"
-                               th:text="'Limite : ' + ${#temporals.format(a.dueDate, 'dd/MM/yyyy HH:mm')}">Date</small>
-                    </div>
-                    <span class="badge bg-primary" th:text="${a.maxGrade} + ' pts'">20 pts</span>
-                </div>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<!-- Modal upload audio -->
-<div class="modal fade" id="uploadAudioModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title"><i class="bi bi-upload me-2"></i>Uploader un fichier audio</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="uploadAudioForm" th:action="@{/api/v1/audio/upload}" method="post" enctype="multipart/form-data">
-                <div class="modal-body">
-                    <input type="hidden" name="courseId" th:value="${cours.id}">
-                    <div class="mb-3">
-                        <label class="form-label">Titre</label>
-                        <input type="text" class="form-control" name="title" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Fichier audio (.mp3)</label>
-                        <input type="file" class="form-control" name="file" accept=".mp3" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="button" class="btn btn-primary" id="uploadAudioBtn">
-                        <i class="bi bi-upload me-2"></i>Uploader
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal ajout ressource -->
-<div class="modal fade" id="addResourceModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-file-earmark-plus me-2"></i>Ajouter une ressource</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form th:action="@{/teacher/courses/{id}/resources/add(id=${cours.id})}"
-                  method="post" enctype="multipart/form-data">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Titre</label>
-                        <input type="text" class="form-control" name="title" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Fichier</label>
-                        <input type="file" class="form-control" name="file" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-primary">Ajouter</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
->>>>>>> origin/base_du_projet_8
-=======
     </div>
 </div>
 
 <!-- Retour -->
->>>>>>> origin/base_du_projet_10
 <div class="row mt-4">
     <div class="col">
         <a th:href="@{/teacher/courses}" class="btn btn-outline-secondary">
@@ -649,71 +296,6 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<!-- JS pour récupérer résumé déjà existant si audio a été uploadé avant -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const summaryContent = document.getElementById('courseSummaryContent');
-
-    // Récupérer le courseId depuis l'URL
-    const urlParts = window.location.pathname.split('/');
-    // Exemple URL: /teacher/courses/8912585819139254770
-    const courseId = urlParts[urlParts.length - 1];
-
-    fetch(`/api/v1/courses/${courseId}/summary`)
-        .then(resp => resp.json())
-        .then(data => {
-            if (data.summary && data.summary.trim() !== "") {
-                summaryContent.innerHTML = `<p>${data.summary}</p>`;
-            } else {
-                summaryContent.innerHTML = `
-                <p class="text-muted">
-                    <i class="bi bi-info-circle me-2"></i>Aucun résumé disponible
-                </p>`;
-            }
-        })
-        .catch(err => {
-            console.error('Erreur récupération résumé :', err);
-        });
-});
-</script>
-</body>
-</html>
-=======
-<script>
-    // Résumé du cours
-    document.addEventListener('DOMContentLoaded', function () {
-        const urlParts = window.location.pathname.split('/');
-        const courseId = urlParts[urlParts.length - 1];
-        fetch(`/api/v1/courses/${courseId}/summary`)
-            .then(r => r.json())
-            .then(data => {
-                document.getElementById('courseSummaryContent').innerHTML =
-                    data.summary ? `<p>${data.summary}</p>` :
-                        `<p class="text-muted"><i class="bi bi-info-circle me-2"></i>Aucun résumé disponible</p>`;
-            }).catch(() => {});
-
-        // Upload audio
-        document.getElementById('uploadAudioBtn')?.addEventListener('click', function () {
-            const form = document.getElementById('uploadAudioForm');
-            const fileInput = form.querySelector('[name="file"]');
-            if (!fileInput.files?.length) { alert('Sélectionnez un fichier'); return; }
-            fetch(form.action, { method: 'POST', body: new FormData(form) })
-                .then(r => r.json())
-                .then(() => {
-                    alert('Audio uploadé !');
-                    bootstrap.Modal.getInstance(document.getElementById('uploadAudioModal')).hide();
-                    form.reset();
-                }).catch(() => alert('Erreur upload audio'));
-        });
-    });
-</script>
-
-</body>
-</html>
->>>>>>> origin/base_du_projet_8
-=======
 <!-- JS pour récupérer résumé déjà existant si audio a été uploadé avant (formatage + PDF comme code 2) -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -791,4 +373,3 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
->>>>>>> origin/base_du_projet_10

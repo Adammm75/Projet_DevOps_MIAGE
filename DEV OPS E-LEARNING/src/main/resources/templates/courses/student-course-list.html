@@ -3,16 +3,6 @@
       th:replace="~{layout/base :: layout(~{::body})}">
 
 <body>
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/base_du_projet_4
-=======
->>>>>>> origin/base_du_projet_8
-=======
->>>>>>> origin/base_du_projet_10
 <div class="row mb-4">
     <div class="col">
         <h2 class="mb-0">
@@ -22,32 +12,7 @@
     </div>
 </div>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/base_du_projet_8
-<!-- Filtres -->
-<div class="card mb-4">
-    <div class="card-body">
-        <form class="row g-3">
-            <div class="col-md-6">
-                <input type="text" class="form-control" name="search" placeholder="Rechercher un cours...">
-            </div>
-            <div class="col-md-4">
-                <select class="form-select" name="status">
-                    <option value="" selected>Tous les cours</option>
-                    <option value="ACTIVE">En cours</option>
-                    <option value="COMPLETED">Terminés</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-<<<<<<< HEAD
-=======
-<!-- Barre de recherche -->
-=======
 
->>>>>>> origin/base_du_projet_10
 <div class="card mb-4">
     <div class="card-body">
         <form id="searchForm" class="row g-3">
@@ -59,12 +24,6 @@
                        placeholder="Rechercher par mot clé ">
             </div>
             <div class="col-md-4">
-<<<<<<< HEAD
->>>>>>> origin/base_du_projet_4
-=======
->>>>>>> origin/base_du_projet_8
-=======
->>>>>>> origin/base_du_projet_10
                 <button type="submit" class="btn btn-primary w-100">
                     <i class="bi bi-search me-2"></i>Rechercher
                 </button>
@@ -73,31 +32,11 @@
     </div>
 </div>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<!-- Liste des cours -->
-<div class="row">
-=======
-<!-- Résultats de recherche dynamiques -->
-<div id="searchResults" class="row mb-4"></div>
-
-<!-- Liste normale des cours -->
-<div id="courseList" class="row">
-
-    <!-- Aucun cours -->
->>>>>>> origin/base_du_projet_4
-=======
-<!-- Liste des cours -->
-<div class="row">
->>>>>>> origin/base_du_projet_8
-=======
 
 <div id="searchResults" class="row mb-4"></div>
 
 
 <div id="courseList" class="row">
->>>>>>> origin/base_du_projet_10
     <div th:if="${courses == null || #lists.isEmpty(courses)}" class="col-12">
         <div class="card">
             <div class="card-body text-center py-5">
@@ -108,13 +47,6 @@
         </div>
     </div>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/base_du_projet_8
-=======
->>>>>>> origin/base_du_projet_10
     <div th:each="c : ${courses}" class="col-lg-6 mb-4">
         <div class="card h-100 hover-shadow">
             <div class="card-body">
@@ -124,44 +56,11 @@
                 </div>
 
                 <h5 class="card-title mb-3" th:text="${c.title}">Titre du cours</h5>
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-    <!-- Boucle cours -->
-    <div th:each="c : ${courses}" class="col-lg-6 mb-4">
-        <div class="card h-100 hover-shadow">
-            <div class="card-body">
-
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="badge bg-primary fs-6"
-                          th:text="${c.code}">CODE</span>
-                    <span class="badge bg-success">Actif</span>
-                </div>
-
-                <h5 class="card-title mb-3"
-                    th:text="${c.title}">Titre du cours</h5>
->>>>>>> origin/base_du_projet_4
-=======
->>>>>>> origin/base_du_projet_8
-=======
->>>>>>> origin/base_du_projet_10
 
                 <p class="card-text text-muted">
                     <span th:if="${c.description != null && !#strings.isEmpty(c.description)}"
                           th:text="${#strings.abbreviate(c.description, 150)}">
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
                         Description du cours...
-=======
-                        Description...
->>>>>>> origin/base_du_projet_4
-=======
-                        Description du cours...
->>>>>>> origin/base_du_projet_8
-=======
-                        Description du cours...
->>>>>>> origin/base_du_projet_10
                     </span>
                     <span th:if="${c.description == null || #strings.isEmpty(c.description)}"
                           class="fst-italic">
@@ -171,33 +70,9 @@
 
                 <hr>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
                 <div class="row text-center mb-3">
                     <div class="col-4">
                         <div class="text-muted small">Devoirs</div>
-<<<<<<< HEAD
-                        <div class="fs-5 fw-bold" th:text="${c.assignmentsCount != null ? c.assignmentsCount : 0}">0</div>
-                    </div>
-                    <div class="col-4">
-                        <div class="text-muted small">QCM</div>
-                        <div class="fs-5 fw-bold" th:text="${c.qcmsCount != null ? c.qcmsCount : 0}">0</div>
-                    </div>
-                    <div class="col-4">
-                        <div class="text-muted small">Ressources</div>
-                        <div class="fs-5 fw-bold" th:text="${c.resourcesCount != null ? c.resourcesCount : 0}">0</div>
-=======
-=======
-                <!-- ✅ CORRIGÉ - Utilise les collections directement -->
-                <div class="row text-center mb-3">
-                    <div class="col-4">
-                        <div class="text-muted small">Devoirs</div>
->>>>>>> origin/base_du_projet_8
-=======
-                <div class="row text-center mb-3">
-                    <div class="col-4">
-                        <div class="text-muted small">Devoirs</div>
->>>>>>> origin/base_du_projet_10
                         <div class="fs-5 fw-bold">-</div>
                     </div>
                     <div class="col-4">
@@ -207,43 +82,14 @@
                     <div class="col-4">
                         <div class="text-muted small">Ressources</div>
                         <div class="fs-5 fw-bold">-</div>
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> origin/base_du_projet_4
-=======
->>>>>>> origin/base_du_projet_8
-=======
->>>>>>> origin/base_du_projet_10
                     </div>
                 </div>
 
                 <div class="d-grid gap-2">
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/base_du_projet_8
-=======
->>>>>>> origin/base_du_projet_10
                     <a th:href="@{|/student/courses/${c.id}|}" class="btn btn-primary">
                         <i class="bi bi-box-arrow-in-right me-2"></i>Accéder au cours
                     </a>
                 </div>
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-                    <a th:href="@{|/student/courses/${c.id}|}"
-                       class="btn btn-primary">
-                        <i class="bi bi-box-arrow-in-right me-2"></i>
-                        Accéder au cours
-                    </a>
-                </div>
-
->>>>>>> origin/base_du_projet_4
-=======
->>>>>>> origin/base_du_projet_8
-=======
->>>>>>> origin/base_du_projet_10
             </div>
 
             <div class="card-footer bg-light">
@@ -257,13 +103,6 @@
                     </small>
                     <small class="text-muted">
                         <i class="bi bi-calendar me-1"></i>
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/base_du_projet_8
-=======
->>>>>>> origin/base_du_projet_10
                         <span th:text="${#temporals.format(c.createdAt, 'dd/MM/yyyy')}">01/01/2024</span>
                     </small>
                 </div>
@@ -282,34 +121,6 @@
     }
 </style>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-                        <span th:text="${#temporals.format(c.createdAt, 'dd/MM/yyyy')}">
-                            01/01/2024
-                        </span>
-                    </small>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-</div>
-
-<style>
-.hover-shadow {
-    transition: all 0.3s ease;
-}
-.hover-shadow:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-    transform: translateY(-2px);
-}
-</style>
-
-<!-- Script Recherche Dynamique -->
-=======
->>>>>>> origin/base_du_projet_10
 <script>
 document.getElementById('searchForm').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -367,11 +178,5 @@ document.getElementById('searchForm').addEventListener('submit', function(e) {
 });
 </script>
 
-<<<<<<< HEAD
->>>>>>> origin/base_du_projet_4
-=======
->>>>>>> origin/base_du_projet_8
-=======
->>>>>>> origin/base_du_projet_10
 </body>
 </html>
